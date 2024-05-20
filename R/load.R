@@ -8,6 +8,19 @@ dirname_functions = dirname(sys.frame(1)$ofile)
 ### Convert the vcf data into allele frequencies (Output: p x n matrix)
 ### where we have p biallelic loci and n entries, and allele frequencies refer to the frequency of the reference allele
 fn_extract_allele_frequencies = function(vcf) {
+    ###################################################
+    ### TEST
+    # set.seed(123)
+    # n_alleles = 2
+    # pheno_reps = 3
+    # G = simquantgen::fn_simulate_genotypes(n=100, l=1000, ploidy=42, n_alleles=n_alleles, verbose=FALSE)
+    # list_Y_b_E_b_epi = simquantgen::fn_simulate_phenotypes(G=G, n_alleles=n_alleles, dist_effects="norm", n_effects=10, h2=0.5, pheno_reps=pheno_reps, verbose=FALSE)
+    # Y = list_Y_b_E_b_epi$Y
+    # df = data.frame(y=as.vector(Y), gen=rep(rownames(G), times=pheno_reps))
+    # vcf = 
+    ###################################################
+    ### Check input type
+
     vec_loci_names = paste(vcfR::getCHROM(vcf), vcfR::getPOS(vcf), vcfR::getREF(vcf), sep="_")
     vec_pool_names = colnames(vcf@gt)[-1]
     vec_elements = unique(vcf@gt[, 1])

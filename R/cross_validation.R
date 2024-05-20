@@ -356,7 +356,7 @@ fn_leave_one_population_out_cross_validation = function(G, y, pop, COVAR=NULL, m
 }
 
 ### Within population, across populations, and per se genomic predictions
-fn_within_across_perse_genomic_prediction = function(G, idx_col_y, args) {
+fn_within_across_perse_genomic_prediction = function(G, idx_col_y, args, dir_tmp) {
     # G=X; idx_col_y=vec_idx_col_y[1]; args=args
     ### Load phenotype data
     print("##################################################")
@@ -424,8 +424,8 @@ fn_within_across_perse_genomic_prediction = function(G, idx_col_y, args) {
     ##################################################
     print("##################################################")
     print("Within population cross-validation:")
-    df_metrics = NULL
-    df_y_pred = NULL
+    # df_metrics = NULL
+    # df_y_pred = NULL
     vec_fnames_metrics = c()
     vec_fnames_y_pred = c()
     for (pop_id in vec_pop) {
@@ -454,13 +454,13 @@ fn_within_across_perse_genomic_prediction = function(G, idx_col_y, args) {
         list_out$df_metrics$pop = pop_id
         vec_fnames_metrics = c(vec_fnames_metrics, list_out$fnames_metrics)
         vec_fnames_y_pred = c(vec_fnames_y_pred, list_out$fnames_y_pred)
-        if (is.null(df_metrics)) {
-            df_metrics = list_out$df_metrics
-            df_y_pred = list_out$df_y_pred
-        } else {
-            df_metrics = rbind(df_metrics, list_out$df_metrics)
-            df_y_pred = rbind(df_y_pred, list_out$df_y_pred)
-        }
+        # if (is.null(df_metrics)) {
+        #     df_metrics = list_out$df_metrics
+        #     df_y_pred = list_out$df_y_pred
+        # } else {
+        #     df_metrics = rbind(df_metrics, list_out$df_metrics)
+        #     df_y_pred = rbind(df_y_pred, list_out$df_y_pred)
+        # }
     }
     ### Cleanup
     for (i in 1:length(vec_fnames_metrics)) {
@@ -472,8 +472,8 @@ fn_within_across_perse_genomic_prediction = function(G, idx_col_y, args) {
     #####################################################################
     if ((args$skip_lopo_cv==TRUE) | (length(unique(pop))==1)) {
         args$skip_lopo_cv = TRUE
-        METRICS_ACROSS_POP = NULL
-        YPRED_ACROSS_POP = NULL
+        METRICS_ACROSS_POP_LOPO = NULL
+        YPRED_ACROSS_POP_LOPO = NULL
         print("Skipping leave-one-population-out cross-validation as only one population was supplied.")
     } else {
         print("##################################################")
@@ -488,14 +488,101 @@ fn_within_across_perse_genomic_prediction = function(G, idx_col_y, args) {
                                                                 mem_mb=args$mem_mb,
                                                                 prefix_tmp=paste0(prefix, "-LOPO"),
                                                                 verbose=args$verbose)
-        METRICS_ACROSS_POP = list_out$df_metrics
-        YPRED_ACROSS_POP = list_out$df_y_pred
+        METRICS_ACROSS_POP_LOPO = list_out$df_metrics
+        YPRED_ACROSS_POP_LOPO = list_out$df_y_pred
         ### Cleanup
         for (i in 1:length(list_out$fnames_metrics)) {
             unlink(list_out$fnames_metrics[i])
             unlink(list_out$fnames_y_pred[i])
         }
     }
+    ################################################################
+    ### ACROSS POPULATIONS: pairwise population cross-validation ###
+    ################################################################
+    if ((args$skip_pairwise_cv==TRUE) | (length(unique(pop))==1)) {
+        args$skip_pairwise_cv = TRUE
+        METRICS_ACROSS_POP_PAIRWISE = NULL
+        YPRED_ACROSS_POP_PAIRWISE = NULL
+        print("Skipping leave-one-population-out cross-validation as only one population was supplied.")
+    } else {
+        # df_metrics = NULL
+        # df_y_pred = NULL
+        vec_fnames_metrics = c()
+        vec_fnames_y_pred = c()
+        for (pop_id_1 in vec_pop) {
+            for (pop_id_2 in vec_pop) {
+                # pop_id_1 = vec_pop[1]; pop_id_2 = vec_pop[2]
+                if (pop_id_1==pop_id_2) {
+                    next
+                }
+                print("-----------------------------------")
+                idx_1 = which(pop == pop_id_1)
+                idx_2 = which(pop == pop_id_2)
+                print(paste0("Training population: ", pop_id_1, " (n=", length(idx_1), " x p=", ncol(G), ")"))
+                print(paste0("Validation population: ", pop_id_2, " (n=", length(idx_2), " x p=", ncol(G), ")"))
+                prefix = file.path(dir_tmp, gsub(".vcf.gz$", "", ignore.case=TRUE, gsub(".vcf$", "", ignore.case=TRUE, gsub(".rds$", "", ignore.case=TRUE, basename(args$fname_rds_or_vcf)))))
+                list_out = fn_pairwise_cross_validation(G_training=G[idx_1, , drop=FALSE], 
+                                                        G_validation=G[idx_2, , drop=FALSE],
+                                                        y_training=y[ idx_1, , drop=FALSE],
+                                                        y_validation=y[ idx_2, , drop=FALSE],
+                                                        COVAR=COVAR[idx, , drop=FALSE],
+                                                        models_to_test=args$models_to_test,
+                                                        n_threads=args$n_threads,
+                                                        mem_mb=args$mem_mb,
+                                                        prefix_tmp=paste0(prefix, "-PAIRWISE-pop1_", pop_id_1, "-pop2_", pop_id_2),
+                                                        verbose=args$verbose)
+                if (length(list_out$df_metrics) == 1) {
+                    ### Quit, if cross-validation failed because the number size of each set is less than 2.
+                    ### The error message from fn_cross_validation(...) will recommend decreasing k_folds.
+                    if (is.na(list_out$df_metrics)) {
+                        quit()
+                    }
+                }
+                list_out$df_metrics$training_pop = pop_id_1
+                list_out$df_metrics$validation_pop = pop_id_2
+                vec_fnames_metrics = c(vec_fnames_metrics, list_out$fnames_metrics)
+                vec_fnames_y_pred = c(vec_fnames_y_pred, list_out$fnames_y_pred)
+                # if (is.null(df_metrics)) {
+                #     df_metrics = list_out$df_metrics
+                #     df_y_pred = list_out$df_y_pred
+                # } else {
+                #     df_metrics = rbind(df_metrics, list_out$df_metrics)
+                #     df_y_pred = rbind(df_y_pred, list_out$df_y_pred)
+                # }
+            }
+        }
+        METRICS_ACROSS_POP_PAIRWISE = list_out$df_metrics
+        YPRED_ACROSS_POP_PAIRWISE = list_out$df_y_pred
+        ### Cleanup
+        for (i in 1:length(vec_fnames_metrics)) {
+            unlink(vec_fnames_metrics[i])
+            unlink(vec_fnames_y_pred[i])
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     ######################################################################
     ### PER SE GENOMIC PREDICTION: using the best model per population ###
     ######################################################################
@@ -601,13 +688,15 @@ fn_within_across_perse_genomic_prediction = function(G, idx_col_y, args) {
     }
     ### Output    
     out_per_phenotype = list(
-        TRAIT_NAME          = list_y_pop$trait_name,
-        SUMMARY             = df_top_models,
-        METRICS_WITHIN_POP  = df_metrics,
-        YPRED_WITHIN_POP    = df_y_pred,
-        METRICS_ACROSS_POP  = METRICS_ACROSS_POP,
-        YPRED_ACROSS_POP    = YPRED_ACROSS_POP,
-        GENOMIC_PREDICTIONS = GENOMIC_PREDICTIONS
+        TRAIT_NAME                  = list_y_pop$trait_name,
+        SUMMARY                     = df_top_models,
+        METRICS_WITHIN_POP          = df_metrics,
+        YPRED_WITHIN_POP            = df_y_pred,
+        METRICS_ACROSS_POP_LOPO     = METRICS_ACROSS_POP_LOPO,
+        YPRED_ACROSS_POP_LOPO       = YPRED_ACROSS_POP_LOPO,
+        METRICS_ACROSS_POP_PAIRWISE = METRICS_ACROSS_POP_PAIRWISE,
+        YPRED_ACROSS_POP_PAIRWISE   = YPRED_ACROSS_POP_PAIRWISE,
+        GENOMIC_PREDICTIONS         = GENOMIC_PREDICTIONS
     )
     return(out_per_phenotype)
 }

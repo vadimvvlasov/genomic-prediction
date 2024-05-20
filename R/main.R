@@ -181,7 +181,7 @@ print("##################################################")
 print("Genomic prediction cross-validations per trait:")
 out = list()
 for (idx_col_y in vec_idx_col_y) {
-    gp = fn_within_across_perse_genomic_prediction(G=X, idx_col_y=idx_col_y, args=args)
+    gp = fn_within_across_perse_genomic_prediction(G=X, idx_col_y=idx_col_y, args=args, dir_tmp=dir_tmp)
     trait_name = gp$TRAIT_NAME
     eval(parse(text=paste0("out$`", trait_name, "` = gp")))
 }
