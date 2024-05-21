@@ -1,43 +1,179 @@
+suppressWarnings(suppressPackageStartupMessages(library(simquantgen)))
 suppressWarnings(suppressPackageStartupMessages(library(vcfR)))
 suppressWarnings(suppressPackageStartupMessages(library(txtplot)))
 suppressWarnings(suppressPackageStartupMessages(library(testthat)))
 
-dirname_functions = dirname(sys.frame(1)$ofile)
+# dirname_functions = dirname(sys.frame(1)$ofile)
 # dirname_functions = "/group/pasture/Jeff/genomic_selection/src"; source(file.path(dirname_functions, "load.R"))
+
+### Create an error class
+setClass("gpError", representation(code="numeric", message="character"), prototype(code=0, message="Empty error message. Please define."))
+### Create an error chaining method
+setGeneric("chain", function(x, y){
+    standardGeneric("chain")
+})
+setMethod(f="chain",
+  signature=c(x="gpError", y="gpError"),
+  function(x, y) {
+    codes = c(x@code, y@code)
+    messages = c(x@message, y@message)
+    return(new("gpError", code=codes, message=messages))
+  }
+)
+# err1 = new("gpError", code=1, message="message 1")
+# err2 = new("gpError", code=2, message="message 2")
+# err3 = chain(err1, err2)
+# err4 = chain(err1, err3)
+
+
+
+#' Simple wrapper of simquantgen simulation of 10-QTL additive effects on 5-chromosome genome and a single trait
+#' 
+#' @param df data frame containing the model variables
+#' @param trait name of the continuous numeric response variable in the data frame
+#' @param id name of the entry field (main explanatory variable) in the data frame
+#' @param verbose show model fitting messages?
+#' @returns
+#' df_effects: data frame trial-estimated breeding values (fields: id, BLUPs)
+#' loglik: log-likelihood of the best-fitting model
+#' AIC:  Akaike information criterion (prediction error estimator) of the best-fitting model
+#' BIC: Bayesian information criterion (another prediction error estimator) of the best-fitting model
+#' algorithm: model fitting algorithm used, i.e. Henderson's (mmec) or Newton-Raphson-transformations (mmer)
+#' model: Specification of the best-fitting linear model
+#' V: Variance-covariance component of the random effects
+#' df_fixed_effects: data frame of fixed factor names, and their corresponding effects
+#' @examples
+#' df = fn_simulate_gx1(design="crd")
+#' out = fn_GX1_CRD_BLUPs(df=df, trait="y", id="gen", verbose=TRUE)
+#' @export
+fn_simulate_data = function(n=100, l=1000, ploidy=42, n_alleles=2, depth=100, pheno_reps=1, seed=12345, save_vcf_gz=FALSE, verbose=FALSE) {
+    ###################################################
+    ### TEST
+    # n = 1000
+    # l = 10000
+    # ploidy = 42
+    # n_alleles = 2
+    # depth = 100
+    # pheno_reps = 1
+    # seed = 12345
+    # save_vcf_gz = FALSE
+    # verbose = FALSE
+    ###################################################
+    set.seed(seed)
+    G = simquantgen::fn_simulate_genotypes(n=n, l=l, ploidy=ploidy, n_alleles=n_alleles, verbose=verbose)
+    list_Y_b_E_b_epi = simquantgen::fn_simulate_phenotypes(G=G, n_alleles=n_alleles, dist_effects="norm", n_effects=10, h2=0.5, pheno_reps=pheno_reps, verbose=FALSE)
+    y = list_Y_b_E_b_epi$Y[,1]
+    n = nrow(G)
+    p = ncol(G)
+    vec_ids = rownames(G)
+    vec_loci = colnames(G)
+    vec_chr = unlist(lapply(strsplit(vec_loci, "-"), FUN=function(x){x[1]}))
+    vec_pos = unlist(lapply(strsplit(vec_loci, "-"), FUN=function(x){x[2]}))
+    vec_ref = unlist(lapply(strsplit(vec_loci, "-"), FUN=function(x){x[3]}))
+    vec_alt = rep(paste0("allele_", n_alleles), times=p)
+    META = c("##fileformat=VCFv", paste0("##", vec_chr), "##Extracted from text file.")
+    FIX = cbind(vec_chr, vec_pos, vec_loci, vec_ref, vec_alt, rep(NA, each=p), rep("PASS", each=p), rep(NA, each=p))
+    colnames(FIX) = c("CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO")
+    GT_AD = matrix("", nrow=p, ncol=(n+1))
+    GT_AD[,1] = "GT:AD"
+    colnames(GT_AD) = c("FORMAT", vec_ids)
+    if (verbose) {pb = txtProgressBar(min=0, max=n, style=3)}
+    for (i in 1:n) {
+        for (j in 1:p) {
+            ### We're assuming that the counts in G are for the reference alleles
+            g = round(2 * G[i, j])
+            if (is.na(g)) {
+                GT_AD[j, (i+1)] = "./."
+            } else {
+                if (g == 0) {
+                    GT_AD[j, (i+1)] = "1/1"
+                } else if (g == 1) {
+                    GT_AD[j, (i+1)] = "0/1"
+                } else if (g == 2) {
+                    GT_AD[j, (i+1)] = "0/0"
+                } else {
+                    GT_AD[j, (i+1)] = "./."
+                }
+            }
+            tot_depth = sample(c(ceiling(depth/2):depth), size=1)
+            ref_depth = round(tot_depth*G[i, j])
+            alt_depth = tot_depth - ref_depth
+            GT_AD[j, (i+1)] = paste0(GT_AD[j, (i+1)], ":", ref_depth, ",", alt_depth)
+        }
+        if (verbose) {setTxtProgressBar(pb, i)}
+    }
+    if (verbose) {close(pb)}
+    ### Load dummy vcf file from pinfsc50 package which comes with vcfR as one of its dependencies
+    vcf_dummy = vcfR::read.vcfR(system.file("extdata", "pinf_sc50.vcf.gz", package = "pinfsc50"), verbose=FALSE)
+    ### Create the new vcfR object
+    vcf = vcf_dummy
+    vcf@meta = META
+    vcf@fix = FIX
+    vcf@gt = GT_AD
+    if (verbose) {print(vcf)}
+    ### Define the phenotype data frame
+    df = data.frame(id=names(y), trait=y); rownames(df) = NULL
+    if (verbose) {
+        print("Simulated allele frequency distribution:")
+        print(paste0(c("q_min=", "q_max="), round(range(G), 4)))
+        txtplot::txtdensity(G)
+        print("Simulated phenotype distribution:")
+        print(paste0(c("y_min=", "y_max="), round(range(df$trait), 4)))
+        txtplot::txtdensity(df$trait)
+    }
+    ### Save into files
+    if (save_vcf_gz) {
+        date = gsub("-", "", gsub("[.]", "", gsub(":", "", gsub(" ", "", as.character(Sys.time())))))
+        fname_vcf_gz = file.path(getwd(), paste0("simulated_genotype-", date, ".vcf.gz"))
+        fname_tsv = file.path(getwd(), paste0("simulated_phenotype-", date, ".tsv"))
+        vcfR::write.vcf(vcf, file=fname_vcf_gz)
+        write.table(df, file=fname_tsv, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
+        print("Output *.vcf.gz file:")
+        print(fname_vcf_gz)
+        # system(paste0("gunzip -f ", "test", ".vcf.gz"))
+        # vcf_new_loaded = vcfR::read.vcfR(paste0("test", ".vcf.gz"))
+        # print(vcf_new_loaded)
+        return(list(vcf=vcf, df=df, fname_vcf_gz=fname_vcf_gz, fname_tsv=fname_tsv))
+    } else {
+        return(list(vcf=vcf, df=df, fname_vcf_gz=NULL, fname_tsv=NULL))
+    }
+}
 
 ### Convert the vcf data into allele frequencies (Output: p x n matrix)
 ### where we have p biallelic loci and n entries, and allele frequencies refer to the frequency of the reference allele
-fn_extract_allele_frequencies = function(vcf) {
+fn_extract_allele_frequencies = function(vcf, verbose=FALSE) {
     ###################################################
     ### TEST
-    # set.seed(123)
-    # n_alleles = 2
-    # pheno_reps = 3
-    # G = simquantgen::fn_simulate_genotypes(n=100, l=1000, ploidy=42, n_alleles=n_alleles, verbose=FALSE)
-    # list_Y_b_E_b_epi = simquantgen::fn_simulate_phenotypes(G=G, n_alleles=n_alleles, dist_effects="norm", n_effects=10, h2=0.5, pheno_reps=pheno_reps, verbose=FALSE)
-    # Y = list_Y_b_E_b_epi$Y
-    # df = data.frame(y=as.vector(Y), gen=rep(rownames(G), times=pheno_reps))
-    # vcf = 
+    # vcf = fn_simulate_data(verbose=TRUE, save_vcf_gz=FALSE)$vcf
     ###################################################
     ### Check input type
-
+    if (class(vcf) != "vcfR") {
+        error = list(code=101, message="Error in load::fn_extract_allele_frequencies(vcf): vcf is not a vcfR object.")
+        return(error)
+    }
+    ### Extract loci and pool/sample names
     vec_loci_names = paste(vcfR::getCHROM(vcf), vcfR::getPOS(vcf), vcfR::getREF(vcf), sep="_")
     vec_pool_names = colnames(vcf@gt)[-1]
     vec_elements = unique(vcf@gt[, 1])
     if (length(vec_elements) > 1) {
-        print("Please check the format of your input vcf file.")
-        print(paste0("     - The same fields across loci is required."))
-        print(paste0("     - Please pick one field architecture from the following: ", paste(paste0("'", vec_elements, "'"), collapse=","), "."))
-        print(paste0("     - Reformat your vcf file to have the same fields across loci."))
-        quit()
+        error = list(code=102, 
+            message=paste0(
+                "Error in load::fn_extract_allele_frequencies(vcf): please check the format of your input vcf file. ",
+                "The same fields across loci is required. ",
+                "Please pick one field architecture from the following: ", paste(paste0("'", vec_elements, "'"), collapse=","), ". ",
+                "Reformat your vcf file to have the same fields across loci."))
+        return(error)
     }
     if (!grepl("AD", vec_elements) & !grepl("GT", vec_elements)) {
-        print("Please check the format of your input vcf file.")
-        print(paste0("     - Make sure the 'AD' and/or 'GT' fields are present."))
-        print(paste0("     - These are the fields present in your vcf file: ", gsub(":", ", ", vec_elements), "."))
-        print(paste0("     - Regenerate your vcf file to include the 'AD' field and/or 'GT' field."))
-        quit()
+        error = list(code=103, 
+            message=paste0(
+                "Error in load::fn_extract_allele_frequencies(vcf): please check the format of your input vcf file. ",
+                "Make sure the 'AD' and/or 'GT' fields are present. ",
+                "These are the fields present in your vcf file: ", gsub(":", ", ", vec_elements), ". ",
+                "Regenerate your vcf file to include the 'AD' field and/or 'GT' field."))
+        return(error)
     }
+    ### Extract genotype data where the AD field takes precedence over the GT field
     if (grepl("AD", vec_elements)) {
         mat_allele_counts = vcfR::extract.gt(vcf, element="AD")
         mat_ref_counts = vcfR::masplit(mat_allele_counts, delim=',', record=1, sort=0)
@@ -56,14 +192,20 @@ fn_extract_allele_frequencies = function(vcf) {
         mat_genotypes[(GT == "1/1") | (GT == "1|1")] = 0.0
         mat_genotypes[(GT == "0/1") | (GT == "0|1") | (GT == "1|0")] = 0.5        
     } else {
-        print("You need to have the 'AD' and/or 'GT' fields present in your vcf file!")
-        quit()
+        error = list(code=104, message="Error in load::fn_extract_allele_frequencies(vcf): vcf needs to have the 'AD' and/or 'GT' fields present.")
+        return(error)
     }
     ### Label the loci and pools
     rownames(mat_genotypes) = vec_loci_names
     colnames(mat_genotypes) = vec_pool_names
-    ### Output
-    return(mat_genotypes)
+    ### Allele frequency distribution
+    if (verbose) {
+        print("Allele frequency distribution:")
+        print(paste0(c("q_min=", "q_max="), round(range(mat_genotypes), 4)))
+        txtplot::txtdensity(mat_genotypes)
+    }
+    ### Output n x p matrix of allele frequencies
+    return(t(mat_genotypes))
 }
 
 ### Genotype classification function assuming biallelic loci (Output: p x n matrix)
@@ -71,24 +213,34 @@ fn_extract_allele_frequencies = function(vcf) {
 ### e.g. for diploids we expect 3 genotype classes - AA, AB/BA, and BB, while for tetraploids we expect 5 genotype classes - AAAA, AAAB, AABB, ABBB, and BBBB.
 ### The default behaviour is to define strict boundaries for the extreme genotypes, i.e. we only consider genotypes to be homozygotes if the allele depth is fixed for one allele.
 ### Non-strict boundaries is reserved for imputation where we use weighted means and hences the probability of the imputed genotype to belong to one class or another is not strictly bounded at the extremes.
-fn_classify_allele_frequencies = function(mat_genotypes, ploidy, strict_boundaries=TRUE) {
+fn_classify_allele_frequencies = function(mat_genotypes, ploidy, strict_boundaries=FALSE, verbose=FALSE) {
+    ###################################################
+    ### TEST
+    # vcf = fn_simulate_data(verbose=TRUE, save_vcf_gz=FALSE)$vcf
+    # mat_genotypes = fn_extract_allele_frequencies(vcf=vcf, verbose=TRUE)
+    # ploidy = 2
+    # strict_boundaries = FALSE
+    ###################################################
     if (ploidy < 1) {
-        print(paste0("Are you sure the ploidy is ", ploidy, "X?"))
-        print(paste0("  - How on this beautiful universe does that work?"))
-        print(paste0("  - Please pick a positive integer!"))
-        quit()
+        error = list(code=105, message=paste0(
+            "Error in load::fn_classify_allele_frequencies(...): Are you sure the ploidy is ", ploidy, "X?",
+            "How on this beautiful universe does that work?",
+            "Please pick a positive integer!"))
+        return(error)
     } else if (ploidy != round(ploidy)) {
-        print(paste0("Are you sure the ploidy is ", ploidy, "X?"))
-        print(paste0("  - How on this beautiful universe does that work?"))
-        print(paste0("  - Please pick a positive integer!"))
-        quit()
+        error = list(code=106, message=paste0(
+            "Error in load::fn_classify_allele_frequencies(...): Are you sure the ploidy is ", ploidy, "X?",
+            "How on this beautiful universe does that work?",
+            "Please pick a positive integer!"))
+        return(error)
     } else if (ploidy > 1440) {
-        print(paste0("Are you sure the ploidy is ", ploidy, "X?"))
-        print(paste0("  - What on this beautiful universe are you working on?"))
-        print(paste0("  - What species has that many chromosomes?"))
-        print(paste0("  - It has more chromosomes that Adder's tongue fern (Ophioglossum reticulatum), last I checked."))
-        print(paste0("  - Revise this upper limit if biology begs to differ."))
-        quit()
+        error = list(code=107, message=paste0(
+            "Error in load::fn_classify_allele_frequencies(...): Are you sure the ploidy is ", ploidy, "X?",
+            "What on this beautiful universe are you working on?",
+            "What species has that many chromosomes?",
+            "It has more chromosomes that Adder's tongue fern (Ophioglossum reticulatum; 2n=1,440), last I checked.",
+            "Revise this upper limit if biology begs to differ."))
+        return(error)
     }
     if (strict_boundaries) {
         ### We are only setting the unfixed frequencies, i.e., (q!=0.0) & (q!=1.0)
@@ -110,6 +262,15 @@ fn_classify_allele_frequencies = function(mat_genotypes, ploidy, strict_boundari
     } else {
         mat_genotypes = round(mat_genotypes * ploidy) / ploidy
     }
+    ### Genotype classses distribution
+    if (verbose) {
+        print("Genotype classes distribution:")
+        print(paste0(c("q_min=", "q_max="), round(range(mat_genotypes), 4)))
+        txtplot::txtdensity(mat_genotypes)
+        print("Genotype classes:")
+        print(table(mat_genotypes))
+    }
+    ### Output n x p matrix of genotype classes
     return(mat_genotypes)
 }
 
@@ -121,13 +282,18 @@ fn_load_genotype = function(fname_rds_or_vcf, retain_minus_one_alleles_per_locus
     ### Load the genotype matrix (n x p)
     G = tryCatch(readRDS(fname_rds_or_vcf), error=function(e){
         vcf = vcfR::read.vcfR(fname_rds_or_vcf, verbose=TRUE)
-        return(t(fn_extract_allele_frequencies(vcf)))
+        mat_genotypes = fn_extract_allele_frequencies(vcf)
+        if (class(mat_genotypes) == "gpError") {
+            error = chain(mat_genotypes, new("gpError", code=108, message="Error in load::fn_load_genotype: error loading the vcf file."))
+            return(error)
+        } else {
+            return(mat_genotypes)
+        }
     })
     ### If the input genotype matrix is non-numeric, then we assume biallelic loci, e.g. "AA", "AB", and "BB".
     ### Convert them into numerics setting the first allele as 0 and the second as 1, such that "AA" = 0.0, "AB" = 1.0, and "BB" = 2.0
     ### Assuming "A" is the reference allele, then what we end up with is the alternative allele counts
     if (is.numeric(G)==FALSE) {
-        print("The input genotype data is non-numeric. We are converting them into a numeric matrix assuming biallelic loci.")
         G_numeric = matrix(0, nrow=nrow(G), ncol=ncol(G))
         rownames(G_numeric) = rownames(G)
         colnames(G_numeric) = colnames(G)
@@ -285,117 +451,4 @@ fn_merge_genotype_and_phenotype = function(G, list_y_pop, COVAR=NULL, verbose=FA
         }
     }
     return(list(G=G, list_y_pop=list(y=y, pop=pop, trait_name=trait_name), COVAR=COVAR))
-}
-
-#####################################################################
-############################### Tests ###############################
-#####################################################################
-tests_load = function() {
-    test_that(
-        "fn_extract_allele_frequencies", {
-            print("fn_extract_allele_frequencies:")
-            vcf = vcfR::read.vcfR(paste0(dirname_functions, "/../tests/test.vcf"), verbose=FALSE)
-            F = fn_extract_allele_frequencies(vcf)
-            expect_equal(sum(F - matrix(c(0.0, 0.25, 0.7,
-                                          0.1, 0.80, 0.1,
-                                          0.2, 0.50, 0.9,
-                                          0.0, 1.00, 0.5,
-                                          0.3, 0.30, 0.9), byrow=TRUE, nrow=5, ncol=3)), 0)
-        }
-    )
-
-    test_that(
-        "fn_classify_allele_frequencies", {
-            print("fn_classify_allele_frequencies:")
-            mat_genotypes = matrix(c(0.0, 0.3, 0.7,
-                                     0.1, 0.8, 0.1,
-                                     0.2, 0.5, 0.9,
-                                     0.0, 1.0, 0.5,
-                                     0.3, 0.3, 0.9), byrow=TRUE, nrow=5, ncol=3)
-            mx1 = fn_classify_allele_frequencies(mat_genotypes, ploidy=2, strict_boundaries=TRUE)
-            mx2 = fn_classify_allele_frequencies(mat_genotypes, ploidy=2, strict_boundaries=FALSE)
-            mx3 = fn_classify_allele_frequencies(mat_genotypes, ploidy=3, strict_boundaries=TRUE)
-            mx4 = fn_classify_allele_frequencies(mat_genotypes, ploidy=3, strict_boundaries=FALSE)
-            expect_equal(mx1, matrix(c(0.0, 0.5, 0.5,
-                                       0.5, 0.5, 0.5,
-                                       0.5, 0.5, 0.5,
-                                       0.0, 1.0, 0.5,
-                                       0.5, 0.5, 0.5), byrow=TRUE, nrow=5, ncol=3))
-            expect_equal(mx2, matrix(c(0.0, 0.5, 0.5,
-                                       0.0, 1.0, 0.0,
-                                       0.0, 0.5, 1.0,
-                                       0.0, 1.0, 0.5,
-                                       0.5, 0.5, 1.0), byrow=TRUE, nrow=5, ncol=3))
-            expect_equal(mx3, matrix(c(0.0, 1/3, 2/3,
-                                       1/3, 2/3, 1/3,
-                                       1/3, 1/3, 2/3,
-                                       0.0, 1.0, 1/3,
-                                       1/3, 1/3, 2/3), byrow=TRUE, nrow=5, ncol=3))
-            expect_equal(mx4, matrix(c(0.0, 1/3, 2/3,
-                                       0.0, 2/3, 0.0,
-                                       1/3, 2/3, 1.0,
-                                       0.0, 1.0, 2/3,
-                                       1/3, 1/3, 1.0), byrow=TRUE, nrow=5, ncol=3))
-        }
-    )
-
-    test_that(
-        "fn_load_genotype", {
-            print("fn_load_genotype:")
-            G_vcf = fn_load_genotype(fname_rds_or_vcf=paste0(dirname_functions, "/../tests/test.vcf"))
-            G_rds = fn_load_genotype(fname_rds_or_vcf=paste0(dirname_functions, "/../tests/test.rds"))
-            expect_equal(sum(G_vcf - t(matrix(c(0.0, 0.25, 0.7,
-                                                0.1, 0.80, 0.1,
-                                                0.2, 0.50, 0.9,
-                                                0.0, 1.00, 0.5,
-                                                0.3, 0.30, 0.9), byrow=TRUE, nrow=5, ncol=3))), 0)
-            expect_equal(G_vcf, G_rds)
-        }
-    )
-
-    test_that(
-        "fn_filter_loci", {
-            print("fn_filter_loci:")
-            G = fn_load_genotype(fname_rds_or_vcf=paste0(dirname_functions, "/../tests/test.vcf"))
-            G_filtered = fn_filter_loci(G, maf=0.001, sdev_min=0.001)
-            expect_equal(G, G_filtered)
-        }
-    )
-    
-    test_that(
-        "fn_load_phenotype", {
-            print("fn_load_phenotype:")
-            list_y_pop = fn_load_phenotype(fname_csv_txt=paste0(dirname_functions, "/../tests/test_pheno.csv"), header=TRUE, idx_col_id=1, idx_col_pop=2, idx_col_y=3)
-            y = list_y_pop$y
-            yex = c(0.32, 0.67, 0.93); names(yex) = paste0("Entry-", 1:3)
-            expect_equal(y, yex)
-            expect_equal(list_y_pop$pop, c("pop-A", "pop-A", "pop-A"))
-            expect_equal(list_y_pop$trait_name, "yield")
-        }
-    )
-
-    test_that(
-        "fn_filter_outlying_phenotypes", {
-            print("fn_filter_outlying_phenotypes:")
-            list_y_pop = fn_load_phenotype(fname_csv_txt=paste0(dirname_functions, "/../tests/test_pheno.csv"), header=TRUE, idx_col_id=1, idx_col_pop=2, idx_col_y=3)
-            list_y_pop_filtered = fn_filter_outlying_phenotypes(list_y_pop)
-            expect_equal(sum(list_y_pop$y - c(0.32, 0.67, 0.93)), 0)
-            expect_equal(list_y_pop, list_y_pop_filtered)
-        }
-    )
-
-    test_that(
-        "fn_merge_genotype_and_phenotype", {
-            print("fn_merge_genotype_and_phenotype:")
-            G = fn_load_genotype(fname_rds_or_vcf=paste0(dirname_functions, "/../tests/test.vcf"))
-            list_y_pop = fn_load_phenotype(fname_csv_txt=paste0(dirname_functions, "/../tests/test_pheno.csv"), header=TRUE, idx_col_id=1, idx_col_pop=2, idx_col_y=3)
-            COVAR = readRDS(paste0(dirname_functions, "/../tests/test_covar.rds"))
-            merged1 = fn_merge_genotype_and_phenotype(G, list_y_pop, COVAR=NULL)
-            merged2 = fn_merge_genotype_and_phenotype(G, list_y_pop, COVAR=COVAR)
-            out1 = list(G=G, list_y_pop=list_y_pop, COVAR=NULL)
-            out2 = list(G=G, list_y_pop=list_y_pop, COVAR=COVAR)
-            expect_equal(merged1, out1)
-            expect_equal(merged2, out2)
-        }
-    )
 }
