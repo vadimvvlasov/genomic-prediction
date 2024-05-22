@@ -27,41 +27,48 @@ setMethod(f="chain",
 
 
 
-#' Simple wrapper of simquantgen simulation of 10-QTL additive effects on 5-chromosome genome and a single trait
+#' Simple wrapper of simquantgen simulation of 10 standard normally distributed QTL additive effects on 5-chromosome genome and a single trait at 50% heritability
 #' 
-#' @param df data frame containing the model variables
-#' @param trait name of the continuous numeric response variable in the data frame
-#' @param id name of the entry field (main explanatory variable) in the data frame
-#' @param verbose show model fitting messages?
+#' @param n number of samples [Default=100]
+#' @param l number of loci [Default=1000]
+#' @param ploidy ploidy level which can refer to the number of haploid genomes to simulate pools [Default=42]
+#' @param n_alleles macimum number of alleles per locus [Default=2]
+#' @param depth maximum depth per locus [Default=100]
+#' @param seed randomisation seed for replicability [Default=12345]
+#' @param save_geno_vcf save the genotype data as a vcf file [Default=FALSE]
+#' @param save_geno_tsv save the genotype data as a tab-delimited allele frequency table file [Default=FALSE]
+#' @param save_geno_rds save the named genotype matrix as an Rds file [Default=FALSE]
+#' @param save_pheno_tsv save the phenotype data as a tab-delimited file [Default=FALSE]
+#' @param verbose show simulation messages? [Default=FALSE]
 #' @returns
-#' df_effects: data frame trial-estimated breeding values (fields: id, BLUPs)
-#' loglik: log-likelihood of the best-fitting model
-#' AIC:  Akaike information criterion (prediction error estimator) of the best-fitting model
-#' BIC: Bayesian information criterion (another prediction error estimator) of the best-fitting model
-#' algorithm: model fitting algorithm used, i.e. Henderson's (mmec) or Newton-Raphson-transformations (mmer)
-#' model: Specification of the best-fitting linear model
-#' V: Variance-covariance component of the random effects
-#' df_fixed_effects: data frame of fixed factor names, and their corresponding effects
+#' vcf: simulated genotype data as a vcfR object
+#' df: simulated phenotype data as a data frame
+#' fname_geno_vcf: filename of the simulated genotype data as a vcf file
+#' fname_geno_tsv: filename of the simulated genotype data as a tab-delimited allele frequency table file
+#' fname_geno_rds: filename of the simulated named genotype matrix as an Rds file
+#' fname_pheno_tsv: filename of the simulated phenotype data as a tab-delimited file
 #' @examples
-#' df = fn_simulate_gx1(design="crd")
-#' out = fn_GX1_CRD_BLUPs(df=df, trait="y", id="gen", verbose=TRUE)
+#' list_sim = fn_simulate_data(verbose=TRUE, save_geno_vcf=TRUE, save_geno_tsv=TRUE, save_geno_rds=TRUE, save_pheno_tsv=TRUE)
 #' @export
-fn_simulate_data = function(n=100, l=1000, ploidy=42, n_alleles=2, depth=100, pheno_reps=1, seed=12345, save_vcf_gz=FALSE, verbose=FALSE) {
+fn_simulate_data = function(n=100, l=1000, ploidy=42, n_alleles=2, depth=100, seed=12345, save_geno_vcf=FALSE, save_geno_tsv=FALSE, save_geno_rds=FALSE, save_pheno_tsv=FALSE, verbose=FALSE) {
     ###################################################
     ### TEST
-    # n = 1000
-    # l = 10000
+    # n = 100
+    # l = 1000
     # ploidy = 42
     # n_alleles = 2
     # depth = 100
     # pheno_reps = 1
     # seed = 12345
-    # save_vcf_gz = FALSE
-    # verbose = FALSE
+    # save_geno_vcf = TRUE
+    # save_geno_tsv = TRUE
+    # save_geno_rds = TRUE
+    # save_pheno_tsv = TRUE
+    # verbose = TRUE
     ###################################################
     set.seed(seed)
     G = simquantgen::fn_simulate_genotypes(n=n, l=l, ploidy=ploidy, n_alleles=n_alleles, verbose=verbose)
-    list_Y_b_E_b_epi = simquantgen::fn_simulate_phenotypes(G=G, n_alleles=n_alleles, dist_effects="norm", n_effects=10, h2=0.5, pheno_reps=pheno_reps, verbose=FALSE)
+    list_Y_b_E_b_epi = simquantgen::fn_simulate_phenotypes(G=G, n_alleles=n_alleles, dist_effects="norm", n_effects=10, h2=0.5, pheno_reps=1, verbose=FALSE)
     y = list_Y_b_E_b_epi$Y[,1]
     n = nrow(G)
     p = ncol(G)
@@ -122,29 +129,62 @@ fn_simulate_data = function(n=100, l=1000, ploidy=42, n_alleles=2, depth=100, ph
         txtplot::txtdensity(df$trait)
     }
     ### Save into files
-    if (save_vcf_gz) {
-        date = gsub("-", "", gsub("[.]", "", gsub(":", "", gsub(" ", "", as.character(Sys.time())))))
-        fname_vcf_gz = file.path(getwd(), paste0("simulated_genotype-", date, ".vcf.gz"))
-        fname_tsv = file.path(getwd(), paste0("simulated_phenotype-", date, ".tsv"))
-        vcfR::write.vcf(vcf, file=fname_vcf_gz)
-        write.table(df, file=fname_tsv, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
-        print("Output *.vcf.gz file:")
-        print(fname_vcf_gz)
-        # system(paste0("gunzip -f ", "test", ".vcf.gz"))
-        # vcf_new_loaded = vcfR::read.vcfR(paste0("test", ".vcf.gz"))
-        # print(vcf_new_loaded)
-        return(list(vcf=vcf, df=df, fname_vcf_gz=fname_vcf_gz, fname_tsv=fname_tsv))
-    } else {
-        return(list(vcf=vcf, df=df, fname_vcf_gz=NULL, fname_tsv=NULL))
+    date = gsub("-", "", gsub("[.]", "", gsub(":", "", gsub(" ", "", as.character(Sys.time())))))
+    fname_geno_vcf = NULL
+    fname_geno_tsv = NULL
+    fname_geno_rds = NULL
+    fname_pheno_tsv = NULL
+    if (save_geno_vcf) {
+        fname_geno_vcf = file.path(getwd(), paste0("simulated_genotype-", date, ".vcf.gz"))
+        vcfR::write.vcf(vcf, file=fname_geno_vcf)
+        print("Output genotype file (sync.gz):")
+        print(fname_geno_vcf)
     }
+    if (save_geno_tsv | save_geno_rds) {
+        df_geno = data.frame(chr=vec_chr, pos=vec_pos, allele=vec_ref, t(G))
+        fname_geno_tsv = file.path(getwd(), paste0("simulated_genotype-", date, ".tsv"))
+        write.table(df_geno, file=fname_geno_tsv, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
+        print("Output genotype file (tsv):")
+        print(fname_geno_tsv)
+        if (save_geno_rds) {
+            fname_geno_rds = file.path(getwd(), paste0("simulated_genotype-", date, ".Rds"))
+            saveRDS(G, file=fname_geno_rds)
+            print("Output genotype file (Rds):")
+            print(fname_geno_rds)
+        }
+    }
+    if (save_pheno_tsv) {
+        fname_pheno_tsv = file.path(getwd(), paste0("simulated_phenotype-", date, ".tsv"))
+        write.table(df, file=fname_pheno_tsv, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
+        print("Output phenotype file (tsv):")
+        print(fname_pheno_tsv)
+    }
+    return(list(
+        vcf=vcf,
+        df=df,
+        fname_geno_vcf=fname_geno_vcf,
+        fname_geno_tsv=fname_geno_tsv,
+        fname_geno_rds=fname_geno_rds,
+        fname_pheno_tsv=fname_pheno_tsv
+    ))
 }
 
-### Convert the vcf data into allele frequencies (Output: p x n matrix)
-### where we have p biallelic loci and n entries, and allele frequencies refer to the frequency of the reference allele
+#' Convert the vcf data into allele frequencies
+#' where we have p biallelic loci and n entries, and allele frequencies refer to the frequency of the reference allele
+#' 
+#' @param vcf simulated genotype data as a vcfR object
+#' @param verbose show format conversion messages? [Default=FALSE]
+#' @returns
+#' named n samples x p loci-alleles matrix
+#' @examples
+#' list_sim = fn_simulate_data(verbose=TRUE)
+#' mat_genotypes = fn_extract_allele_frequencies(vcf=list_sim$vcf, verbose=TRUE)
+#' @export
 fn_extract_allele_frequencies = function(vcf, verbose=FALSE) {
     ###################################################
     ### TEST
-    # vcf = fn_simulate_data(verbose=TRUE, save_vcf_gz=FALSE)$vcf
+    # vcf = fn_simulate_data(verbose=TRUE, save_geno_vcf=FALSE)$vcf
+    # verbose = TRUE
     ###################################################
     ### Check input type
     if (class(vcf) != "vcfR") {
@@ -208,15 +248,25 @@ fn_extract_allele_frequencies = function(vcf, verbose=FALSE) {
     return(t(mat_genotypes))
 }
 
-### Genotype classification function assuming biallelic loci (Output: p x n matrix)
-### This uses the ploidy level of the species to define these genotype classes, 
-### e.g. for diploids we expect 3 genotype classes - AA, AB/BA, and BB, while for tetraploids we expect 5 genotype classes - AAAA, AAAB, AABB, ABBB, and BBBB.
-### The default behaviour is to define strict boundaries for the extreme genotypes, i.e. we only consider genotypes to be homozygotes if the allele depth is fixed for one allele.
-### Non-strict boundaries is reserved for imputation where we use weighted means and hences the probability of the imputed genotype to belong to one class or another is not strictly bounded at the extremes.
+#' Genotype classification function assuming biallelic loci (Output: p x n matrix)
+#' This uses the ploidy level of the species to define these genotype classes, 
+#' e.g. for diploids we expect 3 genotype classes - AA, AB/BA, and BB, while for tetraploids we expect 5 genotype classes - AAAA, AAAB, AABB, ABBB, and BBBB.
+#' The default behaviour is to define strict boundaries for the extreme genotypes, i.e. we only consider genotypes to be homozygotes if the allele depth is fixed for one allele.
+#' Non-strict boundaries is reserved for imputation where we use weighted means and hences the probability of the imputed genotype to belong to one class or another is not strictly bounded at the extremes.
+#' 
+#' @param vcf simulated genotype data as a vcfR object
+#' @param verbose show format conversion messages? [Default=FALSE]
+#' @returns
+#' named n samples x p loci-alleles matrix
+#' @examples
+#' list_sim = fn_simulate_data(ploidy=10, verbose=TRUE)
+#' mat_genotypes = fn_extract_allele_frequencies(vcf=list_sim$vcf, verbose=TRUE)
+#' mat_genotypes = fn_classify_allele_frequencies(mat_genotypes=mat_genotypes, ploidy=4, strict_boundaries=FALSE, verbose=TRUE)
+#' @export
 fn_classify_allele_frequencies = function(mat_genotypes, ploidy, strict_boundaries=FALSE, verbose=FALSE) {
     ###################################################
     ### TEST
-    # vcf = fn_simulate_data(verbose=TRUE, save_vcf_gz=FALSE)$vcf
+    # vcf = fn_simulate_data(verbose=TRUE, save_geno_vcf=FALSE)$vcf
     # mat_genotypes = fn_extract_allele_frequencies(vcf=vcf, verbose=TRUE)
     # ploidy = 2
     # strict_boundaries = FALSE
@@ -275,20 +325,26 @@ fn_classify_allele_frequencies = function(mat_genotypes, ploidy, strict_boundari
 }
 
 ### Outputs a $n$ entries x $l$ loci x (n_alleles-1) matrix
-fn_load_genotype = function(fname_rds_or_vcf, retain_minus_one_alleles_per_locus=TRUE) {
-    # fname_rds_or_vcf = "tests/test.rds"
-    # fname_rds_or_vcf = "tests/test.vcf"
-    # retain_minus_one_alleles_per_locus = TRUE
+fn_load_genotype = function(fname_genotype, retain_minus_one_alleles_per_locus=TRUE) {
+    ###################################################
+    ### TEST
+    fname_genotype = fn_simulate_data(verbose=TRUE, save_geno_vcf=FALSE)$fname_genotype_vcf
+    fname_genotype = fn_simulate_data(verbose=TRUE, save_geno_vcf=FALSE)$fname_genotype_tsv
+    fname_genotype = fn_simulate_data(verbose=TRUE, save_geno_vcf=FALSE)$fname_genotype_rds
+    retain_minus_one_alleles_per_locus = TRUE
+    ###################################################
     ### Load the genotype matrix (n x p)
-    G = tryCatch(readRDS(fname_rds_or_vcf), error=function(e){
-        vcf = vcfR::read.vcfR(fname_rds_or_vcf, verbose=TRUE)
-        mat_genotypes = fn_extract_allele_frequencies(vcf)
-        if (class(mat_genotypes) == "gpError") {
-            error = chain(mat_genotypes, new("gpError", code=108, message="Error in load::fn_load_genotype: error loading the vcf file."))
-            return(error)
-        } else {
-            return(mat_genotypes)
-        }
+    G = tryCatch(readRDS(fname_genotype), error=function(e) {
+        tryCatch(readRDS(fname_genotype), error=function(e) {
+            vcf = vcfR::read.vcfR(fname_genotype, verbose=TRUE)
+            mat_genotypes = fn_extract_allele_frequencies(vcf)
+            if (class(mat_genotypes) == "gpError") {
+                error = chain(mat_genotypes, new("gpError", code=108, message="Error in load::fn_load_genotype: error loading the vcf file."))
+                return(error)
+            } else {
+                return(mat_genotypes)
+            }
+        })
     })
     ### If the input genotype matrix is non-numeric, then we assume biallelic loci, e.g. "AA", "AB", and "BB".
     ### Convert them into numerics setting the first allele as 0 and the second as 1, such that "AA" = 0.0, "AB" = 1.0, and "BB" = 2.0
@@ -305,7 +361,7 @@ fn_load_genotype = function(fname_rds_or_vcf, retain_minus_one_alleles_per_locus
                 G_numeric[, j] = unlist(lapply(strsplit(gsub(alleles[2], 1, gsub(alleles[1], 0, G[, j])), ""), FUN=function(x){as.numeric(x[1]) + as.numeric(x[2])}))
             }
             if (length(alleles) > 2) {
-                print(paste0("Error reading genotype file: ", fname_rds_or_vcf, "."))
+                print(paste0("Error reading genotype file: ", fname_genotype, "."))
                 print(paste0("      - Are you certain that your file is biallelic diploid, i.e. it has a maximum of 2 alleles per locus?"))
                 print(paste0("      - Then explain these alleles: ", paste(paste0("'", alleles, "'"), collapse=","), "."))
                 print(paste0("      - Do these look like your genotype data: ", paste(head(G_numeric[, j]), collapse=","), "?"))
