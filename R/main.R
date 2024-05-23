@@ -14,6 +14,7 @@ parser$add_argument("--phenotype-column-data", dest="idx_col_y", type="character
 parser$add_argument("--phenotype-missing-strings", dest="na_strings", type="character", default=c("", "-", "NA", "na", "NaN", "missing", "MISSING"), help="How were the missing data in the phenotype file coded? [Default=',-,NA,na,NaN,missing,MISSING'")
 parser$add_argument("--populations-to-include", dest="vec_pop", type="character", default=c("all"), help="Which populations do you wish to include? [Default='all']")
 parser$add_argument("--skip-leave-one-population-out-cross-validation", dest="skip_lopo_cv", type="logical", default=FALSE, help="Do you wish to skip leave-one-populatiop-out cross-validataion? [Default=FALSE]")
+parser$add_argument("--skip-pairwise-population-cross-validation", dest="skip_pairwise_cv", type="logical", default=FALSE, help="Do you wish to skip pairise-populatiop cross-validataion? [Default=FALSE]")
 parser$add_argument("--models", dest="models_to_test", type="character", default=c("ridge","lasso","elastic_net","Bayes_A","Bayes_B","Bayes_C", "gBLUP"), help="Genomic prediction models to use [Default='ridge,lasso,elastic_net,Bayes_A,Bayes_B,Bayes_C'")
 parser$add_argument("--k-folds", dest="k_folds", type="integer", default=10, help="Number of folds to perform in within population k-fold cross-validation [Default=10]")
 parser$add_argument("--n-reps", dest="n_reps", type="integer", default=10, help="Number of reshuffled replications per fold of within population k-fold cross-validation [Default=3]")
@@ -35,7 +36,8 @@ args = parser$parse_args()
 #     idx_col_y="8",
 #     na_strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING"),
 #     vec_pop=c("DB-MS-31-22-001"),
-#     skip_lopo_cv=TRUE,
+#     skip_lopo_cv=FALSE,
+#     skip_pairwise_cv=FALSE,
 #     models_to_test=c("ridge","lasso","elastic_net","Bayes_A","Bayes_B","Bayes_C", "gBLUP"),
 #     k_folds=2,
 #     n_reps=10,
@@ -181,18 +183,11 @@ print("##################################################")
 print("Genomic prediction cross-validations per trait:")
 out = list()
 for (idx_col_y in vec_idx_col_y) {
+    # idx_col_y = vec_idx_col_y[1]
     gp = fn_within_across_perse_genomic_prediction(G=X, idx_col_y=idx_col_y, args=args, dir_tmp=dir_tmp)
     trait_name = gp$TRAIT_NAME
     eval(parse(text=paste0("out$`", trait_name, "` = gp")))
 }
-### Each item of the out list is:
-# list(TRAIT_NAME          = character,
-#      SUMMARY             = data.frame,
-#      METRICS_WITHIN_POP  = data.frame,
-#      YPRED_WITHIN_POP    = data.frame,
-#      METRICS_ACROSS_POP  = data.frame,
-#      YPRED_ACROSS_POP    = data.frame,
-#      GENOMIC_PREDICTIONS = data.frame)
 ### Output Rds of list of data frames
 suffix = paste0(gsub("/", "", format(Sys.time(), format="%D%H%M%S")), round(runif(n=1, min=1e6, max=9e6)))
 if (args$output_file_prefix == "") {
@@ -207,6 +202,18 @@ unlink(dir_tmp, recursive=TRUE)
 print("##################################################")
 print("Finished successfully!")
 print("##################################################")
+print("Each output list contains:")
+print("gp = list(")
+print("    TRAIT_NAME                  = list_y_pop$trait_name,")
+print("    SUMMARY                     = df_top_models,")
+print("    METRICS_WITHIN_POP          = df_metrics,")
+print("    YPRED_WITHIN_POP            = df_y_pred,")
+print("    METRICS_ACROSS_POP_LOPO     = METRICS_ACROSS_POP_LOPO,")
+print("    YPRED_ACROSS_POP_LOPO       = YPRED_ACROSS_POP_LOPO,")
+print("    METRICS_ACROSS_POP_PAIRWISE = METRICS_ACROSS_POP_PAIRWISE,")
+print("    YPRED_ACROSS_POP_PAIRWISE   = YPRED_ACROSS_POP_PAIRWISE,")
+print("    GENOMIC_PREDICTIONS         = GENOMIC_PREDICTIONS")
+print(")")
 print("Summary table of the genomic prediction accuracies within populations:")
 summary_table = do.call(rbind, lapply(out, FUN=function(x) {
     data.frame(trait=x$TRAIT_NAME, x$SUMMARY)

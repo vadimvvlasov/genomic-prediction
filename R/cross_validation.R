@@ -424,8 +424,6 @@ fn_within_across_perse_genomic_prediction = function(G, idx_col_y, args, dir_tmp
     ##################################################
     print("##################################################")
     print("Within population cross-validation:")
-    # df_metrics = NULL
-    # df_y_pred = NULL
     vec_fnames_metrics = c()
     vec_fnames_y_pred = c()
     for (pop_id in vec_pop) {
@@ -454,14 +452,9 @@ fn_within_across_perse_genomic_prediction = function(G, idx_col_y, args, dir_tmp
         list_out$df_metrics$pop = pop_id
         vec_fnames_metrics = c(vec_fnames_metrics, list_out$fnames_metrics)
         vec_fnames_y_pred = c(vec_fnames_y_pred, list_out$fnames_y_pred)
-        # if (is.null(df_metrics)) {
-        #     df_metrics = list_out$df_metrics
-        #     df_y_pred = list_out$df_y_pred
-        # } else {
-        #     df_metrics = rbind(df_metrics, list_out$df_metrics)
-        #     df_y_pred = rbind(df_y_pred, list_out$df_y_pred)
-        # }
     }
+    METRICS_WITHIN_POP = list_out$df_metrics
+    YPRED_WITHIN_POP = list_out$df_y_pred
     ### Cleanup
     for (i in 1:length(vec_fnames_metrics)) {
         unlink(vec_fnames_metrics[i])
@@ -499,25 +492,27 @@ fn_within_across_perse_genomic_prediction = function(G, idx_col_y, args, dir_tmp
     ################################################################
     ### ACROSS POPULATIONS: pairwise population cross-validation ###
     ################################################################
+    vec_pop = sort(unique(pop))
+    METRICS_ACROSS_POP_PAIRWISE = NULL
+    YPRED_ACROSS_POP_PAIRWISE = NULL
     if ((args$skip_pairwise_cv==TRUE) | (length(unique(pop))==1)) {
         args$skip_pairwise_cv = TRUE
-        METRICS_ACROSS_POP_PAIRWISE = NULL
-        YPRED_ACROSS_POP_PAIRWISE = NULL
         print("Skipping leave-one-population-out cross-validation as only one population was supplied.")
     } else {
-        # df_metrics = NULL
-        # df_y_pred = NULL
+        print("##################################################")
+        print("Across population cross-validation:")
+        print("(Pairwise population CV)")
         vec_fnames_metrics = c()
         vec_fnames_y_pred = c()
         for (pop_id_1 in vec_pop) {
             for (pop_id_2 in vec_pop) {
                 # pop_id_1 = vec_pop[1]; pop_id_2 = vec_pop[2]
+                idx_1 = which(pop == pop_id_1)
+                idx_2 = which(pop == pop_id_2)
                 if (pop_id_1==pop_id_2) {
                     next
                 }
                 print("-----------------------------------")
-                idx_1 = which(pop == pop_id_1)
-                idx_2 = which(pop == pop_id_2)
                 print(paste0("Training population: ", pop_id_1, " (n=", length(idx_1), " x p=", ncol(G), ")"))
                 print(paste0("Validation population: ", pop_id_2, " (n=", length(idx_2), " x p=", ncol(G), ")"))
                 prefix = file.path(dir_tmp, gsub(".vcf.gz$", "", ignore.case=TRUE, gsub(".vcf$", "", ignore.case=TRUE, gsub(".rds$", "", ignore.case=TRUE, basename(args$fname_rds_or_vcf)))))
@@ -540,49 +535,25 @@ fn_within_across_perse_genomic_prediction = function(G, idx_col_y, args, dir_tmp
                 }
                 list_out$df_metrics$training_pop = pop_id_1
                 list_out$df_metrics$validation_pop = pop_id_2
+                list_out$df_y_pred$training_pop = pop_id_1
+                list_out$df_y_pred$validation_pop = pop_id_2
+                if (is.null(METRICS_ACROSS_POP_PAIRWISE) & is.null(YPRED_ACROSS_POP_PAIRWISE)) {
+                    METRICS_ACROSS_POP_PAIRWISE = list_out$df_metrics
+                    YPRED_ACROSS_POP_PAIRWISE = list_out$df_y_pred
+                } else {
+                    METRICS_ACROSS_POP_PAIRWISE = rbind(METRICS_ACROSS_POP_PAIRWISE, list_out$df_metrics)
+                    YPRED_ACROSS_POP_PAIRWISE = rbind(YPRED_ACROSS_POP_PAIRWISE, list_out$df_y_pred)
+                }
                 vec_fnames_metrics = c(vec_fnames_metrics, list_out$fnames_metrics)
                 vec_fnames_y_pred = c(vec_fnames_y_pred, list_out$fnames_y_pred)
-                # if (is.null(df_metrics)) {
-                #     df_metrics = list_out$df_metrics
-                #     df_y_pred = list_out$df_y_pred
-                # } else {
-                #     df_metrics = rbind(df_metrics, list_out$df_metrics)
-                #     df_y_pred = rbind(df_y_pred, list_out$df_y_pred)
-                # }
             }
         }
-        METRICS_ACROSS_POP_PAIRWISE = list_out$df_metrics
-        YPRED_ACROSS_POP_PAIRWISE = list_out$df_y_pred
         ### Cleanup
         for (i in 1:length(vec_fnames_metrics)) {
             unlink(vec_fnames_metrics[i])
             unlink(vec_fnames_y_pred[i])
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     ######################################################################
     ### PER SE GENOMIC PREDICTION: using the best model per population ###
     ######################################################################
@@ -592,8 +563,8 @@ fn_within_across_perse_genomic_prediction = function(G, idx_col_y, args, dir_tmp
     print("(using Pearson's correlation)")
     ### Only considering within population k-fold cross-validation to identify the best model per population
     ### Using Pearson's correlation as the genomic prediction accuracy metric
-    agg_corr = aggregate(corr ~ model + pop, FUN=mean, data=df_metrics)
-    agg_corr_sd = aggregate(corr ~ model + pop, FUN=sd, data=df_metrics)
+    agg_corr = aggregate(corr ~ model + pop, FUN=mean, data=METRICS_WITHIN_POP)
+    agg_corr_sd = aggregate(corr ~ model + pop, FUN=sd, data=METRICS_WITHIN_POP)
     agg_corr = merge(agg_corr, agg_corr_sd, by=c("model", "pop"))
     colnames(agg_corr) = c("model", "pop", "corr", "corr_sd")
     vec_popns = c()
@@ -612,8 +583,8 @@ fn_within_across_perse_genomic_prediction = function(G, idx_col_y, args, dir_tmp
         vec_corr_sd = c(vec_corr_sd, corr_sd)
     }
     ### Append overall best model across all populations
-    agg_overall_mean = aggregate(corr ~ model, FUN=mean, data=df_metrics)
-    agg_overall_sdev = aggregate(corr ~ model, FUN=sd, data=df_metrics)
+    agg_overall_mean = aggregate(corr ~ model, FUN=mean, data=METRICS_WITHIN_POP)
+    agg_overall_sdev = aggregate(corr ~ model, FUN=sd, data=METRICS_WITHIN_POP)
     agg_overall = merge(agg_overall_mean, agg_overall_sdev, by="model")
     colnames(agg_overall) = c("model", "corr", "corr_sd")
     agg_overall = agg_overall[which(agg_overall[,2]==max(agg_overall[,2], na.rm=TRUE))[1], ]
@@ -621,8 +592,8 @@ fn_within_across_perse_genomic_prediction = function(G, idx_col_y, args, dir_tmp
     vec_model = c(vec_model, as.character(agg_overall$model))
     vec_corr = c(vec_corr, agg_overall$corr)
     vec_corr_sd = c(vec_corr_sd, agg_overall$corr_sd)
-    df_top_models = data.frame(pop=vec_popns, model=vec_model, corr=vec_corr, corr_sd=vec_corr_sd)
-    print(df_top_models)
+    SUMMARY = data.frame(pop=vec_popns, model=vec_model, corr=vec_corr, corr_sd=vec_corr_sd)
+    print(SUMMARY)
     ### Genomic prediction per se
     if (length(idx_entries_for_genomic_prediction) == 0) {
         GENOMIC_PREDICTIONS = NULL
@@ -655,15 +626,15 @@ fn_within_across_perse_genomic_prediction = function(G, idx_col_y, args, dir_tmp
             }
             idx_training = which(!is.na(y[,1]))
             idx_validation = which(is.na(y[,1]))
-            idx_top_model = which(df_top_models$pop == pop)[1]
+            idx_top_model = which(SUMMARY$pop == pop)[1]
             if (length(idx_top_model)==0) {
                 ### Use the overall top model if the entries do not belong to any other populations
-                idx_top_model = which(df_top_models$pop == "overall")[1]
+                idx_top_model = which(SUMMARY$pop == "overall")[1]
             }
-            model = df_top_models$model[idx_top_model]
-            corr = df_top_models$corr[idx_top_model]
-            corr_sd = df_top_models$corr_sd[idx_top_model]
-            corr_pop = df_top_models$pop[idx_top_model]
+            model = SUMMARY$model[idx_top_model]
+            corr = SUMMARY$corr[idx_top_model]
+            corr_sd = SUMMARY$corr_sd[idx_top_model]
+            corr_pop = SUMMARY$pop[idx_top_model]
 
             if (grepl("Bayes", model)==TRUE) {
                 other_params = list(nIter=12e3, burnIn=2e3, h2=0.5, out_prefix=paste0("bglr_", model, "-"), covariate=COVAR)
@@ -689,9 +660,9 @@ fn_within_across_perse_genomic_prediction = function(G, idx_col_y, args, dir_tmp
     ### Output    
     out_per_phenotype = list(
         TRAIT_NAME                  = list_y_pop$trait_name,
-        SUMMARY                     = df_top_models,
-        METRICS_WITHIN_POP          = df_metrics,
-        YPRED_WITHIN_POP            = df_y_pred,
+        SUMMARY                     = SUMMARY,
+        METRICS_WITHIN_POP          = METRICS_WITHIN_POP,
+        YPRED_WITHIN_POP            = YPRED_WITHIN_POP,
         METRICS_ACROSS_POP_LOPO     = METRICS_ACROSS_POP_LOPO,
         YPRED_ACROSS_POP_LOPO       = YPRED_ACROSS_POP_LOPO,
         METRICS_ACROSS_POP_PAIRWISE = METRICS_ACROSS_POP_PAIRWISE,
