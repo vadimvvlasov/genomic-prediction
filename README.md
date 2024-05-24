@@ -55,7 +55,11 @@ Rscript src/main.R -h
     - [R object file format (`*.rds`)](https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/readRDS) which codes for a numeric matrix where each row correspond to a sample and each column to a locus represented by a single allele. See [tests/test.rds](tests/test.rds) for a very small example but note that the column or loci names does not need to follow any format, i.e. the allele names does not need to be included.
         + The genotype data can be coded as any numeric range of values, e.g. (0,1,2), (-1,0,1), and (0.00,0.25,0.50,0.75,1.00) or as biallelic characters, e.g. for diploids: "AA", "AB", "BB", and for tetraploids: "AAAA", "AAAB", "AABB", "ABBB", and "BBBB".. It is recommended that this data should be filtered and imputed beforehand.
         + The rows are expected to have names of the samples corresponding to the names in the phenotype file.
-        + The columns are expected to contain the loci names but does need to follow a specific format. (However, if each locus is represented by all of its alleles, and the user wish to remove one of the allele prior to the analyses, then `--retain-minus-one-alleles-per-locus` parameter should be set to `TRUE`, and column names should be formatted as follows. Each locus is names as the chromosome or scaffold, the position in bases, and allele names separated by **underscores**, e.g., `chr1_12345_A` - specifying the locus is at chr1, position 12,345 and the data encoded in the column represent the dosage of allele A.)
+        + The columns are expected to contain the loci names but does need to follow a specific format: chromosome name and position separated by a tab character (`\t`) and an optional allele identifier, e.g. `chr-1\t12345\tallele_A`
+    - [Allele frequency table format (`*.tsv`)]
+
+    **TODO**
+
     - It is highly recommended to use genotype data without missing values. Missing data will be naively imputed using mean genotype value per allele/locus.
 2. Phenotype data in text-delimited format (`-p; --phenotype-file`)
     - e.g. tab-delimited (`*.txt`) and comma-separated (`*.csv`)
