@@ -1,107 +1,144 @@
-test_that(
-    "fn_extract_allele_frequencies", {
-        print("fn_extract_allele_frequencies:")
-        vcf = vcfR::read.vcfR(paste0(dirname_functions, "/../tests/test.vcf"), verbose=FALSE)
-        F = fn_extract_allele_frequencies(vcf)
-        expect_equal(sum(F - matrix(c(0.0, 0.25, 0.7,
-                                        0.1, 0.80, 0.1,
-                                        0.2, 0.50, 0.9,
-                                        0.0, 1.00, 0.5,
-                                        0.3, 0.30, 0.9), byrow=TRUE, nrow=5, ncol=3)), 0)
-    }
-)
+# source("/group/pasture/Jeff/gp/R/load.R")
 
-test_that(
-    "fn_classify_allele_frequencies", {
-        print("fn_classify_allele_frequencies:")
-        mat_genotypes = matrix(c(0.0, 0.3, 0.7,
-                                    0.1, 0.8, 0.1,
-                                    0.2, 0.5, 0.9,
-                                    0.0, 1.0, 0.5,
-                                    0.3, 0.3, 0.9), byrow=TRUE, nrow=5, ncol=3)
-        mx1 = fn_classify_allele_frequencies(mat_genotypes, ploidy=2, strict_boundaries=TRUE)
-        mx2 = fn_classify_allele_frequencies(mat_genotypes, ploidy=2, strict_boundaries=FALSE)
-        mx3 = fn_classify_allele_frequencies(mat_genotypes, ploidy=3, strict_boundaries=TRUE)
-        mx4 = fn_classify_allele_frequencies(mat_genotypes, ploidy=3, strict_boundaries=FALSE)
-        expect_equal(mx1, matrix(c(0.0, 0.5, 0.5,
-                                    0.5, 0.5, 0.5,
-                                    0.5, 0.5, 0.5,
-                                    0.0, 1.0, 0.5,
-                                    0.5, 0.5, 0.5), byrow=TRUE, nrow=5, ncol=3))
-        expect_equal(mx2, matrix(c(0.0, 0.5, 0.5,
-                                    0.0, 1.0, 0.0,
-                                    0.0, 0.5, 1.0,
-                                    0.0, 1.0, 0.5,
-                                    0.5, 0.5, 1.0), byrow=TRUE, nrow=5, ncol=3))
-        expect_equal(mx3, matrix(c(0.0, 1/3, 2/3,
-                                    1/3, 2/3, 1/3,
-                                    1/3, 1/3, 2/3,
-                                    0.0, 1.0, 1/3,
-                                    1/3, 1/3, 2/3), byrow=TRUE, nrow=5, ncol=3))
-        expect_equal(mx4, matrix(c(0.0, 1/3, 2/3,
-                                    0.0, 2/3, 0.0,
-                                    1/3, 2/3, 1.0,
-                                    0.0, 1.0, 2/3,
-                                    1/3, 1/3, 1.0), byrow=TRUE, nrow=5, ncol=3))
-    }
-)
+test_that("fn_G_extract_names", {
+    n = 100
+    n_alleles = 3
+    mat_genotypes = simquantgen::fn_simulate_genotypes(n=n, n_alleles=n_alleles, verbose=TRUE)
+    list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=mat_genotypes, verbose=TRUE)
+    ### Assertions
+    n_digits = length(unlist(strsplit(as.character(n), "")))
+    bool_test_entry_names = list_ids_chr_pos_all$vec_ids == paste0("entry_", sprintf(paste0("%0", n_digits, "d"), 1:n))
+    expect_equal(sum(bool_test_entry_names), n)
+    expect_equal(length(list_ids_chr_pos_all$vec_chr), ncol(mat_genotypes))
+    expect_equal(length(list_ids_chr_pos_all$vec_pos), ncol(mat_genotypes))
+    expect_equal(length(list_ids_chr_pos_all$vec_all), ncol(mat_genotypes))
+    expect_equal(length(unique(list_ids_chr_pos_all$vec_all)), n_alleles-1)
+})
 
-test_that(
-    "fn_load_genotype", {
-        print("fn_load_genotype:")
-        G_vcf = fn_load_genotype(fname_rds_or_vcf=paste0(dirname_functions, "/../tests/test.vcf"))
-        G_rds = fn_load_genotype(fname_rds_or_vcf=paste0(dirname_functions, "/../tests/test.rds"))
-        expect_equal(sum(G_vcf - t(matrix(c(0.0, 0.25, 0.7,
-                                            0.1, 0.80, 0.1,
-                                            0.2, 0.50, 0.9,
-                                            0.0, 1.00, 0.5,
-                                            0.3, 0.30, 0.9), byrow=TRUE, nrow=5, ncol=3))), 0)
-        expect_equal(G_vcf, G_rds)
-    }
-)
+test_that("fn_G_numeric_to_non_numeric", {
+    ploidy = 42
+    G_numeric = simquantgen::fn_simulate_genotypes(ploidy=ploidy, n_alleles=52, verbose=TRUE)
+    G_non_numeric = fn_G_numeric_to_non_numeric(G=G_numeric, ploidy=ploidy, verbose=TRUE)
+    vec_counts = table(unlist(strsplit(G_non_numeric[1,1], ""))); names(vec_counts) = NULL
+    expect_equal(G_numeric[1,1], vec_counts[1] / sum(vec_counts))
+    expect_equal(sum(vec_counts), ploidy)
+})
 
-test_that(
-    "fn_filter_loci", {
-        print("fn_filter_loci:")
-        G = fn_load_genotype(fname_rds_or_vcf=paste0(dirname_functions, "/../tests/test.vcf"))
-        G_filtered = fn_filter_loci(G, maf=0.001, sdev_min=0.001)
-        expect_equal(G, G_filtered)
-    }
-)
+test_that("fn_G_non_numeric_to_numeric", {
+    ploidy = 42
+    G_numeric = simquantgen::fn_simulate_genotypes(ploidy=ploidy, n_alleles=52, verbose=TRUE)
+    G_non_numeric = fn_G_numeric_to_non_numeric(G=G_numeric, ploidy=ploidy, verbose=TRUE)
+    G_numeric_back = fn_G_non_numeric_to_numeric(G=G_non_numeric, verbose=TRUE)
+    m = 40
+    expect_equal(sum(abs(G_numeric[1:m,1:m] - G_numeric_back[1:m,1:m]) < 1e-12), m*m)
+    ### The converted non-numeric to numeric matrix can have less loci-alleles than the original numeric matrix as fixed loci will be omitted
+    expect_equal(ncol(G_numeric_back) <= ncol(G_numeric), TRUE)
+})
 
-test_that(
-    "fn_load_phenotype", {
-        print("fn_load_phenotype:")
-        list_y_pop = fn_load_phenotype(fname_csv_txt=paste0(dirname_functions, "/../tests/test_pheno.csv"), header=TRUE, idx_col_id=1, idx_col_pop=2, idx_col_y=3)
-        y = list_y_pop$y
-        yex = c(0.32, 0.67, 0.93); names(yex) = paste0("Entry-", 1:3)
-        expect_equal(y, yex)
-        expect_equal(list_y_pop$pop, c("pop-A", "pop-A", "pop-A"))
-        expect_equal(list_y_pop$trait_name, "yield")
-    }
-)
+test_that("fn_G_split_off_alternative_allele", {
+    G_ref = simquantgen::fn_simulate_genotypes(verbose=TRUE)
+    G_alt = 1 - G_ref; colnames(G_alt) = gsub("allele_1$", "allele_2", colnames(G_alt))
+    G_refalt = cbind(G_ref, G_alt)
+    list_G_G_alt = fn_G_split_off_alternative_allele(G=G_refalt, verbose=TRUE)
+    expect_equal(sum(G_ref == list_G_G_alt$G), prod(dim(G_ref)))
+    expect_equal(sum(G_alt == list_G_G_alt$G_alt), prod(dim(G_alt)))
+})
 
-test_that(
-    "fn_filter_outlying_phenotypes", {
-        print("fn_filter_outlying_phenotypes:")
-        list_y_pop = fn_load_phenotype(fname_csv_txt=paste0(dirname_functions, "/../tests/test_pheno.csv"), header=TRUE, idx_col_id=1, idx_col_pop=2, idx_col_y=3)
-        list_y_pop_filtered = fn_filter_outlying_phenotypes(list_y_pop)
-        expect_equal(sum(list_y_pop$y - c(0.32, 0.67, 0.93)), 0)
-        expect_equal(list_y_pop, list_y_pop_filtered)
-    }
-)
+test_that("fn_G_to_vcf", {
+    n = 123
+    l = 456
+    n_alleles = 2
+    G = simquantgen::fn_simulate_genotypes(n=n, l=l, n_alleles=n_alleles, verbose=TRUE)
+    vcf = fn_G_to_vcf(G, verbose=TRUE)
+    expect_equal(dim(vcf@gt), c(l, n+1))
+    ### Error catching
+    G_triallelic = simquantgen::fn_simulate_genotypes(n=n, l=l, n_alleles=3, verbose=TRUE)
+    vcf_error = fn_G_to_vcf(G_triallelic, verbose=TRUE)
+    expect_equal(class(vcf_error)[1], "gpError")
+})
 
-test_that(
-    "fn_merge_genotype_and_phenotype", {
-        print("fn_merge_genotype_and_phenotype:")
-        G = fn_load_genotype(fname_rds_or_vcf=paste0(dirname_functions, "/../tests/test.vcf"))
-        list_y_pop = fn_load_phenotype(fname_csv_txt=paste0(dirname_functions, "/../tests/test_pheno.csv"), header=TRUE, idx_col_id=1, idx_col_pop=2, idx_col_y=3)
-        COVAR = readRDS(paste0(dirname_functions, "/../tests/test_covar.rds"))
-        merged1 = fn_merge_genotype_and_phenotype(G, list_y_pop, COVAR=NULL)
-        merged2 = fn_merge_genotype_and_phenotype(G, list_y_pop, COVAR=COVAR)
-        out1 = list(G=G, list_y_pop=list_y_pop, COVAR=NULL)
-        out2 = list(G=G, list_y_pop=list_y_pop, COVAR=COVAR)
-        expect_equal(merged1, out1)
-        expect_equal(merged2, out2)
-    }
-)
+test_that("fn_vcf_to_G", {
+    G = simquantgen::fn_simulate_genotypes(verbose=TRUE)
+    vcf = fn_G_to_vcf(G=G, verbose=TRUE)
+    G_back = fn_vcf_to_G(vcf=vcf, verbose=TRUE)
+    expect_equal(sum(colnames(G) == colnames(G_back)), ncol(G))
+    expect_equal(sum(rownames(G) == rownames(G_back)), nrow(G))
+    expect_equal(sum(abs(G_back-G) < 0.01), prod(dim(G)))
+})
+
+test_that("fn_classify_allele_frequencies", {
+    ploidy = 4
+    G = simquantgen::fn_simulate_genotypes(ploidy=ploidy, verbose=TRUE)
+    G_classes = fn_classify_allele_frequencies(G=G, ploidy=ploidy, verbose=TRUE)
+    G_classes_diploid = fn_classify_allele_frequencies(G=G, ploidy=2, verbose=TRUE)
+    expect_equal(sum(G == G_classes), prod(dim(G)))
+    expect_equal(length(unique(as.vector(G_classes))), ploidy+1)
+    expect_equal(length(unique(as.vector(G_classes_diploid))), 2+1)
+})
+
+test_that("fn_simulate_data", {
+    list_fnames = fn_simulate_data(verbose=TRUE)
+    expect_equal(is.null(list_fnames$fname_geno_vcf), FALSE)
+    expect_equal(is.null(list_fnames$fname_geno_tsv), TRUE)
+    expect_equal(is.null(list_fnames$fname_geno_rds), TRUE)
+    expect_equal(is.null(list_fnames$fname_pheno_tsv), FALSE)
+    list_fnames = fn_simulate_data(save_geno_vcf=TRUE, save_geno_rds=TRUE, save_geno_tsv=TRUE, save_pheno_tsv=TRUE, verbose=TRUE)
+    G_vcf = fn_vcf_to_G(vcf=vcfR::read.vcfR(list_fnames$fname_geno_vcf))
+    df_tsv = read.delim(list_fnames$fname_geno_tsv, sep="\t", header=TRUE)
+    G_tsv = as.matrix(t(df_tsv[, c(-1,-2,-3)])); rownames(G_tsv) = colnames(df_tsv)[c(-1,-2,-3)]; colnames(G_tsv) = paste(df_tsv$chr, df_tsv$pos, df_tsv$allele, sep="\t")
+    G_rds = readRDS(list_fnames$fname_geno_rds)
+    df_pheno = read.delim(list_fnames$fname_pheno_tsv, sep="\t", header=TRUE)
+    expect_equal(sum(abs(G_vcf - G_tsv) < 1e-4), prod(dim(G_vcf)))
+    expect_equal(sum(abs(G_vcf - G_rds) < 1e-4), prod(dim(G_vcf)))
+    expect_equal(sum(abs(G_rds - G_tsv) < 1e-4), prod(dim(G_vcf)))
+    expect_equal(sum(df_pheno$id == rownames(G_vcf)), nrow(df_pheno))
+    expect_equal(sum(df_pheno$id == rownames(G_tsv)), nrow(df_pheno))
+    expect_equal(sum(df_pheno$id == rownames(G_rds)), nrow(df_pheno))
+    list_fnames = fn_simulate_data(save_geno_vcf=FALSE, save_geno_rds=TRUE, non_numeric_Rds=TRUE, verbose=TRUE)
+    G_non_numeric = readRDS(list_fnames$fname_geno_rds)
+    expect_equal(is.numeric(G_non_numeric), FALSE)
+})
+
+test_that("fn_load_genotype", {
+    list_sim = fn_simulate_data(verbose=TRUE, save_geno_vcf=TRUE, save_geno_tsv=TRUE, save_geno_rds=TRUE, save_pheno_tsv=TRUE)
+    G_vcf = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf, verbose=TRUE)
+    G_tsv = fn_load_genotype(fname_geno=list_sim$fname_geno_tsv, verbose=TRUE)
+    G_rds = fn_load_genotype(fname_geno=list_sim$fname_geno_rds, verbose=TRUE)
+    expect_equal(sum(abs(G_vcf - G_tsv) < 1e-4), prod(dim(G_vcf)))
+    expect_equal(sum(abs(G_vcf - G_rds) < 1e-4), prod(dim(G_vcf)))
+    expect_equal(sum(abs(G_rds - G_tsv) < 1e-4), prod(dim(G_vcf)))
+})
+
+test_that("fn_filter_loci", {
+    list_sim = fn_simulate_data(verbose=TRUE)
+    maf = 0.05
+    sdev_min = 0.0001
+    verbose = TRUE
+    ### Do not load the alternative alleles
+    G = fn_load_genotype(list_sim$fname_geno_vcf)
+    G_filtered_1 = fn_filter_loci(G=G, verbose=TRUE)
+    expect_equal(sum(dim(G) == dim(G_filtered_1)), 2)
+    ### Load the alternative allele
+    G = fn_load_genotype(list_sim$fname_geno_vcf, retain_minus_one_alleles_per_locus=FALSE)
+    ### Simulate SNP list for filtering
+    n_sim_missing = 100
+    mat_loci = matrix(unlist(strsplit(colnames(G), "\t")), byrow=TRUE, ncol=3)
+    vec_loci = unique(paste0(mat_loci[,1], "\t", mat_loci[,2]))
+    mat_loci = matrix(unlist(strsplit(vec_loci, "\t")), byrow=TRUE, ncol=2)
+    df_snp_list = data.frame(CHROM=mat_loci[,1], POS=as.numeric(mat_loci[,2]), REF_ALT=paste0("allele_1,allele_alt"))
+    df_snp_list$REF_ALT[1:n_sim_missing] = "allele_2,allele_4"
+    colnames(df_snp_list) = c("#CHROM", "POS", "REF,ALT")
+    fname_snp_list = "tmp_snp_list.txt"
+    write.table(df_snp_list, file=fname_snp_list, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
+    ### Filter with the alternative alleles
+    G_filtered_2 = fn_filter_loci(G=G, maf=0.05, fname_snp_list=fname_snp_list, verbose=TRUE)
+    expect_equal(ncol(G_filtered_2), ncol(G) - (2*n_sim_missing))
+    ### Filter without the alternative alleles
+    G = fn_load_genotype(list_sim$fname_geno_vcf)
+    G_filtered_3 = fn_filter_loci(G=G, maf=0.05, fname_snp_list=fname_snp_list, verbose=TRUE)
+    expect_equal(ncol(G_filtered_3), ncol(G) - n_sim_missing)
+    G_filtered_2_split_G = fn_G_split_off_alternative_allele(G=G_filtered_2, verbose=TRUE)$G
+    expect_equal(sum(abs(G_filtered_3 - G_filtered_2_split_G) < 1e-12), prod(dim(G_filtered_3)))
+    ### Clean-up
+    unlink(fname_snp_list)
+})

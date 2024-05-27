@@ -3,8 +3,6 @@ suppressWarnings(suppressPackageStartupMessages(library(vcfR)))
 suppressWarnings(suppressPackageStartupMessages(library(txtplot)))
 suppressWarnings(suppressPackageStartupMessages(library(testthat)))
 
-# source("/group/pasture/Jeff/gp/R/load.R")
-
 ### Create an error class
 setClass("gpError", representation(code="numeric", message="character"), prototype(code=0, message="Empty error message. Please define."))
 ### Create an error chaining method
@@ -34,7 +32,7 @@ setMethod(f="chain",
 #'  Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'  the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'  subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#' @param verbose show simulation messages? [Default=FALSE]
+#' @param verbose show names extraction messages? [Default=FALSE]
 #' @returns
 #' Ok:
 #'  $vec_ids: vector of sample/entry/pool names
@@ -105,13 +103,14 @@ fn_G_extract_names = function(mat_genotypes, verbose=FALSE) {
 #'  the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'  subsequent elements are optional which may refer to the allele identifier and other identifiers.
 #' @param ploidy ploidy level which can refer to the number of haploid genomes to simulate pools [Default=2]
-#' @param verbose show simulation messages? [Default=FALSE]
+#' @param verbose show numeric to non-numeric genotype data conversion messages? [Default=FALSE]
 #' @returns
-#' Ok: n samples x p loci matrix of genotype classes (numeric ranging from 0 to 1)
+#' Ok: n samples x p loci matrix of genotype classes
 #' Err: grError
 #' @examples
-#' mat_genotypes = simquantgen::fn_simulate_genotypes(verbose=TRUE)
-#' list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=mat_genotypes, verbose=TRUE)
+#' ploidy = 42
+#' G_numeric = simquantgen::fn_simulate_genotypes(ploidy=ploidy, n_alleles=52, verbose=TRUE)
+#' G_non_numeric = fn_G_numeric_to_non_numeric(G=G_numeric, ploidy=ploidy, verbose=TRUE)
 #' @export
 fn_G_numeric_to_non_numeric = function(G, ploidy=2, verbose=FALSE) {
     ###################################################
@@ -132,13 +131,20 @@ fn_G_numeric_to_non_numeric = function(G, ploidy=2, verbose=FALSE) {
     }
     ### Extract sample/entry/pool, and loci names
     list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=G, verbose=verbose)
+    ### Extract the unique loci and sort per chromosome
+    df_loci = as.data.frame(matrix(unlist(strsplit(unique(paste0(list_ids_chr_pos_all$vec_chr, "\t", list_ids_chr_pos_all$vec_pos)), "\t")), byrow=TRUE, ncol=2))
+    colnames(df_loci) = c("chr", "pos")
+    df_loci$pos = as.numeric(df_loci$pos)
+    idx = order(df_loci$chr, df_loci$pos, decreasing=FALSE)
+    df_loci = df_loci[idx, ]
+    vec_loci = paste0(df_loci$chr, "\t", df_loci$pos)
     ### Populate the non-numeric genotype matrix
-    vec_loci = sort(unique(paste0(list_ids_chr_pos_all$vec_chr, "\t", list_ids_chr_pos_all$vec_pos)))
     p = length(vec_loci)
     n = nrow(G)
     G_non_numeric = matrix("", nrow=n, ncol=p)
     rownames(G_non_numeric) = rownames(G)
     colnames(G_non_numeric) = vec_loci
+    ### Iterate across sorted loci
     if (verbose) {pb = txtProgressBar(min=0, max=p, style=3)}
     for (j in 1:p) {
         # j = 1
@@ -146,7 +152,7 @@ fn_G_numeric_to_non_numeric = function(G, ploidy=2, verbose=FALSE) {
         vec_idx = which(
             (list_ids_chr_pos_all$vec_chr == vec_chr_pos[1]) &
             (list_ids_chr_pos_all$vec_pos == as.numeric(vec_chr_pos[2])))
-        if (sum(rowSums(G[, vec_idx], na.rm=TRUE) == 1) == n) {
+        if (sum(rowSums(G[, vec_idx, drop=FALSE], na.rm=TRUE) == 1) == n) {
             ### All alleles are represented
             n_alleles = length(vec_idx)
         } else {
@@ -176,35 +182,88 @@ fn_G_numeric_to_non_numeric = function(G, ploidy=2, verbose=FALSE) {
     return(G_non_numeric)
 }
 
+#' Convert a non-numeric genotype classes matrix into a numeric (allele frequency) genotype matrix
+#' 
+#' @param G n samples x p loci matrix of genotype classes with non-null row and column names.
+#'  The genotype classes are represented by uppercase and/or lowercase letters,
+#'  where the total number of letters correspond to the ploidy level,
+#'  and the number of unique letters refer to the number of alleles per locus.
+#'  Row names can be any string of characters which identify the sample or entry or pool names.
+#'  Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
+#'  and the second should be numeric which refers to the position in the chromosome/scaffold.
+#' @param verbose show non-numeric to numeric genotype data conversion messages? [Default=FALSE]
+#' @returns
+#' Ok: n samples x p loci matrix of genotype classes (numeric ranging from 0 to 1)
+#' Err: grError
+#' @examples
+#' ploidy = 42
+#' G_numeric = simquantgen::fn_simulate_genotypes(ploidy=ploidy, n_alleles=52, verbose=TRUE)
+#' G_non_numeric = fn_G_numeric_to_non_numeric(G=G_numeric, ploidy=ploidy, verbose=TRUE)
+#' G_numeric_back = fn_G_non_numeric_to_numeric(G=G_non_numeric, verbose=TRUE)
+#' @export
 fn_G_non_numeric_to_numeric = function(G_non_numeric, verbose=FALSE) {
-    G = matrix(0, nrow=nrow(G_non_numeric), ncol=ncol(G_non_numeric))
-    rownames(G) = rownames(G_non_numeric)
-    colnames(G) = colnames(G_non_numeric)
+    ###################################################
+    ### TEST
+    # G = simquantgen::fn_simulate_genotypes(ploidy=42, n_alleles=52, verbose=TRUE)
+    # G_non_numeric = fn_G_numeric_to_non_numeric(G=G, ploidy=42, verbose=TRUE)
+    # verbose = TRUE
+    ###################################################
+    ### Extract ploidy where we assume the same ploidy across the entire data set
+    ploidy = length(unlist(strsplit(G_non_numeric[1,1], "")))
+    for (i in sample(1:nrow(G_non_numeric), size=100, replace=FALSE)) {
+        for (j in sample(1:ncol(G_non_numeric), size=100, replace=FALSE)) {
+            if (length(unlist(strsplit(G_non_numeric[i, j], ""))) != ploidy) {
+                error = new("gpError",
+                    code=000,
+                    message=paste0(
+                        "Error in load::fn_G_non_numeric_to_numeric(...). ",
+                        "The ploidy level is not consistent across the data set. ",
+                        "From the first locus of the first sample we expected a ploidy level of ", ploidy, "X."))
+                return(error)
+            }
+        }
+    }
+    ### Extract the loci and alleles per locus
+    vec_loci_names = colnames(G_non_numeric)
+    list_allele_names = list()
+    p = 0
     if (verbose) {pb = txtProgressBar(min=0, max=ncol(G_non_numeric), style=3)}
     for (j in 1:ncol(G_non_numeric)) {
         # j = 1
-        alleles = sort(unique(unlist(strsplit(unique(G_non_numeric[, j]), ""))))
-        if (length(alleles) == 2) {
-            G[, j] = unlist(lapply(strsplit(gsub(alleles[2], 1, gsub(alleles[1], 0, G[, j])), ""), FUN=function(x){sum(as.numeric(x)) / length(x)}))
-        }
-        if (length(alleles) > 2) {
-            error = new("gpError",
-                code=000,
-                message=paste0(
-                    "Error in load::fn_load_genotype(...)", 
-                    "Error reading genotype file: ", fname_genotype, ". ", 
-                    "Are you certain that your file is biallelic diploid, i.e. it has a maximum of 2 alleles per locus? ",
-                    "Then explain these alleles: ", paste(paste0("'", alleles, "'"), collapse=","), ". ",
-                    "Do these look like your genotype data: ", paste(head(G[, j]), collapse=","), "? ",
-                    "These too: ", paste(tail(G[, j]), collapse=","), "?"))
-            return(error)
+        vec_alleles = sort(unique(unlist(strsplit(G_non_numeric[, j], ""))))
+        eval(parse(text=paste0("list_allele_names$`", vec_loci_names[j], "` = vec_alleles")))
+        p = p + length(vec_alleles)
+        if (verbose) {setTxtProgressBar(pb, j)}
+    }
+    if (verbose) {close(pb)}
+    ### Instantiate the numeric allele frequency genotype matrix
+    n = nrow(G_non_numeric)
+    G = matrix(0, nrow=n, ncol=p)
+    rownames(G) = rownames(G_non_numeric)
+    ### Populate
+    vec_colnames = c()
+    idx_locus_allle = 0
+    if (verbose) {pb = txtProgressBar(min=0, max=ncol(G_non_numeric), style=3)}
+    for (j in 1:ncol(G_non_numeric)) {
+        # j = 1
+        vec_alleles = list_allele_names[[j]]
+        list_geno_classes = strsplit(G_non_numeric[, j], "")
+        for (k in 1:length(vec_alleles)) {
+            # k = 1
+            idx_locus_allle = idx_locus_allle + 1
+            vec_colnames = c(vec_colnames, paste0(vec_loci_names[j], "\t", vec_alleles[k]))
+            for (i in 1:n) {
+                # i = 1
+                G[i, idx_locus_allle] = sum(list_geno_classes[[i]] == vec_alleles[k]) / ploidy
+            }
         }
         if (verbose) {setTxtProgressBar(pb, j)}
     }
     if (verbose) {close(pb)}
+    colnames(G) = vec_colnames
+    ### Return numeric allele frequency genotype matrix
     return(G)
 }
-
 #' Remove trailing alternative allele from a numeric (allele frequency) matrix if it exists
 #' 
 #' @param G n samples x p loci matrix of allele frequencies (numeric ranging from 0 to 1) with non-null row and column names.
@@ -212,7 +271,7 @@ fn_G_non_numeric_to_numeric = function(G_non_numeric, verbose=FALSE) {
 #'  Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'  the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'  subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#' @param verbose show simulation messages? [Default=FALSE]
+#' @param verbose show genotype data alternative allele splitting messages? [Default=FALSE]
 #' @returns
 #' Ok: n samples x p loci matrix of allele frequencies (numeric ranging from 0 to 1)
 #' Err: grError
@@ -220,10 +279,9 @@ fn_G_non_numeric_to_numeric = function(G_non_numeric, verbose=FALSE) {
 #' G_ref = simquantgen::fn_simulate_genotypes(verbose=TRUE)
 #' G_alt = 1 - G_ref; colnames(G_alt) = gsub("allele_1$", "allele_2", colnames(G_alt))
 #' G_refalt = cbind(G_ref, G_alt)
-#' G = fn_G_remove_alternative_allele(G=G_refalt, verbose=TRUE)
-#' sum(G_ref == G) == prod(dim(G_ref))
+#' list_G_G_alt = fn_G_split_off_alternative_allele(G=G_refalt, verbose=TRUE)
 #' @export
-fn_G_remove_alternative_allele = function(G, verbose=FALSE) {
+fn_G_split_off_alternative_allele = function(G, verbose=FALSE) {
     ###################################################
     ### TEST
     # G_ref = simquantgen::fn_simulate_genotypes(verbose=TRUE)
@@ -236,7 +294,7 @@ fn_G_remove_alternative_allele = function(G, verbose=FALSE) {
         error = new("gpError",
             code=000,
             message=paste0(
-                "Error in load::fn_G_remove_alternative_allele(...). ",
+                "Error in load::fn_G_split_off_alternative_allele(...). ",
                 "We are expecting a matrix allele frequencies but ",
                 "we are getting negative values and/or values greater than 1 and/or infinite values."))
         return(error)
@@ -248,6 +306,7 @@ fn_G_remove_alternative_allele = function(G, verbose=FALSE) {
     p = length(vec_loci)
     n = nrow(G)
     vec_idx_loci = c()
+    vec_idx_alt = c()
     if (ncol(G) > p) {
         if (verbose) {pb = txtProgressBar(min=0, max=p, style=3)}
         for (j in 1:p) {
@@ -257,44 +316,53 @@ fn_G_remove_alternative_allele = function(G, verbose=FALSE) {
                 (list_ids_chr_pos_all$vec_chr == vec_chr_pos[1]) &
                 (list_ids_chr_pos_all$vec_pos == as.numeric(vec_chr_pos[2]))
             )
-            if (sum(rowSums(G[, idx], na.rm=TRUE) == 1) == n) {
-                ### Keep all the loci if all frequencies sum up to 1
-                vec_idx_loci = c(vec_idx_loci, idx)
-            } else {
-                ### Otherwise omit the trailing allele
+            if (sum(rowSums(G[, idx, drop=FALSE], na.rm=TRUE) == 1) == n) {
+                ### Omit the trailing (alternative) allele
                 vec_idx_loci = c(vec_idx_loci, idx[1:(length(idx)-1)])
+                vec_idx_alt = c(vec_idx_alt, tail(idx, n=1))
+            } else {
+                ### Otherwise keep all the loci if all frequencies do not sum up to 1
+                vec_idx_loci = c(vec_idx_loci, idx)
             }
             if (verbose) {setTxtProgressBar(pb, j)}
         }
         if (verbose) {close(pb)}
+        ### Return filtered matrix of allele frequencies
+        return(list(
+            G=G[, sort(vec_idx_loci), drop=FALSE],
+            G_alt=G[, sort(vec_idx_alt), drop=FALSE]))
     } else {
         if (verbose) {"Removal of trailing alternative allele is unnecessary as only the one allele represents each locus."}
+        return(list(
+            G=G,
+            G_alt=NULL))
     }
-    ### Return filtered matrix of allele frequencies
-    return(G[, sort(vec_idx_loci)])
 }
 
 #' Convert numeric allele frequency matrix into a vcfR::vcf object
 #' 
-#' @param G numeric n samples x p loci matrix of allele frequencies with non-null row and column names.
+#' @param G numeric n samples x p biallelic loci matrix of allele frequencies with non-null row and column names.
 #'  Row names can be any string of characters which identify the sample or entry or pool names.
 #'  Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'  the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'  subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#' @param max_depth maximum depth per locus [Default=100]
-#' @param verbose show simulation messages? [Default=FALSE]
+#'  Note that this function only accepts biallelic loci.
+#' @param min_depth minimum depth per locus [Default=100]
+#' @param max_depth maximum depth per locus [Default=1000]
+#' @param verbose show allele frequency genotype matrix to vcf conversion messages? [Default=FALSE]
 #' @returns
 #' Ok: simulated genotype data as a vcfR object
 #' Err: grError
 #' @examples
 #' G = simquantgen::fn_simulate_genotypes(verbose=TRUE)
-#' vcf = fn_G_to_vcf(G, verbose=TRUE)
+#' vcf = fn_G_to_vcf(G=G, verbose=TRUE)
 #' @export
-fn_G_to_vcf = function(G, max_depth=100, verbose=FALSE) {
+fn_G_to_vcf = function(G, min_depth=100, max_depth=1000, verbose=FALSE) {
     ###################################################
     ### TEST
     # G = simquantgen::fn_simulate_genotypes()
-    # max_depth = 100
+    # min_depth = 100
+    # max_depth = 1000
     # verbose = TRUE
     ###################################################
     ### Make sure G contains allele frequencies
@@ -307,56 +375,49 @@ fn_G_to_vcf = function(G, max_depth=100, verbose=FALSE) {
                 "we are getting negative values and/or values greater than 1 and/or infinite values."))
         return(error)
     }
-    # ### Extract the names of the entries/samples/pools and loci
-    # n = nrow(G)
-    # p = ncol(G)
-    # vec_ids = rownames(G)
-    # vec_loci = colnames(G)
-    # n_identifiers = length(unlist(strsplit(vec_loci[1], "\t"))) ### Number of loci identifiers where we expect at least 2
-    # if (n_identifiers < 2) {
-    #     error = new("gpError",
-    #         code=000,
-    #         message=paste0(
-    #             "Error in load::fn_G_to_vcf(...). ",
-    #             "The loci names (column names) are not correctly formatted. ",
-    #             "We expect column names to be tab-delimited ('\t'), where ",
-    #             "the first element refers to the chromosome or scaffold name, ",
-    #             "the second should be numeric which refers to the position in the chromosome/scaffold, and ",
-    #             "subsequent elements are optional which may refer to the allele identifier and other identifiers."))
-    #     return(error)
-    # }
-    # mat_loci_ids = matrix(unlist(strsplit(vec_loci, "\t")), byrow=TRUE, ncol=n_identifiers)
-    # vec_chr = mat_loci_ids[,1]
-    # vec_pos = as.numeric(mat_loci_ids[,2])
-    # if (sum(is.na(vec_pos)) > 0) {
-    #     error = new("gpError",
-    #         code=000,
-    #         message=paste0(
-    #             "Error in load::fn_G_to_vcf(...). ",
-    #             "The second element of the tab-delimited loci names should be numeric position."))
-    #     return(error)
-    # }
-    # if (n_identifiers == 2) {
-    #     if (verbose) {print("The loci are identified by the chromosome and position, hence we are assuming a diploid dataset.")}
-    #     vec_ref = rep("allele1", times=p)
-    #     vec_alt = rep("allele2", times=p)
-    # } else if (n_identifiers == 3) {
-    #     if (verbose) {print("The loci are identified by the chromosome, position, and allele. This indicates that the dataset may be multi-allelic or that all alleles of the biallelic loci are represented.")}
-    #     vec_ref = mat_loci_ids[,3]
-    #     vec_alt = rep("alternative_allele", times=p)
-    # } else {
-    #     if (verbose) {print("The loci are identified by the chromosome, position, allele, and other identifiers which will not be used here.")}
-    #     vec_ref = mat_loci_ids[,3]
-    #     vec_alt = rep("alternative_allele", times=p)
-    # }
+    ### Split-off the alternative allele from the reference allele
+    list_G_G_alt = fn_G_split_off_alternative_allele(G=G, verbose=verbose)
+    G_alt = list_G_G_alt$G_alt
+    G = list_G_G_alt$G
+    n = nrow(G)
+    p = ncol(G)
+    ### Extract the names of the entries/samples/pools and loci
+    list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=G, verbose=verbose)
+    ### Make sure the input matrix is biallelic
+    ### Also, convert the tabs in the loci-alleles names into dashes so as not to interfere with the VCF format
+    vec_loci_names = paste0(list_ids_chr_pos_all$vec_chr, "_", list_ids_chr_pos_all$vec_pos)
+    vec_allele_counts_per_locus = table(vec_loci_names)
+    if (((sum(vec_allele_counts_per_locus > 2) > 0) & is.null(G_alt)) | ((sum(vec_allele_counts_per_locus >= 2) > 0) & !is.null(G_alt))) {
+        error = new("gpError",
+            code=000,
+            message=paste0(
+                "Error in load::fn_G_to_vcf(...). ",
+                "Apologies, as this function at the moment can only convert biallelic allele frequency matrices into VCF format."))
+        return(error)
+    }
+    ### Extract the names of the alternative alleles
+    if (is.null(G_alt)) {
+        vec_alt = rep("allele_alt", times=ncol(G))
+    } else {
+        ### Convert the tabs in the loci-alleles names into dashes so as not to interfere with the VCF format
+        vec_alt = colnames(gsub("\t", "_", list_G_G_alt$G_alt))
+    }
     ### Populate required vcf fields with loci identities
-    META = c("##fileformat=VCFv", paste0("##", vec_chr), "##Extracted from text file.")
-    FIX = cbind(vec_chr, vec_pos, vec_loci, vec_ref, vec_alt, rep(NA, each=p), rep("PASS", each=p), rep(NA, each=p))
+    META = c("##fileformat=VCFv", paste0("##", list_ids_chr_pos_all$vec_chr), "##Extracted from text file.")
+    FIX = cbind(
+        list_ids_chr_pos_all$vec_chr, 
+        list_ids_chr_pos_all$vec_pos, 
+        vec_loci_names, 
+        list_ids_chr_pos_all$vec_all, 
+        vec_alt, 
+        rep(NA, each=p),
+        rep("PASS", each=p),
+        rep(NA, each=p))
     colnames(FIX) = c("CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO")
     ### Population the GT:AD matrix with strings of genotype class and allele depths
     GT_AD = matrix("", nrow=p, ncol=(n+1))
     GT_AD[,1] = "GT:AD"
-    colnames(GT_AD) = c("FORMAT", vec_ids)
+    colnames(GT_AD) = c("FORMAT", list_ids_chr_pos_all$vec_ids)
     if (verbose) {pb = txtProgressBar(min=0, max=n, style=3)}
     for (i in 1:n) {
         for (j in 1:p) {
@@ -375,7 +436,12 @@ fn_G_to_vcf = function(G, max_depth=100, verbose=FALSE) {
                     GT_AD[j, (i+1)] = "./."
                 }
             }
-            tot_depth = sample(c(ceiling(max_depth/2):max_depth), size=1) ### Sample the depth from a range from half the input max_depth to the input max_depth
+            if (min_depth == max_depth) {
+                vec_range = c(min_depth, max_depth)
+            } else {
+                vec_range = c(min_depth:max_depth)
+            }
+            tot_depth = sample(x=vec_range, size=1) ### Sample the depth from a range from half the input max_depth to the input max_depth
             ref_depth = round(tot_depth*G[i, j])
             alt_depth = tot_depth - ref_depth
             GT_AD[j, (i+1)] = paste0(GT_AD[j, (i+1)], ":", ref_depth, ",", alt_depth)
@@ -394,149 +460,29 @@ fn_G_to_vcf = function(G, max_depth=100, verbose=FALSE) {
     return(vcf)
 }
 
-#' Simple wrapper of simquantgen simulation of 10 standard normally distributed QTL additive effects on 5-chromosome genome and a single trait at 50% heritability
+#' Convert biallelic vcf data into allele frequencies
 #' 
-#' @param n number of samples [Default=100]
-#' @param l number of loci [Default=1000]
-#' @param ploidy ploidy level which can refer to the number of haploid genomes to simulate pools [Default=42]
-#' @param n_alleles macimum number of alleles per locus [Default=2]
-#' @param seed randomisation seed for replicability [Default=12345]
-#' @param save_pheno_tsv save the phenotype data as a tab-delimited file? [Default=TRUE]
-#' @param save_geno_vcf save the genotype data as a vcf file? [Default=TRUE]
-#' @param save_geno_tsv save the genotype data as a tab-delimited allele frequency table file? [Default=FALSE]
-#' @param save_geno_rds save the named genotype matrix as an Rds file? [Default=FALSE]
-#' @param non_numeric_Rds save non-numeric Rds genotype file? Note that this only works for biallelic loci and a maximum ploidy of 8. [Default=FALSE]
-#' @param verbose show simulation messages? [Default=FALSE]
+#' @param vcf biallelic genotype data as a vcfR object
+#' @param minimum_depth minimum sequencing depth [Default=5]
+#' @param retain_minus_one_alleles_per_locus omit the alternative or trailing allele per locus? [Default=TRUE]
+#' @param verbose show vcf to allele frequency genotype matrix conversion messages? [Default=FALSE]
 #' @returns
-#' vcf: simulated genotype data as a vcfR object
-#' df: simulated phenotype data as a data frame
-#' fname_genotype_vcf: filename of the simulated genotype data as a vcf file
-#' fname_genotype_tsv: filename of the simulated genotype data as a tab-delimited allele frequency table file
-#' fname_genotype_rds: filename of the simulated named genotype matrix as an Rds file
-#' fname_pheno_tsv: filename of the simulated phenotype data as a tab-delimited file
-#' @examples
-#' list_sim = fn_simulate_data(verbose=TRUE, save_geno_vcf=TRUE, save_geno_tsv=TRUE, save_geno_rds=TRUE, save_pheno_tsv=TRUE)
-#' @export
-fn_simulate_data = function(n=100, l=1000, ploidy=42, n_alleles=2, depth=100, seed=12345, save_pheno_tsv=TRUE, save_geno_vcf=TRUE, save_geno_tsv=FALSE, save_geno_rds=FALSE, non_numeric_Rds=FALSE, verbose=FALSE) {
-    ###################################################
-    ### TEST
-    # n = 100
-    # l = 1000
-    # ploidy = 42
-    # n_alleles = 2
-    # depth = 100
-    # pheno_reps = 1
-    # seed = 12345
-    # save_pheno_tsv = TRUE
-    # save_geno_vcf = TRUE
-    # save_geno_tsv = TRUE
-    # save_geno_rds = TRUE
-    # non_numeric_Rds = FALSE
-    # verbose = TRUE
-    ###################################################
-    ### Set a randomisation seed for repeatability
-    set.seed(seed)
-    ### Simulate genotype matrix
-    G = simquantgen::fn_simulate_genotypes(n=n, l=l, ploidy=ploidy, n_alleles=n_alleles, verbose=verbose)
-    ### Simulate phenotype vector
-    list_Y_b_E_b_epi = simquantgen::fn_simulate_phenotypes(G=G, n_alleles=n_alleles, dist_effects="norm", n_effects=10, h2=0.5, pheno_reps=1, verbose=FALSE)
-    y = list_Y_b_E_b_epi$Y[,1]
-    ### Report distribution of simulation data
-    if (verbose) {
-        print("Simulated allele frequency distribution:")
-        print(paste0(c("q_min=", "q_max="), round(range(G), 4)))
-        txtplot::txtdensity(G)
-        print("Simulated phenotype distribution:")
-        print(paste0(c("y_min=", "y_max="), round(range(df$trait), 4)))
-        txtplot::txtdensity(df$trait)
-    }
-    ### Define date-time-random-number identifier so that we minimise the possibility of unintentional over-writing of the output file/s
-    date = gsub("-", "", gsub("[.]", "", gsub(":", "", gsub(" ", "", as.character(Sys.time())))))
-    ### Save phenotype file
-    if (save_pheno_tsv) {
-        fname_pheno_tsv = file.path(getwd(), paste0("simulated_phenotype-", date, ".tsv"))
-        df = data.frame(id=names(y), trait=y); rownames(df) = NULL
-        write.table(df, file=fname_pheno_tsv, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
-        print("Output phenotype file (tsv):")
-        print(fname_pheno_tsv)
-    }
-    ### Convert genotype matrix into vcf and save
-    if (save_geno_vcf) {
-        fname_genotype_vcf = file.path(getwd(), paste0("simulated_genotype-", date, ".vcf.gz"))
-        vcfR::write.vcf(vcf, file=fname_genotype_vcf)
-        print("Output genotype file (sync.gz):")
-        print(fname_genotype_vcf)
-    }
-    if (save_geno_tsv | save_geno_rds) {
-        df_geno = data.frame(chr=vec_chr, pos=vec_pos, allele=vec_ref, t(G))
-        fname_genotype_tsv = file.path(getwd(), paste0("simulated_genotype-", date, ".tsv"))
-        write.table(df_geno, file=fname_genotype_tsv, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
-        print("Output genotype file (tsv):")
-        print(fname_genotype_tsv)
-        if (save_geno_rds) {
-            ### Convert loci names so that the chromosome, position and allele are tab-delimited
-            vcf = fn_G_to_vcf(G=G, verbose=verbose)
-            fname_genotype_rds = file.path(getwd(), paste0("simulated_genotype-", date, ".Rds"))
-            ### Revert to numeric if we have more than 52 alleles (limit of the Latin alphabet)
-            if (non_numeric_Rds & ((n_alleles != 2) | (ploidy > 8))) {
-                print("Reverting numeric genotype.")
-                print("Non-numeric genotypes only available for biallelic loci and a maximum ploidy of 8.")
-                non_numeric_Rds = FALSE
-            }
-            if (!non_numeric_Rds) {
-                print("Output genotype file (Rds):")
-                print(fname_genotype_rds)
-                saveRDS(G, file=fname_genotype_rds)
-            } else {
-                # G_non_numeric = matrix("", nrow=nrow(G), ncol=ncol(G))
-                # rownames(G_non_numeric) = rownames(G)
-                # colnames(G_non_numeric) = colnames(G)
-                # if (verbose) {pb = txtProgressBar(min=0, max=n, style=3)}
-                # for (i in 1:nrow(G)) {
-                #     # i = 1; j = 1
-                #     for (j in 1:ncol(G)) {
-                #         n_ref = 1 + round(G[i, j]*(ploidy-1))
-                #         n_alt = ploidy - n_ref
-                #         G_non_numeric[i, j] = paste(c(rep("A", times=n_ref), rep("B", times=n_alt)), collapse="")
-                #     }
-                #     if (verbose) {setTxtProgressBar(pb, i)}
-                # }
-                # if (verbose) {close(pb)}
-                print("Output non-numeric genotype file (Rds):")
-                print(fname_genotype_rds)
-                saveRDS(G_non_numeric, file=fname_genotype_rds)
-            }
-        }
-    }
-    return(list(
-        vcf=vcf,
-        df=df,
-        fname_genotype_vcf=fname_genotype_vcf,
-        fname_genotype_tsv=fname_genotype_tsv,
-        fname_genotype_rds=fname_genotype_rds,
-        fname_pheno_tsv=fname_pheno_tsv
-    ))
-}
-
-#' Convert the vcf data into allele frequencies
-#' 
-#' @param vcf simulated genotype data as a vcfR object
-#' @param verbose show format conversion messages? [Default=FALSE]
-#' @returns
-#' Ok: named n samples x p loci-alleles matrix.
+#' Ok: named n samples x p biallelic loci matrix.
 #'  Row names can be any string of characters.
 #'  Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'  the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'  subsequent elements are optional which may refer to the allele identifier and other identifiers.
 #' Err: gpError
 #' @examples
-#' list_sim = fn_simulate_data(verbose=TRUE)
-#' mat_genotypes = fn_vcf_to_G(vcf=list_sim$vcf, verbose=TRUE)
+#' G = simquantgen::fn_simulate_genotypes(verbose=TRUE)
+#' vcf = fn_G_to_vcf(G=G, verbose=TRUE)
+#' G_back = fn_vcf_to_G(vcf=vcf, verbose=TRUE)
 #' @export
-fn_vcf_to_G = function(vcf, verbose=FALSE) {
+fn_vcf_to_G = function(vcf, minimum_depth=5, retain_minus_one_alleles_per_locus=TRUE, verbose=FALSE) {
     ###################################################
     ### TEST
-    # vcf = fn_simulate_data(verbose=TRUE, save_geno_vcf=FALSE)$vcf
+    # G = simquantgen::fn_simulate_genotypes(verbose=TRUE)
+    # vcf = fn_G_to_vcf(G=G, verbose=TRUE)
     # verbose = TRUE
     ###################################################
     ### Check input type
@@ -547,7 +493,10 @@ fn_vcf_to_G = function(vcf, verbose=FALSE) {
         return(error)
     }
     ### Extract loci and pool/sample names
-    vec_loci_names = paste(vcfR::getCHROM(vcf), vcfR::getPOS(vcf), vcfR::getREF(vcf), sep="\t")
+    vec_loci_ref_names = paste(vcfR::getCHROM(vcf), vcfR::getPOS(vcf), vcfR::getREF(vcf), sep="\t")
+    if (!retain_minus_one_alleles_per_locus) {
+        vec_loci_alt_names = paste(vcfR::getCHROM(vcf), vcfR::getPOS(vcf), vcfR::getALT(vcf), sep="\t")
+    }
     vec_pool_names = colnames(vcf@gt)[-1]
     vec_elements = unique(vcf@gt[, 1])
     if (length(vec_elements) > 1) {
@@ -570,9 +519,24 @@ fn_vcf_to_G = function(vcf, verbose=FALSE) {
                 "Regenerate your vcf file to include the 'AD' field and/or 'GT' field."))
         return(error)
     }
+
+    ### TODO: handle multi-row multi-allelic loci
+
+    ### TODO: Convert loci into missing if depth is below minimum_depth
+    mat_depth = vcfR::extract.gt(vcf, element="DP", as.numeric=TRUE) ### WILL NEED TO ADD THIS DP FIELD ABOVE in fn_G_to_vcf(...)
+
+
     ### Extract genotype data where the AD field takes precedence over the GT field
     if (grepl("AD", vec_elements)) {
         mat_allele_counts = vcfR::extract.gt(vcf, element="AD")
+        if (length(unlist(strsplit(mat_allele_counts[1,1], ","))) > 2) {
+            error = new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in load::fn_vcf_to_G(...). ",
+                    "Apologies because at the moment we can only convert biallelic VCF files into an allele frequency matrix."))
+            return(error)
+        }
         mat_ref_counts = vcfR::masplit(mat_allele_counts, delim=',', record=1, sort=0)
         mat_alt_counts = vcfR::masplit(mat_allele_counts, delim=',', record=2, sort=0)
         ### Set missing allele counts to 0, if the other allele is non-missing and non-zero
@@ -584,19 +548,32 @@ fn_vcf_to_G = function(vcf, verbose=FALSE) {
         G = mat_ref_counts / (mat_ref_counts + mat_alt_counts)
     } else if (grepl("GT", vec_elements)) {
         GT = vcfR::extract.gt(vcf, element="GT")
-        G = matrix(NA, nrow=length(vec_loci_names), ncol=length(vec_pool_names))
+        G = matrix(NA, nrow=length(vec_loci_ref_names), ncol=length(vec_pool_names))
         G[(GT == "0/0") | (GT == "0|0")] = 1.0
         G[(GT == "1/1") | (GT == "1|1")] = 0.0
-        G[(GT == "0/1") | (GT == "0|1") | (GT == "1|0")] = 0.5        
+        G[(GT == "0/1") | (GT == "0|1") | (GT == "1|0")] = 0.5
     } else {
         error = new("gpError", 
             code=000,
             message="Error in load::fn_vcf_to_G(vcf): vcf needs to have the 'AD' and/or 'GT' fields present.")
         return(error)
     }
+    ### Column-bind reference and alternative allele frequencies
+    if (!retain_minus_one_alleles_per_locus) {
+        G = rbind(G, 1-G)
+    }
     ### Label the loci and pools
-    rownames(G) = vec_loci_names
+    if (!retain_minus_one_alleles_per_locus) {
+        rownames(G) = c(vec_loci_ref_names, vec_loci_alt_names)
+    } else {
+        rownames(G) = vec_loci_ref_names
+    }
     colnames(G) = vec_pool_names
+    ### Sort by locus, i.e. put the reference and alternative alleles next to each other
+    if (!retain_minus_one_alleles_per_locus) {
+        vec_idx = order(c(seq(from=1, to=nrow(G), by=2), seq(from=2, to=nrow(G), by=2)), decreasing=FALSE)
+        G = G[vec_idx, , drop=FALSE]
+    }
     ### Allele frequency distribution
     if (verbose) {
         print("Allele frequency distribution:")
@@ -607,29 +584,32 @@ fn_vcf_to_G = function(vcf, verbose=FALSE) {
     return(t(G))
 }
 
-#' Genotype classification function assuming biallelic loci (Output: p x n matrix)
+#' Classify or bin allele frequencies into genotype classes.
 #' This uses the ploidy level of the species to define these genotype classes, 
-#' e.g. for diploids we expect 3 genotype classes - AA, AB/BA, and BB, while for tetraploids we expect 5 genotype classes - AAAA, AAAB, AABB, ABBB, and BBBB.
-#' The default behaviour is to define strict boundaries for the extreme genotypes, i.e. we only consider genotypes to be homozygotes if the allele depth is fixed for one allele.
-#' Non-strict boundaries is reserved for imputation where we use weighted means and hences the probability of the imputed genotype to belong to one class or another is not strictly bounded at the extremes.
+#' e.g. for diploids we expect 3 genotype classes - AA, AB/BA, and BB, 
+#'while for tetraploids we expect 5 genotype classes - AAAA, AAAB, AABB, ABBB, and BBBB.
 #' 
-#' @param vcf simulated genotype data as a vcfR object
-#' @param verbose show format conversion messages? [Default=FALSE]
+#' @param G numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'  Row names can be any string of characters which identify the sample or entry or pool names.
+#'  Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
+#'  the second should be numeric which refers to the position in the chromosome/scaffold, and 
+#'  subsequent elements are optional which may refer to the allele identifier and other identifiers.
+#' @param ploidy ploidy level which can refer to the number of haploid genomes to simulate pools [Default=2]
+#' @param verbose show genotype binning or classification messages? [Default=FALSE]
 #' @returns
-#' Ok: named n samples x p loci-alleles matrix
+#' Ok: named n samples x p loci-alleles matrix of numeric genotype classes
 #' Err: gpError
 #' @examples
-#' list_sim = fn_simulate_data(ploidy=10, verbose=TRUE)
-#' mat_genotypes = fn_vcf_to_G(vcf=list_sim$vcf, verbose=TRUE)
-#' mat_genotypes = fn_classify_allele_frequencies(mat_genotypes=mat_genotypes, ploidy=4, strict_boundaries=FALSE, verbose=TRUE)
+#' ploidy = 4
+#' G = simquantgen::fn_simulate_genotypes(ploidy=ploidy, verbose=TRUE)
+#' G_classes = fn_classify_allele_frequencies(G=G, ploidy=ploidy, verbose=TRUE)
 #' @export
-fn_classify_allele_frequencies = function(mat_genotypes, ploidy, strict_boundaries=FALSE, verbose=FALSE) {
+fn_classify_allele_frequencies = function(G, ploidy=2, verbose=FALSE) {
     ###################################################
     ### TEST
-    # vcf = fn_simulate_data(verbose=TRUE, save_geno_vcf=FALSE)$vcf
-    # mat_genotypes = fn_vcf_to_G(vcf=vcf, verbose=TRUE)
-    # ploidy = 2
-    # strict_boundaries = FALSE
+    # ploidy = 4
+    # G = simquantgen::fn_simulate_genotypes(ploidy=ploidy, verbose=TRUE)
+    # verbose = TRUE
     ###################################################
     if (ploidy < 1) {
         error = new("gpError", 
@@ -658,49 +638,184 @@ fn_classify_allele_frequencies = function(mat_genotypes, ploidy, strict_boundari
                 "Revise this upper limit if biology begs to differ."))
         return(error)
     }
-    if (strict_boundaries) {
-        ### We are only setting the unfixed frequencies, i.e., (q!=0.0) & (q!=1.0)
-        vec_expected_frequencies = c(0, c(0:ploidy))/ploidy
-        for (i in 3:(ploidy+1)) {
-            # i = 3
-            dfreq0 = (vec_expected_frequencies[i-1] - vec_expected_frequencies[i-2])/2
-            dfreq1 = (vec_expected_frequencies[i-0] - vec_expected_frequencies[i-1])/2
-            idx = (!is.na(mat_genotypes) & 
-                (mat_genotypes >  (vec_expected_frequencies[i-1] + dfreq0)) & 
-                (mat_genotypes <= (vec_expected_frequencies[i-0] + dfreq1)))
-            if (i == ploidy+1) {
-                idx = (!is.na(mat_genotypes) & 
-                    (mat_genotypes > (vec_expected_frequencies[i-1] + dfreq0)) & 
-                    (mat_genotypes < 1.00))
-            }
-            mat_genotypes[idx] = vec_expected_frequencies[i]
-        }
-    } else {
-        mat_genotypes = round(mat_genotypes * ploidy) / ploidy
-    }
+    G_classes = round(G * ploidy) / ploidy
     ### Genotype classses distribution
     if (verbose) {
         print("Genotype classes distribution:")
-        print(paste0(c("q_min=", "q_max="), round(range(mat_genotypes), 4)))
-        txtplot::txtdensity(mat_genotypes)
+        print(paste0(c("q_min=", "q_max="), round(range(G_classes), 4)))
+        txtplot::txtdensity(G_classes)
         print("Genotype classes:")
-        print(table(mat_genotypes))
+        print(table(G_classes))
     }
     ### Output n x p matrix of genotype classes
-    return(mat_genotypes)
+    return(G_classes)
 }
 
-### Outputs a $n$ entries x $l$ loci x (n_alleles-1) matrix
-fn_load_genotype = function(fname_genotype, retain_minus_one_alleles_per_locus=TRUE, verbose=FALSE) {
+#' Simple wrapper of simquantgen simulation of 10 standard normally distributed QTL additive effects 
+#' on 5-chromosome genome and a single trait at 50% heritability
+#' 
+#' @param n number of samples [Default=100]
+#' @param l number of loci [Default=1000]
+#' @param ploidy ploidy level which can refer to the number of haploid genomes to simulate pools [Default=42]
+#' @param n_alleles macimum number of alleles per locus [Default=2]
+#' @param seed randomisation seed for replicability [Default=12345]
+#' @param save_pheno_tsv save the phenotype data as a tab-delimited file? [Default=TRUE]
+#' @param save_geno_vcf save the genotype data as a vcf file? [Default=TRUE]
+#' @param save_geno_tsv save the genotype data as a tab-delimited allele frequency table file? [Default=FALSE]
+#' @param save_geno_rds save the named genotype matrix as an Rds file? [Default=FALSE]
+#' @param non_numeric_Rds save non-numeric Rds genotype file? [Default=FALSE]
+#' @param verbose show genotype and phenotype data simulation messages? [Default=FALSE]
+#' @returns
+#' vcf: simulated genotype data as a vcfR object
+#' df: simulated phenotype data as a data frame
+#' fname_geno_vcf: filename of the simulated genotype data as a vcf file
+#' fname_geno_tsv: filename of the simulated genotype data as a tab-delimited allele frequency table file
+#' fname_geno_rds: filename of the simulated named genotype matrix as an Rds file
+#' fname_pheno_tsv: filename of the simulated phenotype data as a tab-delimited file
+#' @examples
+#' list_sim = fn_simulate_data(verbose=TRUE, save_geno_vcf=TRUE, save_geno_tsv=TRUE, save_geno_rds=TRUE, save_pheno_tsv=TRUE)
+#' @export
+fn_simulate_data = function(n=100, l=1000, ploidy=42, n_alleles=2, depth=100, seed=12345, save_pheno_tsv=TRUE, save_geno_vcf=TRUE, save_geno_tsv=FALSE, save_geno_rds=FALSE, non_numeric_Rds=FALSE, verbose=FALSE) {
     ###################################################
     ### TEST
-    fname_genotype = fn_simulate_data(verbose=TRUE, save_geno_rds=TRUE)$fname_genotype_rds
-    fname_genotype = fn_simulate_data(verbose=TRUE, save_geno_vcf=TRUE)$fname_genotype_vcf
-    fname_genotype = fn_simulate_data(verbose=TRUE, save_geno_tsv=TRUE)$fname_genotype_tsv
-    ### Non-numeric biallelic diploid
-    fname_genotype = fn_simulate_data(n_alleles=2, ploidy=8, non_numeric_Rds=TRUE, save_geno_rds=TRUE, verbose=TRUE)$fname_genotype_rds
-    retain_minus_one_alleles_per_locus = TRUE
-    verbose = TRUE
+    # n = 100
+    # l = 1000
+    # ploidy = 42
+    # n_alleles = 2
+    # depth = 100
+    # pheno_reps = 1
+    # seed = 12345
+    # save_pheno_tsv = TRUE
+    # save_geno_vcf = TRUE
+    # save_geno_tsv = TRUE
+    # save_geno_rds = TRUE
+    # non_numeric_Rds = TRUE
+    # verbose = TRUE
+    ###################################################
+    ### Set a randomisation seed for repeatability
+    set.seed(seed)
+    ### Simulate genotype matrix
+    G = simquantgen::fn_simulate_genotypes(n=n, l=l, ploidy=ploidy, n_alleles=n_alleles, verbose=verbose)
+    ### Simulate phenotype data frame
+    list_Y_b_E_b_epi = simquantgen::fn_simulate_phenotypes(G=G, n_alleles=n_alleles, dist_effects="norm", n_effects=10, h2=0.5, pheno_reps=1, verbose=FALSE)
+    y = list_Y_b_E_b_epi$Y[,1]
+    df = data.frame(id=names(y), trait=y); rownames(df) = NULL
+    ### Report distribution of simulation data
+    if (verbose) {
+        print("Simulated allele frequency distribution:")
+        print(paste0(c("q_min=", "q_max="), round(range(G), 4)))
+        txtplot::txtdensity(G)
+        print("Simulated phenotype distribution:")
+        print(paste0(c("y_min=", "y_max="), round(range(df$trait), 4)))
+        txtplot::txtdensity(df$trait)
+    }
+    ### Instantiate output file names
+    fname_geno_vcf = NULL
+    fname_geno_tsv = NULL
+    fname_geno_rds = NULL
+    fname_pheno_tsv = NULL
+    ### Define date-time-random-number identifier so that we minimise the possibility of unintentional over-writing of the output file/s
+    date = gsub("-", "", gsub("[.]", "", gsub(":", "", gsub(" ", "", as.character(Sys.time())))))
+    ### Save phenotype file
+    if (save_pheno_tsv) {
+        fname_pheno_tsv = file.path(getwd(), paste0("simulated_phenotype-", date, ".tsv"))
+        write.table(df, file=fname_pheno_tsv, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
+        if (verbose) {
+            print("Output phenotype file (tsv):")
+            print(fname_pheno_tsv)
+        }
+    }
+    if (save_geno_vcf) {
+        vcf = fn_G_to_vcf(G=G, min_depth=1e4, max_depth=1e4, verbose=verbose)
+        if (class(vcf) == "gpError") {
+            error = new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in load::fn_simulate_data(...). ",
+                    "Please set n_alleles=2 as we can only convert biallelic loci into VCF format at the moment."
+                ))
+            error = chain(vcf, error)
+            return(error)
+        }
+        fname_geno_vcf = file.path(getwd(), paste0("simulated_genotype-", date, ".vcf.gz"))
+        vcfR::write.vcf(vcf, file=fname_geno_vcf)
+        if (verbose) {
+            print("Output genotype file (sync.gz):")
+            print(fname_geno_vcf)
+        }
+    }
+    if (save_geno_tsv)  {
+        list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=G, verbose=verbose)
+        df_geno = data.frame(chr=list_ids_chr_pos_all$vec_chr, pos=list_ids_chr_pos_all$vec_pos, allele=list_ids_chr_pos_all$vec_all, t(G))
+        fname_geno_tsv = file.path(getwd(), paste0("simulated_genotype-", date, ".tsv"))
+        write.table(df_geno, file=fname_geno_tsv, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
+        if (verbose) {
+            print("Output genotype file (tsv):")
+            print(fname_geno_tsv)
+        }
+    }
+    if (save_geno_rds) {
+        ### Convert loci names so that the chromosome, position and allele are tab-delimited
+        fname_geno_rds = file.path(getwd(), paste0("simulated_genotype-", date, ".Rds"))
+        ### Revert to numeric if we have more than 52 alleles (limit of the Latin alphabet)
+        if (!non_numeric_Rds) {
+            saveRDS(G, file=fname_geno_rds)
+        } else {
+            G_non_numeric = fn_G_numeric_to_non_numeric(G=G, ploidy=ploidy, verbose=verbose)
+            saveRDS(G_non_numeric, file=fname_geno_rds)
+        }
+        if (verbose) {
+            print("Output genotype file (Rds):")
+            print(fname_geno_rds)
+        }
+    }
+    return(list(
+        fname_geno_vcf=fname_geno_vcf,
+        fname_geno_tsv=fname_geno_tsv,
+        fname_geno_rds=fname_geno_rds,
+        fname_pheno_tsv=fname_pheno_tsv
+    ))
+}
+
+#' Load genotype data as an allele frequency matrix
+#' Load genotype data as an allele frequency matrix
+#' 
+#' @param fname_geno filename of the genotype file
+#'  This may be in:
+#'      - VCF format, 
+#'      - allele frequency table saved as a tab-delimited file with a header line and the first 3 columns refer to the
+#'          chromosome (chr), position (pos), and allele (allele),
+#'          with subsequent columns referring to the allele frequencies of a sample, entry or pool.
+#'          Names of the samples, entries, or pools in the header line can be any unique string of characters.
+#' @param ploidy ploidy level which will generate genotype classes instead of continuous allele frequencies.
+#'  If NULL, then continuous allele frequencies and no binning or classification into genotype classes
+#'  will be performed [Default=NULL].
+#' @param retain_minus_one_alleles_per_locus omit the alternative or trailing allele per locus? [Default=TRUE]
+#' @param verbose show genotype loading messages? [Default=FALSE]
+#' @returns
+#' Ok: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'  Row names can be any string of characters which identify the sample or entry or pool names.
+#'  Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
+#'  the second should be numeric which refers to the position in the chromosome/scaffold, and 
+#'  subsequent elements are optional which may refer to the allele identifier and other identifiers.
+#' Err: gpError
+#' @examples
+#' list_sim = fn_simulate_data(verbose=TRUE, save_geno_vcf=TRUE, save_geno_tsv=TRUE, save_geno_rds=TRUE, save_pheno_tsv=TRUE)
+#' G_vcf = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf, verbose=TRUE)
+#' G_tsv = fn_load_genotype(fname_geno=list_sim$fname_geno_tsv, verbose=TRUE)
+#' G_rds = fn_load_genotype(fname_geno=list_sim$fname_geno_rds, verbose=TRUE)
+#' @export
+fn_load_genotype = function(fname_geno, ploidy=NULL, retain_minus_one_alleles_per_locus=TRUE, verbose=FALSE) {
+    ###################################################
+    ### TEST
+    # list_sim = fn_simulate_data(ploidy=8, verbose=TRUE, save_geno_vcf=TRUE, save_geno_tsv=TRUE, save_geno_rds=TRUE, save_pheno_tsv=TRUE)
+    # # list_sim = fn_simulate_data(ploidy=8, verbose=TRUE, save_geno_vcf=TRUE, save_geno_tsv=TRUE, save_geno_rds=TRUE, save_pheno_tsv=TRUE, non_numeric_Rds=TRUE)
+    # fname_geno = list_sim$fname_geno_vcf
+    # fname_geno = list_sim$fname_geno_tsv
+    # fname_geno = list_sim$fname_geno_rds
+    # ploidy = 4
+    # retain_minus_one_alleles_per_locus = TRUE
+    # verbose = TRUE
     ###################################################
     ### Load the genotype matrix (n x p)
     ### TryCatch Rds, vcf, then tsv
@@ -708,115 +823,195 @@ fn_load_genotype = function(fname_genotype, retain_minus_one_alleles_per_locus=T
         ################
         ### RDS file ###
         ################
-        G = readRDS(fname_genotype)
-        ### If the input genotype matrix is non-numeric, then we assume biallelic loci, e.g. "AA", "AB", and "BB".
-        ### Convert them into numerics setting the first allele as 0 and the second as 1, such that "AA" = 0.0, "AB" = 1.0, and "BB" = 2.0
-        ### Assuming "A" is the reference allele, then what we end up with is the alternative allele counts
+        G = readRDS(fname_geno)
         if (is.numeric(G)==FALSE) {
-            # G_numeric = matrix(0, nrow=nrow(G), ncol=ncol(G))
-            # rownames(G_numeric) = rownames(G)
-            # colnames(G_numeric) = colnames(G)
-            # if (verbose) {pb = txtProgressBar(min=0, max=ncol(G), style=3)}
-            # for (j in 1:ncol(G)) {
-            #     # j = 1
-            #     alleles = sort(unique(unlist(strsplit(unique(G[, j]), ""))))
-            #     if (length(alleles) == 2) {
-            #         G_numeric[, j] = unlist(lapply(strsplit(gsub(alleles[2], 1, gsub(alleles[1], 0, G[, j])), ""), FUN=function(x){sum(as.numeric(x)) / length(x)}))
-            #     }
-            #     if (length(alleles) > 2) {
-            #         error = new("gpError",
-            #             code=000,
-                        #             message=paste0(
-            #                 "Error in load::fn_load_genotype(...)", 
-            #                 "Error reading genotype file: ", fname_genotype, ". ", 
-            #                 "Are you certain that your file is biallelic diploid, i.e. it has a maximum of 2 alleles per locus? ",
-            #                 "Then explain these alleles: ", paste(paste0("'", alleles, "'"), collapse=","), ". ",
-            #                 "Do these look like your genotype data: ", paste(head(G_numeric[, j]), collapse=","), "? ",
-            #                 "These too: ", paste(tail(G_numeric[, j]), collapse=","), "?"))
-            #         return(error)
-            #     }
-            #     if (verbose) {setTxtProgressBar(pb, j)}
-            # }
-            # if (verbose) {close(pb)}
-            G_numeric
+            fn_G_non_numeric_to_numeric(G_non_numeric=G, verbose=verbose)
         }
+        return(G)
     }, 
     error=function(e) {
         tryCatch({
             ################
             ### VCF file ###
             ################
-            vcf = vcfR::read.vcfR(fname_genotype, verbose=TRUE)
-            mat_genotypes = fn_vcf_to_G(vcf)
-            if (class(mat_genotypes)[1] == "gpError") {
-                error = chain(mat_genotypes, new("gpError",
+            vcf = vcfR::read.vcfR(fname_geno, verbose=TRUE)
+            G = fn_vcf_to_G(vcf, retain_minus_one_alleles_per_locus=retain_minus_one_alleles_per_locus, verbose=verbose)
+            if (class(G)[1] == "gpError") {
+                error = chain(G, new("gpError",
                     code=000,
                                         message=paste0(
                         "Error in load::fn_load_genotype(...).", 
-                        "Error loading the vcf file: ", fname_genotype, ".")))
+                        "Error loading the vcf file: ", fname_geno, ".")))
                 return(error)
             } else {
-                return(mat_genotypes)
+                return(G)
             }
         }, 
         error=function(e) {
             ########################################
             ### TSV: allele frequency table file ###
             ########################################
-            df = read.delim(fname_genotype, sep="\t", header=TRUE)
+            df = read.delim(fname_geno, sep="\t", header=TRUE)
             if (sum(colnames(df)[1:3] == c("chr", "pos", "allele"), na.rm=TRUE) < 3) {
                 error = new("gpError", 
                     code=000,
                     message=paste0(
                         "Error in load::fn_load_genotype(...). ",
-                        "The file: ", fname_genotype, " is not in allele frequency table format as described in the README.md. ",
+                        "The file: ", fname_geno, " is not in allele frequency table format as described in the README.md. ",
                         "The first 3 columns do not correspond to 'chr', 'pos', and 'allele'."))
                 return(error)
             }
-            vec_loci_names = paste(df$chr, df$pos, df$allele, sep="_")
+            vec_loci_names = paste(df$chr, df$pos, df$allele, sep="\t")
             vec_entries = colnames(df)[c(-1:-3)]
-            mat_genotypes = as.matrix(t(df[, c(-1:-3)]))
-            rownames(mat_genotypes) = vec_entries
-            colnames(mat_genotypes) = vec_loci_names
-            return(mat_genotypes)
+            G = as.matrix(t(df[, c(-1:-3)]))
+            rownames(G) = vec_entries
+            colnames(G) = vec_loci_names
+            return(G)
         })
     })
     ### Retain a-1 allele/s per locus, i.e. remove duplicates assuming all loci are biallelic
     if (retain_minus_one_alleles_per_locus==TRUE) {
-        n = nrow(G)
-        p = ncol(G)
-        pool_names = rownames(G)
-        alleles_across_loci_names = colnames(G)
-        first_locus_for_assertions = unlist(strsplit(alleles_across_loci_names[1], "_"))
-        if (length(first_locus_for_assertions) < 3) {
-            if (verbose) {print("Assuming biallelic loci without allele names and one of the alleles are already omitted across all loci. We are now omitting loci or columns with duplicate names.")}
-            vec_idx_retained = which(!duplicated(colnames(G)))
-        } else {
-            if (is.na(suppressWarnings(as.numeric(first_locus_for_assertions[length(first_locus_for_assertions)-1])))) {
-                if (verbose) {print("Assuming biallelic loci without allele names and one of the alleles are already omitted across all loci. We are now omitting loci or columns with duplicate names.")}
-                vec_idx_retained = which(!duplicated(colnames(G)))
-            } else {
-                loci_names_tmp = unlist(lapply(alleles_across_loci_names, FUN=function(x){y=unlist(strsplit(x, "_")); l=length(y); chr=paste(y[1:(l-2)], collapse="_"); pos=y[(l-1)]; return(paste0(chr, "_", pos))}))
-                loci_names = sort(unique(loci_names_tmp))
-                vec_idx_retained = which(!duplicated(loci_names_tmp))
-            }
-        }
-        G = G[, vec_idx_retained]
+        G = fn_G_split_off_alternative_allele(G=G, verbose=verbose)$G
     }
     return(G)
 }
 
-### Filter genotypes by minimum allele frequency and minimum variation within locus (in an attempt to prevent duplicating the intercept)
-fn_filter_loci = function(G, maf=0.001, sdev_min=0.001) {
-    # fname_rds_or_vcf = "/group/pasture/Jeff/genomic_selection/tests/test.vcf"
-    # G = fn_load_genotype(fname_rds_or_vcf)
-    # maf = 0.001
-    # sdev_min = 0.001
-    freqs = colMeans(G)
-    sdev = apply(G, MARGIN=2, FUN=sd)
-    idx = which((freqs >= maf) & (freqs <= (1-maf)) & (sdev >= sdev_min))
-    G = G[, idx]
-    gc()
+#' Filter genotypes by minimum allele frequency and minimum variation within locus (in an attempt to prevent duplicating the intercept)
+#' and optionally by loci identities using a SNP which specifies the SNP coordinates as well as the reference and alternative alleles
+#'
+#' @param G numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'  Row names can be any string of characters which identify the sample or entry or pool names.
+#'  Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
+#'  the second should be numeric which refers to the position in the chromosome/scaffold, and 
+#'  subsequent elements are optional which may refer to the allele identifier and other identifiers.
+#' @param maf minimum allele frequency [Default=0.01]
+#' @param sdev_min minimum allele frequency standard deviation (constant allele frequency across samples is just another intercept) [Default=0.0001]
+#' @param fname_snp_list name of the file containing the list of expected SNPs including their coordinates and alleles.
+#'  This is a tab-delimited file with 3 columns: '#CHROM', 'POS', 'REF,ALT', corresponding to [Default=NULL]
+#'  chromosome names (e.g. 'chr1' & 'chrom_1'), 
+#'  numeric positions (e.g. 12345 & 100001), and 
+#' reference-alternative allele strings separated by a comma (e.g. 'A,T' & 'allele_1,allele_alt') [Default=NULL]
+#' @returns
+#' Ok: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'  Row names can be any string of characters which identify the sample or entry or pool names.
+#'  Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
+#'  the second should be numeric which refers to the position in the chromosome/scaffold, and 
+#'  subsequent elements are optional which may refer to the allele identifier and other identifiers.
+#' Err: gpError
+#' @examples
+#' list_sim = fn_simulate_data(verbose=TRUE)
+#' G = fn_load_genotype(list_sim$fname_geno_vcf, retain_minus_one_alleles_per_locus=FALSE)
+#' maf = 0.05
+#' sdev_min = 0.0001
+#' verbose = TRUE
+#' ### Simulate SNP list for filtering
+#' mat_loci = matrix(unlist(strsplit(colnames(G), "\t")), byrow=TRUE, ncol=3)
+#' vec_loci = unique(paste0(mat_loci[,1], "\t", mat_loci[,2]))
+#' mat_loci = matrix(unlist(strsplit(vec_loci, "\t")), byrow=TRUE, ncol=2)
+#' df_snp_list = data.frame(CHROM=mat_loci[,1], POS=as.numeric(mat_loci[,2]), REF_ALT=paste0("allele_1,allele_alt"))
+#' df_snp_list$REF_ALT[1:100] = "allele_2,allele_4"
+#' colnames(df_snp_list) = c("#CHROM", "POS", "REF,ALT")
+#' fname_snp_list = "tmp_snp_list.txt"
+#' write.table(df_snp_list, file=fname_snp_list, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
+#' ### Filter
+#' G_filtered = fn_filter_loci(G=G, maf=0.05, fname_snp_list=fname_snp_list, verbose=TRUE)
+#' @export
+fn_filter_loci = function(G, maf=0.01, sdev_min=0.0001, fname_snp_list=NULL, verbose=FALSE) {
+    ###################################################
+    ### TEST
+    # list_sim = fn_simulate_data(verbose=TRUE)
+    # G = fn_load_genotype(list_sim$fname_geno_vcf)
+    # maf = 0.05
+    # sdev_min = 0.0001
+    # fname_snp_list = NULL
+    # # ### Simulate SNP list for filtering
+    # # G = fn_load_genotype(list_sim$fname_geno_vcf, retain_minus_one_alleles_per_locus=FALSE)
+    # # mat_loci = matrix(unlist(strsplit(colnames(G), "\t")), byrow=TRUE, ncol=3)
+    # # vec_loci = unique(paste0(mat_loci[,1], "\t", mat_loci[,2]))
+    # # mat_loci = matrix(unlist(strsplit(vec_loci, "\t")), byrow=TRUE, ncol=2)
+    # # df_snp_list = data.frame(CHROM=mat_loci[,1], POS=as.numeric(mat_loci[,2]), REF_ALT=paste0("allele_1,allele_alt"))
+    # # df_snp_list$REF_ALT[1:100] = "allele_2,allele_4"
+    # # colnames(df_snp_list) = c("#CHROM", "POS", "REF,ALT")
+    # # fname_snp_list = "tmp_snp_list.txt"
+    # # write.table(df_snp_list, file=fname_snp_list, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
+    # verbose = TRUE
+    ###################################################
+    ### Make sure the input thresholds are sensible
+    if ((maf < 0.0) | (maf > 1.0)) {
+        error = new("gpError",
+            code=000,
+            message=paste0(
+                "Error in load::fn_filter_loci(...). ",
+                "Please use a minimum allele frequency (maf) between 0 and 1."
+            ))
+        return(error)
+    }
+    if ((sdev_min < 0.0) | (sdev_min > 1.0)) {
+        error = new("gpError",
+            code=000,
+            message=paste0(
+                "Error in load::fn_filter_loci(...). ",
+                "Please use a minimum standard deviation in allele frequency (sdev_min) between 0 and 1."
+            ))
+        return(error)
+    }
+    ### Extract the mean and standard deviation in allele frequencies per locus
+    vec_freqs = colMeans(G, na.rm=TRUE)
+    vec_sdevs = apply(G, MARGIN=2, FUN=sd)
+    if (verbose) {
+        print("Distribution of mean allele frequencies per locus:")
+        txtplot::txtdensity(vec_freqs)
+        print("Distribution of allele frequency standard deviation per locus:")
+        txtplot::txtdensity(vec_sdevs)
+    }
+    ### Filter by minimum allele frequency and minimum allele frequency variance (constant allele frequency across samples is just another intercept)
+    vec_idx = which(
+        (vec_freqs >= maf) &
+        (vec_freqs <= (1-maf)) &
+        (vec_sdevs >= sdev_min))
+    if (length(vec_idx) < ncol(G)) {
+        G = G[, vec_idx, drop=FALSE]
+    } else {
+        if (verbose) {print("All loci passed the minimum allele frequency and standard deviation thresholds.")}
+    }
+    ### Filter using a SNP list
+    if (!is.null(fname_snp_list)) {
+        df = read.delim(fname_snp_list, sep="\t", header=TRUE, check.names=FALSE)
+        if (sum(colnames(df) != c("#CHROM", "POS", "REF,ALT")) > 0) {
+            error = new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in load::fn_filter_loci(...). ",
+                    "The SNP list file: ", fname_snp_list, " does not have the expected field names: ",
+                    "'#CHROM', 'POS', and 'REF,ALT'."
+                ))
+            return(error)
+        }
+        mat_ref_alt = matrix(unlist(strsplit(df$`REF,ALT`, ",")), byrow=TRUE, ncol=2)
+        df$REF = mat_ref_alt[,1]
+        df$ALT = mat_ref_alt[,2]
+        vec_expected_snps = c(
+            paste(df$`#CHROM`, df$POS, df$REF, sep="\t"), 
+            paste(df$`#CHROM`, df$POS, df$ALT, sep="\t"))
+        vec_colnames = colnames(G)
+        p = length(vec_colnames)
+        vec_idx = c()
+        if (verbose) {pb = txtProgressBar(min=0, max=p, style=3)}
+        for (j in 1:p) {
+            # j = 1
+            if (sum(vec_expected_snps %in% vec_colnames[j]) == 1) {
+                vec_idx = c(vec_idx, j)
+            }
+            if (verbose) {setTxtProgressBar(pb, j)}
+        }
+        if (verbose) {close(pb)}
+        if (length(vec_idx) < p) {
+            G = G[, vec_idx, drop=FALSE]
+        } else {
+            if (verbose) {print("All loci passed the minimum allele frequency and standard deviation thresholds.")}
+        }
+    }
+    ### Return filtered allele frequency matrix
     return(G)
 }
 

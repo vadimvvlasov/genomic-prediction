@@ -1,7 +1,7 @@
-dirname_functions = dirname(sys.frame(1)$ofile)
-# dirname_functions = "/group/pasture/Jeff/genomic_selection/src"
-library(testthat)
-source(paste0(dirname_functions, "/models.R"))
+# dirname_functions = dirname(sys.frame(1)$ofile)
+# # dirname_functions = "/group/pasture/Jeff/genomic_selection/src"
+# library(testthat)
+# source(paste0(dirname_functions, "/models.R"))
 
 fn_kfold_cross_validation = function(i, vec_set_partition_groupings, mat_idx_shuffle, mat_params, G, y, COVAR=NULL, prefix_tmp="gsTmp", mem_mb=1000){
     # i = 34

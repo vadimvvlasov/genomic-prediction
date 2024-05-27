@@ -5,9 +5,9 @@ suppressWarnings(suppressPackageStartupMessages(library(BGLR)))
 suppressWarnings(suppressPackageStartupMessages(library(sommer)))
 # suppressWarnings(suppressPackageStartupMessages(library(epistasisfeatures)))
 
-dirname_functions = dirname(sys.frame(1)$ofile)
-# dirname_functions = "/group/pasture/Jeff/genomic_selection/src"
-source(paste0(dirname_functions, "/metrics.R"))
+# dirname_functions = dirname(sys.frame(1)$ofile)
+# # dirname_functions = "/group/pasture/Jeff/genomic_selection/src"
+# source(paste0(dirname_functions, "/metrics.R"))
 
 ### New models can be added by having the same input structure, i.e.:
 ###     1.) nxp matrix of numeric genotype data without missing values
