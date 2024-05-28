@@ -2,8 +2,14 @@
 % Please edit documentation in R/load.R
 \name{fn_filter_loci}
 \alias{fn_filter_loci}
-\title{Filter genotypes by minimum allele frequency and minimum variation within locus (in an attempt to prevent duplicating the intercept)
-and optionally by loci identities using a SNP which specifies the SNP coordinates as well as the reference and alternative alleles}
+\title{Filter genotypes by:
+\itemize{
+\item minimum allele frequency,
+\item minimum variation within locus (in an attempt to prevent duplicating the intercept)
+\item loci identities using a SNP which specifies the SNP coordinates as well as the reference and alternative alleles
+\item mean sparsity per locus
+\item mean sparsity per sample/entry/pool
+}}
 \usage{
 fn_filter_loci(
   G,
@@ -39,8 +45,14 @@ subsequent elements are optional which may refer to the allele identifier and ot
 Err: gpError
 }
 \description{
-Filter genotypes by minimum allele frequency and minimum variation within locus (in an attempt to prevent duplicating the intercept)
-and optionally by loci identities using a SNP which specifies the SNP coordinates as well as the reference and alternative alleles
+Filter genotypes by:
+\itemize{
+\item minimum allele frequency,
+\item minimum variation within locus (in an attempt to prevent duplicating the intercept)
+\item loci identities using a SNP which specifies the SNP coordinates as well as the reference and alternative alleles
+\item mean sparsity per locus
+\item mean sparsity per sample/entry/pool
+}
 }
 \examples{
 list_sim = fn_simulate_data(verbose=TRUE)

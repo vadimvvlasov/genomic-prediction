@@ -15,6 +15,15 @@ test_that("fn_G_extract_names", {
     expect_equal(length(unique(list_ids_chr_pos_all$vec_all)), n_alleles-1)
 })
 
+test_that("fn_G_split_off_alternative_allele", {
+    G_ref = simquantgen::fn_simulate_genotypes(verbose=TRUE)
+    G_alt = 1 - G_ref; colnames(G_alt) = gsub("allele_1$", "allele_2", colnames(G_alt))
+    G_refalt = cbind(G_ref, G_alt)
+    list_G_G_alt = fn_G_split_off_alternative_allele(G=G_refalt, verbose=TRUE)
+    expect_equal(sum(G_ref == list_G_G_alt$G), prod(dim(G_ref)))
+    expect_equal(sum(G_alt == list_G_G_alt$G_alt), prod(dim(G_alt)))
+})
+
 test_that("fn_G_numeric_to_non_numeric", {
     ploidy = 42
     G_numeric = simquantgen::fn_simulate_genotypes(ploidy=ploidy, n_alleles=52, verbose=TRUE)
@@ -26,22 +35,13 @@ test_that("fn_G_numeric_to_non_numeric", {
 
 test_that("fn_G_non_numeric_to_numeric", {
     ploidy = 42
-    G_numeric = simquantgen::fn_simulate_genotypes(ploidy=ploidy, n_alleles=52, verbose=TRUE)
+    n_alleles = 2
+    G_numeric = simquantgen::fn_simulate_genotypes(ploidy=ploidy, n_alleles=n_alleles, verbose=TRUE)
     G_non_numeric = fn_G_numeric_to_non_numeric(G=G_numeric, ploidy=ploidy, verbose=TRUE)
     G_numeric_back = fn_G_non_numeric_to_numeric(G=G_non_numeric, verbose=TRUE)
-    m = 40
-    expect_equal(sum(abs(G_numeric[1:m,1:m] - G_numeric_back[1:m,1:m]) < 1e-12), m*m)
+    expect_equal(sum(abs(G_numeric - G_numeric_back) < 1e-4), prod(dim(G_numeric)))
     ### The converted non-numeric to numeric matrix can have less loci-alleles than the original numeric matrix as fixed loci will be omitted
     expect_equal(ncol(G_numeric_back) <= ncol(G_numeric), TRUE)
-})
-
-test_that("fn_G_split_off_alternative_allele", {
-    G_ref = simquantgen::fn_simulate_genotypes(verbose=TRUE)
-    G_alt = 1 - G_ref; colnames(G_alt) = gsub("allele_1$", "allele_2", colnames(G_alt))
-    G_refalt = cbind(G_ref, G_alt)
-    list_G_G_alt = fn_G_split_off_alternative_allele(G=G_refalt, verbose=TRUE)
-    expect_equal(sum(G_ref == list_G_G_alt$G), prod(dim(G_ref)))
-    expect_equal(sum(G_alt == list_G_G_alt$G_alt), prod(dim(G_alt)))
 })
 
 test_that("fn_G_to_vcf", {
@@ -77,26 +77,34 @@ test_that("fn_classify_allele_frequencies", {
 })
 
 test_that("fn_simulate_data", {
-    list_fnames = fn_simulate_data(verbose=TRUE)
-    expect_equal(is.null(list_fnames$fname_geno_vcf), FALSE)
-    expect_equal(is.null(list_fnames$fname_geno_tsv), TRUE)
-    expect_equal(is.null(list_fnames$fname_geno_rds), TRUE)
-    expect_equal(is.null(list_fnames$fname_pheno_tsv), FALSE)
-    list_fnames = fn_simulate_data(save_geno_vcf=TRUE, save_geno_rds=TRUE, save_geno_tsv=TRUE, save_pheno_tsv=TRUE, verbose=TRUE)
-    G_vcf = fn_vcf_to_G(vcf=vcfR::read.vcfR(list_fnames$fname_geno_vcf))
-    df_tsv = read.delim(list_fnames$fname_geno_tsv, sep="\t", header=TRUE)
+    list_sim = fn_simulate_data(verbose=TRUE)
+    expect_equal(is.null(list_sim$fname_geno_vcf), FALSE)
+    expect_equal(is.null(list_sim$fname_geno_tsv), TRUE)
+    expect_equal(is.null(list_sim$fname_geno_rds), TRUE)
+    expect_equal(is.null(list_sim$fname_pheno_tsv), FALSE)
+    unlink(list_sim$fname_geno_vcf)
+    unlink(list_sim$fname_pheno_tsv)
+    list_sim = fn_simulate_data(save_geno_vcf=TRUE, save_geno_rds=TRUE, save_geno_tsv=TRUE, save_pheno_tsv=TRUE, verbose=TRUE)
+    G_vcf = fn_vcf_to_G(vcf=vcfR::read.vcfR(list_sim$fname_geno_vcf))
+    df_tsv = read.delim(list_sim$fname_geno_tsv, sep="\t", header=TRUE)
     G_tsv = as.matrix(t(df_tsv[, c(-1,-2,-3)])); rownames(G_tsv) = colnames(df_tsv)[c(-1,-2,-3)]; colnames(G_tsv) = paste(df_tsv$chr, df_tsv$pos, df_tsv$allele, sep="\t")
-    G_rds = readRDS(list_fnames$fname_geno_rds)
-    df_pheno = read.delim(list_fnames$fname_pheno_tsv, sep="\t", header=TRUE)
+    G_rds = readRDS(list_sim$fname_geno_rds)
+    df_pheno = read.delim(list_sim$fname_pheno_tsv, sep="\t", header=TRUE)
     expect_equal(sum(abs(G_vcf - G_tsv) < 1e-4), prod(dim(G_vcf)))
     expect_equal(sum(abs(G_vcf - G_rds) < 1e-4), prod(dim(G_vcf)))
     expect_equal(sum(abs(G_rds - G_tsv) < 1e-4), prod(dim(G_vcf)))
     expect_equal(sum(df_pheno$id == rownames(G_vcf)), nrow(df_pheno))
     expect_equal(sum(df_pheno$id == rownames(G_tsv)), nrow(df_pheno))
     expect_equal(sum(df_pheno$id == rownames(G_rds)), nrow(df_pheno))
-    list_fnames = fn_simulate_data(save_geno_vcf=FALSE, save_geno_rds=TRUE, non_numeric_Rds=TRUE, verbose=TRUE)
-    G_non_numeric = readRDS(list_fnames$fname_geno_rds)
+    unlink(list_sim$fname_geno_vcf)
+    unlink(list_sim$fname_geno_tsv)
+    unlink(list_sim$fname_geno_rds)
+    unlink(list_sim$fname_pheno_tsv)
+    list_sim = fn_simulate_data(save_geno_vcf=FALSE, save_geno_rds=TRUE, non_numeric_Rds=TRUE, verbose=TRUE)
+    G_non_numeric = readRDS(list_sim$fname_geno_rds)
     expect_equal(is.numeric(G_non_numeric), FALSE)
+    unlink(list_sim$fname_geno_rds)
+    unlink(list_sim$fname_pheno_tsv)
 })
 
 test_that("fn_load_genotype", {
@@ -107,6 +115,10 @@ test_that("fn_load_genotype", {
     expect_equal(sum(abs(G_vcf - G_tsv) < 1e-4), prod(dim(G_vcf)))
     expect_equal(sum(abs(G_vcf - G_rds) < 1e-4), prod(dim(G_vcf)))
     expect_equal(sum(abs(G_rds - G_tsv) < 1e-4), prod(dim(G_vcf)))
+    unlink(list_sim$fname_geno_vcf)
+    unlink(list_sim$fname_geno_tsv)
+    unlink(list_sim$fname_geno_rds)
+    unlink(list_sim$fname_pheno_tsv)
 })
 
 test_that("fn_filter_loci", {
@@ -140,5 +152,7 @@ test_that("fn_filter_loci", {
     G_filtered_2_split_G = fn_G_split_off_alternative_allele(G=G_filtered_2, verbose=TRUE)$G
     expect_equal(sum(abs(G_filtered_3 - G_filtered_2_split_G) < 1e-12), prod(dim(G_filtered_3)))
     ### Clean-up
+    unlink(list_sim$fname_geno_vcf)
+    unlink(list_sim$fname_pheno_tsv)
     unlink(fname_snp_list)
 })

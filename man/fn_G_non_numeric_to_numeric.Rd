@@ -2,27 +2,33 @@
 % Please edit documentation in R/load.R
 \name{fn_G_non_numeric_to_numeric}
 \alias{fn_G_non_numeric_to_numeric}
-\title{Convert a non-numeric genotype classes matrix into a numeric (allele frequency) genotype matrix}
+\title{Convert a non-numeric genotype classes matrix into a numeric (allele frequency) genotype matrix which includes all the alleles}
 \usage{
-fn_G_non_numeric_to_numeric(G_non_numeric, verbose = FALSE)
+fn_G_non_numeric_to_numeric(
+  G_non_numeric,
+  retain_minus_one_alleles_per_locus = TRUE,
+  verbose = FALSE
+)
 }
 \arguments{
-\item{verbose}{show non-numeric to numeric genotype data conversion messages? \link{Default=FALSE}}
-
-\item{G}{n samples x p loci matrix of genotype classes with non-null row and column names.
+\item{G_non_numeric}{n samples x p loci matrix of genotype classes with non-null row and column names.
 The genotype classes are represented by uppercase and/or lowercase letters,
 where the total number of letters correspond to the ploidy level,
 and the number of unique letters refer to the number of alleles per locus.
 Row names can be any string of characters which identify the sample or entry or pool names.
 Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name,
 and the second should be numeric which refers to the position in the chromosome/scaffold.}
+
+\item{retain_minus_one_alleles_per_locus}{omit the alternative or trailing allele per locus? \link{Default=TRUE}}
+
+\item{verbose}{show non-numeric to numeric genotype data conversion messages? \link{Default=FALSE}}
 }
 \value{
-Ok: n samples x p loci matrix of genotype classes (numeric ranging from 0 to 1)
+Ok: n samples x p loci-alleles matrix of genotype classes (numeric ranging from 0 to 1)
 Err: grError
 }
 \description{
-Convert a non-numeric genotype classes matrix into a numeric (allele frequency) genotype matrix
+Convert a non-numeric genotype classes matrix into a numeric (allele frequency) genotype matrix which includes all the alleles
 }
 \examples{
 ploidy = 42

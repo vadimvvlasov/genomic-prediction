@@ -9,6 +9,8 @@ fn_load_genotype(
   fname_geno,
   ploidy = NULL,
   retain_minus_one_alleles_per_locus = TRUE,
+  min_depth = 0,
+  max_depth = Inf,
   verbose = FALSE
 )
 }
@@ -26,6 +28,10 @@ If NULL, then continuous allele frequencies and no binning or classification int
 will be performed \link{Default=NULL}.}
 
 \item{retain_minus_one_alleles_per_locus}{omit the alternative or trailing allele per locus? \link{Default=TRUE}}
+
+\item{min_depth}{if input is a VCF file: minimum depth per locus beyond which will be set to missing data \link{Default=0}}
+
+\item{max_depth}{if input is a VCF file: maximum depth per locus beyond which will be set to missing data \link{Default=Inf}}
 
 \item{verbose}{show genotype loading messages? \link{Default=FALSE}}
 }

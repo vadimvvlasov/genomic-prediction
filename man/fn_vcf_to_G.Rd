@@ -2,12 +2,22 @@
 % Please edit documentation in R/load.R
 \name{fn_vcf_to_G}
 \alias{fn_vcf_to_G}
-\title{Convert biallelic vcf data into allele frequencies}
+\title{Convert biallelic vcf data into allele frequencies where loci beyond minimum and maximum depths are set to missing}
 \usage{
-fn_vcf_to_G(vcf, retain_minus_one_alleles_per_locus = TRUE, verbose = FALSE)
+fn_vcf_to_G(
+  vcf,
+  min_depth = 0,
+  max_depth = Inf,
+  retain_minus_one_alleles_per_locus = TRUE,
+  verbose = FALSE
+)
 }
 \arguments{
-\item{vcf}{biallelic genotype data as a vcfR object}
+\item{vcf}{biallelic genotype data as a vcfR object with GT and/or AD and DP fields (where AD takes precedence over GT)}
+
+\item{min_depth}{minimum depth per locus beyond which will be set to missing data \link{Default=0}}
+
+\item{max_depth}{maximum depth per locus beyond which will be set to missing data \link{Default=Inf}}
 
 \item{retain_minus_one_alleles_per_locus}{omit the alternative or trailing allele per locus? \link{Default=TRUE}}
 
@@ -22,7 +32,7 @@ subsequent elements are optional which may refer to the allele identifier and ot
 Err: gpError
 }
 \description{
-Convert biallelic vcf data into allele frequencies
+Convert biallelic vcf data into allele frequencies where loci beyond minimum and maximum depths are set to missing
 }
 \examples{
 G = simquantgen::fn_simulate_genotypes(verbose=TRUE)
