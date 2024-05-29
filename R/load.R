@@ -1003,15 +1003,12 @@ fn_filter_loci = function(G, maf=0.01, sdev_min=0.0001,
     # G = fn_load_genotype(list_sim$fname_geno_vcf, min_depth=42, max_depth=750, retain_minus_one_alleles_per_locus=FALSE)
     # maf = 0.05
     # sdev_min = 0.0001
-
     # max_sparsity_per_locus = 0.4
     # frac_topmost_sparse_loci_to_remove = 0.01
     # n_topmost_sparse_loci_to_remove = 100
-
     # max_sparsity_per_sample = 0.3
     # frac_topmost_sparse_samples_to_remove = 0.01
     # n_topmost_sparse_samples_to_remove = 10
-
     # mat_loci = matrix(unlist(strsplit(colnames(G), "\t")), byrow=TRUE, ncol=3)
     # vec_loci = unique(paste0(mat_loci[,1], "\t", mat_loci[,2]))
     # mat_loci = matrix(unlist(strsplit(vec_loci, "\t")), byrow=TRUE, ncol=2)
@@ -1383,6 +1380,23 @@ fn_merge_genotype_and_phenotype = function(G, list_y_pop, COVAR=NULL, verbose=FA
 }
 
 ### Estimate memory usage given the allele frequency matrix
-fn_estiamte_memory_footprint = function(G, y, n_models, n_reps, n_folds) {
-
+fn_estimate_memory_footprint = function(G, y, n_models, n_folds, n_reps, verbose=FALSE) {
+    ###################################################
+    ### TEST
+    G = matrix(0.0, nrow=492, ncol=455255)
+    n_models = 7
+    n_reps = 10
+    n_folds = 5
+    verbose = TRUE
+    ###################################################
+    size_G = utils::object.size(G)
+    print(format(size_G, units="Gb"))
+    factor_increase = 4 ### Depends on the models - Bayesian and gBLUP models are probably more memory-intensive than penalised regression ones
+    size_total = size_G * n_models * n_folds * n_reps * factor_increase
+    print(format(size_total, units="Gb"))
+    size_max = 400 * 2^30 * (size_G / size_G)
+    print(format(size_max, units="Gb"))
+    size_max / size_G
+    size_total / size_max
+    size_max / size_total
 }
