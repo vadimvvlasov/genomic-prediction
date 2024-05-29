@@ -1,4 +1,5 @@
 library(testthat)
+library(vcfR)
 library(glmnet)
 library(BGLR)
 library(sommer)
