@@ -8,9 +8,10 @@ on 5-chromosome genome and a single trait at 50\% heritability}
 fn_simulate_data(
   n = 100,
   l = 1000,
-  ploidy = 42,
+  ploidy = 2,
   n_alleles = 2,
-  depth = 100,
+  min_depth = 5,
+  max_depth = 1000,
   seed = 12345,
   save_pheno_tsv = TRUE,
   save_geno_vcf = TRUE,
@@ -25,9 +26,13 @@ fn_simulate_data(
 
 \item{l}{number of loci \link{Default=1000}}
 
-\item{ploidy}{ploidy level which can refer to the number of haploid genomes to simulate pools \link{Default=42}}
+\item{ploidy}{ploidy level which can refer to the number of haploid genomes to simulate pools \link{Default=2}}
 
 \item{n_alleles}{macimum number of alleles per locus \link{Default=2}}
+
+\item{min_depth}{minimum depth per locus \link{Default=5}}
+
+\item{max_depth}{maximum depth per locus \link{Default=5000}}
 
 \item{seed}{randomisation seed for replicability \link{Default=12345}}
 

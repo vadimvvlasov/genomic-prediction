@@ -15,6 +15,12 @@ fn_filter_loci(
   G,
   maf = 0.01,
   sdev_min = 1e-04,
+  max_sparsity_per_locus = NULL,
+  frac_topmost_sparse_loci_to_remove = NULL,
+  n_topmost_sparse_loci_to_remove = NULL,
+  max_sparsity_per_sample = NULL,
+  frac_topmost_sparse_samples_to_remove = NULL,
+  n_topmost_sparse_samples_to_remove = NULL,
   fname_snp_list = NULL,
   verbose = FALSE
 )
@@ -29,6 +35,18 @@ subsequent elements are optional which may refer to the allele identifier and ot
 \item{maf}{minimum allele frequency \link{Default=0.01}}
 
 \item{sdev_min}{minimum allele frequency standard deviation (constant allele frequency across samples is just another intercept) \link{Default=0.0001}}
+
+\item{max_sparsity_per_locus}{maximum mean sparsity per locus, e.g. 0.1 or 0.5 \link{Default=NULL}}
+
+\item{frac_topmost_sparse_loci_to_remove}{fraction of the top-most sparse loci to remove, e.g. 0.01 or 0.25 \link{Default=NULL}}
+
+\item{n_topmost_sparse_loci_to_remove}{number of top-most sparse loci to remove, e.g. 100 or 1000 \link{Default=NULL}}
+
+\item{max_sparsity_per_sample}{maximum mean sparsity per sample, e.g. 0.3 or 0.5 \link{Default=NULL}}
+
+\item{frac_topmost_sparse_samples_to_remove}{fraction of the top-most sparse samples to remove, e.g. 0.01 or 0.05 \link{Default=NULL}}
+
+\item{n_topmost_sparse_samples_to_remove}{number of top-most sparse samples to remove, e.g. 5 or 10 \link{Default=NULL}}
 
 \item{fname_snp_list}{name of the file containing the list of expected SNPs including their coordinates and alleles.
 This is a tab-delimited file with 3 columns: '#CHROM', 'POS', 'REF,ALT', corresponding to \link{Default=NULL}

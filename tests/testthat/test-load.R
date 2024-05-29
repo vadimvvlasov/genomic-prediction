@@ -59,11 +59,11 @@ test_that("fn_G_to_vcf", {
 
 test_that("fn_vcf_to_G", {
     G = simquantgen::fn_simulate_genotypes(verbose=TRUE)
-    vcf = fn_G_to_vcf(G=G, verbose=TRUE)
+    vcf = fn_G_to_vcf(G=G, min_depth=1000, max_depth=1000, verbose=TRUE)
     G_back = fn_vcf_to_G(vcf=vcf, verbose=TRUE)
     expect_equal(sum(colnames(G) == colnames(G_back)), ncol(G))
     expect_equal(sum(rownames(G) == rownames(G_back)), nrow(G))
-    expect_equal(sum(abs(G_back-G) < 0.01), prod(dim(G)))
+    expect_equal(sum(abs(G_back-G) < 1e-7), prod(dim(G)))
 })
 
 test_that("fn_classify_allele_frequencies", {
@@ -84,15 +84,15 @@ test_that("fn_simulate_data", {
     expect_equal(is.null(list_sim$fname_pheno_tsv), FALSE)
     unlink(list_sim$fname_geno_vcf)
     unlink(list_sim$fname_pheno_tsv)
-    list_sim = fn_simulate_data(save_geno_vcf=TRUE, save_geno_rds=TRUE, save_geno_tsv=TRUE, save_pheno_tsv=TRUE, verbose=TRUE)
+    list_sim = fn_simulate_data(min_depth=1000, max_depth=1000, save_geno_vcf=TRUE, save_geno_rds=TRUE, save_geno_tsv=TRUE, save_pheno_tsv=TRUE, verbose=TRUE)
     G_vcf = fn_vcf_to_G(vcf=vcfR::read.vcfR(list_sim$fname_geno_vcf))
     df_tsv = read.delim(list_sim$fname_geno_tsv, sep="\t", header=TRUE)
     G_tsv = as.matrix(t(df_tsv[, c(-1,-2,-3)])); rownames(G_tsv) = colnames(df_tsv)[c(-1,-2,-3)]; colnames(G_tsv) = paste(df_tsv$chr, df_tsv$pos, df_tsv$allele, sep="\t")
     G_rds = readRDS(list_sim$fname_geno_rds)
     df_pheno = read.delim(list_sim$fname_pheno_tsv, sep="\t", header=TRUE)
-    expect_equal(sum(abs(G_vcf - G_tsv) < 1e-4), prod(dim(G_vcf)))
-    expect_equal(sum(abs(G_vcf - G_rds) < 1e-4), prod(dim(G_vcf)))
-    expect_equal(sum(abs(G_rds - G_tsv) < 1e-4), prod(dim(G_vcf)))
+    expect_equal(sum(abs(G_vcf - G_tsv) < 1e-7), prod(dim(G_vcf)))
+    expect_equal(sum(abs(G_vcf - G_rds) < 1e-7), prod(dim(G_vcf)))
+    expect_equal(sum(abs(G_rds - G_tsv) < 1e-7), prod(dim(G_vcf)))
     expect_equal(sum(df_pheno$id == rownames(G_vcf)), nrow(df_pheno))
     expect_equal(sum(df_pheno$id == rownames(G_tsv)), nrow(df_pheno))
     expect_equal(sum(df_pheno$id == rownames(G_rds)), nrow(df_pheno))
@@ -108,13 +108,13 @@ test_that("fn_simulate_data", {
 })
 
 test_that("fn_load_genotype", {
-    list_sim = fn_simulate_data(verbose=TRUE, save_geno_vcf=TRUE, save_geno_tsv=TRUE, save_geno_rds=TRUE, save_pheno_tsv=TRUE)
+    list_sim = fn_simulate_data(min_depth=1000, max_depth=1000, save_geno_vcf=TRUE, save_geno_tsv=TRUE, save_geno_rds=TRUE, save_pheno_tsv=TRUE, verbose=TRUE)
     G_vcf = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf, verbose=TRUE)
     G_tsv = fn_load_genotype(fname_geno=list_sim$fname_geno_tsv, verbose=TRUE)
     G_rds = fn_load_genotype(fname_geno=list_sim$fname_geno_rds, verbose=TRUE)
-    expect_equal(sum(abs(G_vcf - G_tsv) < 1e-4), prod(dim(G_vcf)))
-    expect_equal(sum(abs(G_vcf - G_rds) < 1e-4), prod(dim(G_vcf)))
-    expect_equal(sum(abs(G_rds - G_tsv) < 1e-4), prod(dim(G_vcf)))
+    expect_equal(sum(abs(G_vcf - G_tsv) < 1e-7), prod(dim(G_vcf)))
+    expect_equal(sum(abs(G_vcf - G_rds) < 1e-7), prod(dim(G_vcf)))
+    expect_equal(sum(abs(G_rds - G_tsv) < 1e-7), prod(dim(G_vcf)))
     unlink(list_sim$fname_geno_vcf)
     unlink(list_sim$fname_geno_tsv)
     unlink(list_sim$fname_geno_rds)
@@ -125,14 +125,19 @@ test_that("fn_filter_loci", {
     list_sim = fn_simulate_data(verbose=TRUE)
     maf = 0.05
     sdev_min = 0.0001
+    max_sparsity_per_locus = 0.4
+    frac_topmost_sparse_loci_to_remove = 0.01
+    n_topmost_sparse_loci_to_remove = 100
+    max_sparsity_per_sample = 0.3
+    frac_topmost_sparse_samples_to_remove = 0.01
+    n_topmost_sparse_samples_to_remove = 10
     verbose = TRUE
     ### Do not load the alternative alleles
     G = fn_load_genotype(list_sim$fname_geno_vcf)
     G_filtered_1 = fn_filter_loci(G=G, verbose=TRUE)
     expect_equal(sum(dim(G) == dim(G_filtered_1)), 2)
-    ### Load the alternative allele
-    G = fn_load_genotype(list_sim$fname_geno_vcf, retain_minus_one_alleles_per_locus=FALSE)
     ### Simulate SNP list for filtering
+    G = fn_load_genotype(list_sim$fname_geno_vcf, retain_minus_one_alleles_per_locus=FALSE)
     n_sim_missing = 100
     mat_loci = matrix(unlist(strsplit(colnames(G), "\t")), byrow=TRUE, ncol=3)
     vec_loci = unique(paste0(mat_loci[,1], "\t", mat_loci[,2]))
@@ -151,6 +156,32 @@ test_that("fn_filter_loci", {
     expect_equal(ncol(G_filtered_3), ncol(G) - n_sim_missing)
     G_filtered_2_split_G = fn_G_split_off_alternative_allele(G=G_filtered_2, verbose=TRUE)$G
     expect_equal(sum(abs(G_filtered_3 - G_filtered_2_split_G) < 1e-12), prod(dim(G_filtered_3)))
+    ### Using additional filtering by sparsity (only works if G has missing data)
+    G = fn_load_genotype(list_sim$fname_geno_vcf, min_depth=10, max_depth=500)
+    G_filtered_4 = fn_filter_loci(G=G, maf=0.05, fname_snp_list=fname_snp_list,
+        max_sparsity_per_locus=max_sparsity_per_locus,
+        frac_topmost_sparse_loci_to_remove=frac_topmost_sparse_loci_to_remove,
+        n_topmost_sparse_loci_to_remove=n_topmost_sparse_loci_to_remove,
+        max_sparsity_per_sample=max_sparsity_per_sample,
+        frac_topmost_sparse_samples_to_remove=frac_topmost_sparse_samples_to_remove,
+        n_topmost_sparse_samples_to_remove=n_topmost_sparse_samples_to_remove,
+        verbose=TRUE)
+    expect_equal(nrow(G_filtered_4) < nrow(G), TRUE)
+    expect_equal(ncol(G_filtered_4) < ncol(G), TRUE)
+    G_filtered_5 = fn_filter_loci(G=G, maf=0.05,
+        frac_topmost_sparse_loci_to_remove=0.1,
+        verbose=TRUE)
+    G_filtered_6 = fn_filter_loci(G=G, maf=0.05,
+        n_topmost_sparse_loci_to_remove=100,
+        verbose=TRUE)
+    expect_equal(sum((G_filtered_5 - G_filtered_6) < 1e-7, na.rm=TRUE), sum(!is.na(G_filtered_5)))
+    G_filtered_7 = fn_filter_loci(G=G, maf=0.05,
+        frac_topmost_sparse_samples_to_remove=0.1,
+        verbose=TRUE)
+    G_filtered_8 = fn_filter_loci(G=G, maf=0.05,
+        n_topmost_sparse_samples_to_remove=10,
+        verbose=TRUE)
+    expect_equal(sum((G_filtered_7 - G_filtered_8) < 1e-7, na.rm=TRUE), sum(!is.na(G_filtered_7)))
     ### Clean-up
     unlink(list_sim$fname_geno_vcf)
     unlink(list_sim$fname_pheno_tsv)

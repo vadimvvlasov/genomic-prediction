@@ -531,6 +531,10 @@ fn_vcf_to_G = function(vcf, min_depth=0, max_depth=Inf, retain_minus_one_alleles
     }
     ### Set loci into missing if depth is below min_depth or above max_depth
     mat_depth = vcfR::extract.gt(vcf, element="DP", as.numeric=TRUE)
+    if (verbose) {
+        print("Distribution of allele depths:")
+        txtplot::txtdensity(mat_depth[!is.na(mat_depth)])
+    }
     mat_idx = (mat_depth < min_depth) | ((mat_depth > max_depth))
     if (sum(mat_idx, na.rm=TRUE) > 0) {
         if (verbose) {
@@ -541,6 +545,9 @@ fn_vcf_to_G = function(vcf, min_depth=0, max_depth=Inf, retain_minus_one_alleles
         if (verbose) {
             print(paste0("After filtering by depth:"))
             print(vcf)
+            print("Distribution of allele depths after filtering:")
+            mat_depth = vcfR::extract.gt(vcf, element="DP", as.numeric=TRUE)
+            txtplot::txtdensity(mat_depth[!is.na(mat_depth)])
         }
     }
     
@@ -561,6 +568,12 @@ fn_vcf_to_G = function(vcf, min_depth=0, max_depth=Inf, retain_minus_one_alleles
         }
         mat_ref_counts = vcfR::masplit(mat_allele_counts, delim=',', record=1, sort=0)
         mat_alt_counts = vcfR::masplit(mat_allele_counts, delim=',', record=2, sort=0)
+        if (verbose) {
+            print("Distribution of reference allele depths")
+            txtplot::txtdensity(mat_ref_counts[!is.na(mat_ref_counts)])
+            print("Distribution of alternative allele depths")
+            txtplot::txtdensity(mat_alt_counts[!is.na(mat_alt_counts)])
+        }
         ### Set missing allele counts to 0, if the other allele is non-missing and non-zero
         idx_for_ref = which(!is.na(mat_alt_counts) & (mat_alt_counts != 0) & is.na(mat_ref_counts))
         idx_for_alt = which(!is.na(mat_ref_counts) & (mat_ref_counts != 0) & is.na(mat_alt_counts))
@@ -678,7 +691,7 @@ fn_classify_allele_frequencies = function(G, ploidy=2, verbose=FALSE) {
 #' 
 #' @param n number of samples [Default=100]
 #' @param l number of loci [Default=1000]
-#' @param ploidy ploidy level which can refer to the number of haploid genomes to simulate pools [Default=42]
+#' @param ploidy ploidy level which can refer to the number of haploid genomes to simulate pools [Default=2]
 #' @param n_alleles macimum number of alleles per locus [Default=2]
 #' @param min_depth minimum depth per locus [Default=5]
 #' @param max_depth maximum depth per locus [Default=5000]
@@ -699,7 +712,8 @@ fn_classify_allele_frequencies = function(G, ploidy=2, verbose=FALSE) {
 #' @examples
 #' list_sim = fn_simulate_data(verbose=TRUE, save_geno_vcf=TRUE, save_geno_tsv=TRUE, save_geno_rds=TRUE, save_pheno_tsv=TRUE)
 #' @export
-fn_simulate_data = function(n=100, l=1000, ploidy=42, n_alleles=2, min_depth=5, max_depth=1000, seed=12345, save_pheno_tsv=TRUE, save_geno_vcf=TRUE, save_geno_tsv=FALSE, save_geno_rds=FALSE, non_numeric_Rds=FALSE, verbose=FALSE) {
+fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, max_depth=1000, seed=12345, 
+    save_pheno_tsv=TRUE, save_geno_vcf=TRUE, save_geno_tsv=FALSE, save_geno_rds=FALSE, non_numeric_Rds=FALSE, verbose=FALSE) {
     ###################################################
     ### TEST
     # n = 100
@@ -905,6 +919,21 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, retain_minus_one_alleles_pe
     if (retain_minus_one_alleles_per_locus==TRUE) {
         G = fn_G_split_off_alternative_allele(G=G, verbose=verbose)$G
     }
+    ### Show the allele frequency stats
+    if (verbose) {
+        print("Distribution of allele frequencies")
+        vec_idx_row_sample = sample(1:nrow(G), size=100)
+        vec_idx_col_sample = sample(1:ncol(G), size=100)
+        G_for_plotting = G[vec_idx_row_sample, vec_idx_col_sample]
+        txtplot::txtdensity(G_for_plotting[!is.na(G_for_plotting)])
+        print("Distribution of mean sparsity per locus")
+        mat_sparsity = is.na(G)
+        vec_sparsity_per_locus = colMeans(mat_sparsity, na.rm=TRUE)
+        vec_sparsity_per_sample = rowMeans(mat_sparsity, na.rm=TRUE)
+        txtplot::txtdensity(vec_sparsity_per_locus[!is.na(vec_sparsity_per_locus)])
+        print("Distribution of mean sparsity per sample")
+        txtplot::txtdensity(vec_sparsity_per_sample[!is.na(vec_sparsity_per_sample)])
+    }
     return(G)
 }
 
@@ -958,37 +987,39 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, retain_minus_one_alleles_pe
 #' ### Filter
 #' G_filtered = fn_filter_loci(G=G, maf=0.05, fname_snp_list=fname_snp_list, verbose=TRUE)
 #' @export
-fn_filter_loci = function(G, maf=0.01, sdev_min=0.0001, max_sparsity_per_locus=NULL, frac_topmost_sparse_loci_to_remove=NULL, n_topmost_sparse_loci_to_remove=NULL, fname_snp_list=NULL, verbose=FALSE) {
+fn_filter_loci = function(G, maf=0.01, sdev_min=0.0001, max_sparsity_per_locus=NULL, frac_topmost_sparse_loci_to_remove=NULL, 
+    n_topmost_sparse_loci_to_remove=NULL, max_sparsity_per_sample=NULL, frac_topmost_sparse_samples_to_remove=NULL, 
+    n_topmost_sparse_samples_to_remove=NULL, fname_snp_list=NULL, verbose=FALSE) {
     ###################################################
     ### TEST
+    # # list_sim = fn_simulate_data(verbose=TRUE)
+    # # G = fn_load_genotype(list_sim$fname_geno_vcf)
+    # # maf = 0.05
+    # # sdev_min = 0.0001
+    # # fname_snp_list = NULL
+    # ### Simulate SNP list for filtering
     # list_sim = fn_simulate_data(verbose=TRUE)
-    # G = fn_load_genotype(list_sim$fname_geno_vcf)
+    # G = fn_load_genotype(list_sim$fname_geno_vcf, min_depth=42, max_depth=750, retain_minus_one_alleles_per_locus=FALSE)
     # maf = 0.05
     # sdev_min = 0.0001
-    # fname_snp_list = NULL
-    ### Simulate SNP list for filtering
-    list_sim = fn_simulate_data(verbose=TRUE)
-    G = fn_load_genotype(list_sim$fname_geno_vcf, min_depth=42, max_depth=750, retain_minus_one_alleles_per_locus=FALSE)
-    maf = 0.05
-    sdev_min = 0.0001
 
-    max_sparsity_per_locus = 0.4
-    frac_topmost_sparse_loci_to_remove = 0.01
-    n_topmost_sparse_loci_to_remove = 100
+    # max_sparsity_per_locus = 0.4
+    # frac_topmost_sparse_loci_to_remove = 0.01
+    # n_topmost_sparse_loci_to_remove = 100
 
-    max_sparsity_per_sample = 0.3
-    frac_topmost_sparse_samples_to_remove = 0.01
-    n_topmost_sparse_samples_to_remove = 10
+    # max_sparsity_per_sample = 0.3
+    # frac_topmost_sparse_samples_to_remove = 0.01
+    # n_topmost_sparse_samples_to_remove = 10
 
-    mat_loci = matrix(unlist(strsplit(colnames(G), "\t")), byrow=TRUE, ncol=3)
-    vec_loci = unique(paste0(mat_loci[,1], "\t", mat_loci[,2]))
-    mat_loci = matrix(unlist(strsplit(vec_loci, "\t")), byrow=TRUE, ncol=2)
-    df_snp_list = data.frame(CHROM=mat_loci[,1], POS=as.numeric(mat_loci[,2]), REF_ALT=paste0("allele_1,allele_alt"))
-    df_snp_list$REF_ALT[1:100] = "allele_2,allele_4"
-    colnames(df_snp_list) = c("#CHROM", "POS", "REF,ALT")
-    fname_snp_list = "tmp_snp_list.txt"
-    write.table(df_snp_list, file=fname_snp_list, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
-    verbose = TRUE
+    # mat_loci = matrix(unlist(strsplit(colnames(G), "\t")), byrow=TRUE, ncol=3)
+    # vec_loci = unique(paste0(mat_loci[,1], "\t", mat_loci[,2]))
+    # mat_loci = matrix(unlist(strsplit(vec_loci, "\t")), byrow=TRUE, ncol=2)
+    # df_snp_list = data.frame(CHROM=mat_loci[,1], POS=as.numeric(mat_loci[,2]), REF_ALT=paste0("allele_1,allele_alt"))
+    # df_snp_list$REF_ALT[1:100] = "allele_2,allele_4"
+    # colnames(df_snp_list) = c("#CHROM", "POS", "REF,ALT")
+    # fname_snp_list = "tmp_snp_list.txt"
+    # write.table(df_snp_list, file=fname_snp_list, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
+    # verbose = TRUE
     ###################################################
     ### Make sure the input thresholds are sensible
     if ((maf < 0.0) | (maf > 1.0)) {
@@ -1009,14 +1040,25 @@ fn_filter_loci = function(G, maf=0.01, sdev_min=0.0001, max_sparsity_per_locus=N
             ))
         return(error)
     }
+    if (!is.null(max_sparsity_per_locus)) {
+        if ((max_sparsity_per_locus < 0.0) | (max_sparsity_per_locus > 1.0)) {
+            error = new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in load::fn_filter_loci(...). ",
+                    "Please use a maximum sparsity perlocus (max_sparsity_per_locus) between 0 and 1."
+                ))
+            return(error)
+        }
+    }
     ### Extract the mean and standard deviation in allele frequencies per locus
     vec_freqs = colMeans(G, na.rm=TRUE)
     vec_sdevs = apply(G, MARGIN=2, FUN=sd, na.rm=TRUE)
     if (verbose) {
         print("Distribution of mean allele frequencies per locus:")
-        txtplot::txtdensity(vec_freqs)
+        txtplot::txtdensity(vec_freqs[!is.na(vec_freqs)])
         print("Distribution of allele frequency standard deviation per locus:")
-        txtplot::txtdensity(vec_sdevs)
+        txtplot::txtdensity(vec_sdevs[!is.na(vec_sdevs)])
     }
     ### Filter by minimum allele frequency and minimum allele frequency variance (constant allele frequency across samples is just another intercept)
     vec_idx = which(
@@ -1060,6 +1102,7 @@ fn_filter_loci = function(G, maf=0.01, sdev_min=0.0001, max_sparsity_per_locus=N
         }
         if (verbose) {close(pb)}
         if (length(vec_idx) < p) {
+            if (verbose) {print(paste0("Filtered out ", length(vec_idx), " loci not included in the SNP list: ", fname_snp_list, "."))}
             G = G[, vec_idx, drop=FALSE]
         } else {
             if (verbose) {print("All loci passed the minimum allele frequency and standard deviation thresholds.")}
@@ -1069,15 +1112,22 @@ fn_filter_loci = function(G, maf=0.01, sdev_min=0.0001, max_sparsity_per_locus=N
     ### Define the sparsity matrix
     mat_sparsity = is.na(G)
     ### Filter by mean sparsity per locus
-    vec_sparsity_per_locus = colMeans(mat_sparsity)
+    vec_sparsity_per_locus = colMeans(mat_sparsity, na.rm=TRUE)
     if (verbose) {
         print("Distribution of mean sparsity per locus")
-        txtplot::txtdensity(vec_sparsity_per_locus)
+        txtplot::txtdensity(vec_sparsity_per_locus[!is.na(vec_sparsity_per_locus)])
     }
     vec_idx_loci_to_remove = c()
     if (!is.null(max_sparsity_per_locus)) {
         if (verbose) {print(paste0("Filtering by maximum mean sparsity per locus of ", max_sparsity_per_locus))}
         vec_idx_loci_to_remove = which(vec_sparsity_per_locus > max_sparsity_per_locus)
+        if (verbose & (length(vec_idx_loci_to_remove)==ncol(G))) {
+            print(paste0("All loci were filtered out. Please increase the max_sparsity_per_locus from ", max_sparsity_per_locus, 
+                ", given that the mean sparsity per locus ranges from ", min(vec_sparsity_per_locus, na.rm=TRUE), 
+                " to ", max(vec_sparsity_per_locus, na.rm=TRUE), 
+                " with a mean of ", mean(vec_sparsity_per_locus, na.rm=TRUE), 
+                " and median ", median(vec_sparsity_per_locus, na.rm=TRUE)))
+        }
     }
     if (!is.null(frac_topmost_sparse_loci_to_remove)) {
         if (verbose) {print(paste0("Filtering out the top ", round(frac_topmost_sparse_loci_to_remove*100), "% most sparse loci."))}
@@ -1086,12 +1136,20 @@ fn_filter_loci = function(G, maf=0.01, sdev_min=0.0001, max_sparsity_per_locus=N
             vec_idx_sort_decreasing_sparsity = order(vec_sparsity_per_locus, decreasing=TRUE)
             vec_idx_loci_to_remove = sort(unique(c(vec_idx_loci_to_remove, vec_idx_sort_decreasing_sparsity[1:n_loci_to_remove])))
         }
+        if (verbose & (length(vec_idx_loci_to_remove)==ncol(G))) {
+            print(paste0("All loci were filtered out. Please decrease the frac_topmost_sparse_loci_to_remove from ", frac_topmost_sparse_loci_to_remove, 
+                " to something more reasonable."))
+        }
     }
     if (!is.null(n_topmost_sparse_loci_to_remove)) {
         if (verbose) {print(paste0("Filtering out the top ", n_topmost_sparse_loci_to_remove, " most sparse loci."))}
         if (n_topmost_sparse_loci_to_remove > length(vec_idx_loci_to_remove)) {
             vec_idx_sort_decreasing_sparsity = order(vec_sparsity_per_locus, decreasing=TRUE)
             vec_idx_loci_to_remove = sort(unique(c(vec_idx_loci_to_remove, vec_idx_sort_decreasing_sparsity[1:n_topmost_sparse_loci_to_remove])))
+        }
+        if (verbose & (length(vec_idx_loci_to_remove)==ncol(G))) {
+            print(paste0("All loci were filtered out. Please decrease the n_topmost_sparse_loci_to_remove from ", n_topmost_sparse_loci_to_remove, 
+                " to something more reasonable, if it please you m'lady/m'lord."))
         }
     }
     if (length(vec_idx_loci_to_remove) > 0) {
@@ -1102,15 +1160,22 @@ fn_filter_loci = function(G, maf=0.01, sdev_min=0.0001, max_sparsity_per_locus=N
         if (verbose) {print("All loci passed the filtering by mean sparsity per locus.")}
     }
     ### Filter by mean sparsity per sample
-    vec_sparsity_per_sample = rowMeans(mat_sparsity)
+    vec_sparsity_per_sample = rowMeans(mat_sparsity, na.rm=TRUE)
     if (verbose) {
         print("Distribution of mean sparsity per sample")
-        txtplot::txtdensity(vec_sparsity_per_sample)
+        txtplot::txtdensity(vec_sparsity_per_sample[!is.na(vec_sparsity_per_sample)])
     }
     vec_idx_samples_to_remove = c()
     if (!is.null(max_sparsity_per_sample)) {
         if (verbose) {print(paste0("Filtering by maximum mean sparsity per sample of ", max_sparsity_per_sample))}
         vec_idx_samples_to_remove = which(vec_sparsity_per_sample > max_sparsity_per_sample)
+        if (verbose & (length(vec_idx_samples_to_remove)==nrow(G))) {
+            print(paste0("All samples were filtered out. Please increase the max_sparsity_per_sample from ", max_sparsity_per_sample, 
+                ", given that the mean sparsity per sample ranges from ", min(vec_sparsity_per_sample, na.rm=TRUE), 
+                " to ", max(vec_sparsity_per_sample, na.rm=TRUE), 
+                " with a mean of ", mean(vec_sparsity_per_sample, na.rm=TRUE), 
+                " and median ", median(vec_sparsity_per_sample, na.rm=TRUE)))
+        }
     }
     if (!is.null(frac_topmost_sparse_samples_to_remove)) {
         if (verbose) {print(paste0("Filtering out the top ", round(frac_topmost_sparse_samples_to_remove*100), "% most sparse samples."))}
@@ -1119,12 +1184,20 @@ fn_filter_loci = function(G, maf=0.01, sdev_min=0.0001, max_sparsity_per_locus=N
             vec_idx_sort_decreasing_sparsity = order(vec_sparsity_per_sample, decreasing=TRUE)
             vec_idx_samples_to_remove = sort(unique(c(vec_idx_samples_to_remove, vec_idx_sort_decreasing_sparsity[1:n_samples_to_remove])))
         }
+        if (verbose & (length(vec_idx_samples_to_remove)==nrow(G))) {
+            print(paste0("All samples were filtered out. Please decrease the frac_topmost_sparse_samples_to_remove from ", frac_topmost_sparse_samples_to_remove, 
+                " to something more reasonable."))
+        }
     }
     if (!is.null(n_topmost_sparse_samples_to_remove)) {
         if (verbose) {print(paste0("Filtering out the top ", n_topmost_sparse_samples_to_remove, " most sparse samples."))}
         if (n_topmost_sparse_samples_to_remove > length(vec_idx_samples_to_remove)) {
             vec_idx_sort_decreasing_sparsity = order(vec_sparsity_per_sample, decreasing=TRUE)
             vec_idx_samples_to_remove = sort(unique(c(vec_idx_samples_to_remove, vec_idx_sort_decreasing_sparsity[1:n_topmost_sparse_samples_to_remove])))
+        }
+        if (verbose & (length(vec_idx_samples_to_remove)==nrow(G))) {
+            print(paste0("All samples were filtered out. Please decrease the n_topmost_sparse_samples_to_remove from ", n_topmost_sparse_samples_to_remove, 
+                " to something more reasonable."))
         }
     }
     if (length(vec_idx_samples_to_remove) > 0) {
@@ -1251,4 +1324,9 @@ fn_merge_genotype_and_phenotype = function(G, list_y_pop, COVAR=NULL, verbose=FA
         }
     }
     return(list(G=G, list_y_pop=list(y=y, pop=pop, trait_name=trait_name), COVAR=COVAR))
+}
+
+### Estimate memory usage given the allele frequency matrix
+fn_estiamte_memory_footprint = function(G, y, n_models, n_reps, n_folds) {
+
 }
