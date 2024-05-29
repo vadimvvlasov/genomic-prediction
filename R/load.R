@@ -695,6 +695,7 @@ fn_classify_allele_frequencies = function(G, ploidy=2, verbose=FALSE) {
 #' @param n_alleles macimum number of alleles per locus (Default=2)
 #' @param min_depth minimum depth per locus [Default=5]
 #' @param max_depth maximum depth per locus [Default=5000]
+#' @param n_pop number of randomly assigned population groupings [Default=1]
 #' @param seed randomisation seed for replicability [Default=12345]
 #' @param save_pheno_tsv save the phenotype data as a tab-delimited file? (Default=TRUE)
 #' @param save_geno_vcf save the genotype data as a vcf file? (Default=TRUE)
@@ -712,7 +713,7 @@ fn_classify_allele_frequencies = function(G, ploidy=2, verbose=FALSE) {
 #' @examples
 #' list_sim = fn_simulate_data(verbose=TRUE, save_geno_vcf=TRUE, save_geno_tsv=TRUE, save_geno_rds=TRUE, save_pheno_tsv=TRUE)
 #' @export
-fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, max_depth=1000, seed=12345, 
+fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, max_depth=1000, n_pop=1, seed=12345, 
     save_pheno_tsv=TRUE, save_geno_vcf=TRUE, save_geno_tsv=FALSE, save_geno_rds=FALSE, non_numeric_Rds=FALSE, verbose=FALSE) {
     ###################################################
     ### TEST
@@ -738,7 +739,7 @@ fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, m
     ### Simulate phenotype data frame
     list_Y_b_E_b_epi = simquantgen::fn_simulate_phenotypes(G=G, n_alleles=n_alleles, dist_effects="norm", n_effects=10, h2=0.5, pheno_reps=1, verbose=FALSE)
     y = list_Y_b_E_b_epi$Y[,1]
-    df = data.frame(id=names(y), trait=y); rownames(df) = NULL
+    df = data.frame(id=names(y), pop=sample(paste0("pop_", 1:n_pop), size=length(y), replace=TRUE), trait=y); rownames(df) = NULL
     ### Report distribution of simulation data
     if (verbose) {
         print("Simulated allele frequency distribution:")
@@ -1266,21 +1267,49 @@ fn_filter_loci = function(G, maf=0.01, sdev_min=0.0001,
 
 ### Load phenotype data from a comma-delimited file
 ### Outputs a named vector with $n$ entries elements
-fn_load_phenotype = function(fname_pheno, sep=",", header=TRUE, idx_col_id=1, idx_col_pop=2, idx_col_y=3, na.strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING")) {
-    # fname_pheno = "/group/pasture/Jeff/genomic_selection/tests/test_pheno.csv"; sep=","; header=TRUE; idx_col_id=1; idx_col_pop=2; idx_col_y=3; na.strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING")
-    # fname_pheno = "/group/pasture/Jeff/genomic_selection/tests/grape_pheno.txt"; sep="\t"; header=TRUE; idx_col_id=1; idx_col_pop=2; idx_col_y=4; na.strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING")
+fn_load_phenotype = function(fname_pheno, sep="\t", header=TRUE, idx_col_id=1, idx_col_pop=2, idx_col_y=3, na.strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING")) {
+    ###################################################
+    ### TEST
+    # list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    # fname_pheno = list_sim$fname_pheno_tsv
+    # sep="\t"
+    # header=TRUE
+    # idx_col_id=1
+    # idx_col_pop=2
+    # idx_col_y=3
+    # na.strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING")
+    ###################################################
     df = read.table(fname_pheno, sep=sep, header=header, na.strings=na.strings)
+
+    if (max(c(idx_col_y, idx_col_id, idx_col_pop)) >= ncol(df)) {
+        error = new("gpError",
+            code=000,
+            message=paste0(
+                "Error in load::fn_load_phenotype(...). ",
+                "The requested columns: ", idx_col_id, ", ", idx_col_pop, " and ", idx_col_y, " are incompatible with ",
+                "the dimensions of the loaded phenotype file: ", fname_pheno,
+                ", which has ", ncol(df), " columns and ", nrow(df), " rows. ",
+                "Are you certain that your file is separated by: '", sep, "'? ",
+                "Are the sample IDs really at column '", idx_col_id, "'? ",
+                "Are the population IDs really at column '", idx_col_pop, "'? ",
+                "Are the phenotype data really at column '", idx_col_y, "'? ",
+                "Are your missing data encoded as any of these: ", paste(paste0("'", na.strings, "'"), collapse=", "), "?"))
+    }
     entry = as.character(df[, idx_col_id])
     pop = as.character(df[, idx_col_pop])
     y = df[, idx_col_y]
     if (is.numeric(y)==FALSE) {
-        print(paste0("Phenotype file: ", fname_pheno, ", contains non-numeric data at column ", idx_col_y, "."))
-        print(paste0("      - Are you certain that your file is separated by: '", sep, "'?"))
-        print(paste0("      - Is the phenotype data column really at column '", idx_col_y, "'?"))
-        print(paste0("      - Are your missing data encoded as any of these: ", paste(paste0("'", na.strings, "'"), collapse=", "), "?"))
-        print(paste0("      - Do these look like numbers to you: ", paste(head(y), collapse=", "), "?"))
-        print(paste0("      - These too: ", paste(tail(y), collapse=", "), "?"))
-        quit()
+        error = new("gpError",
+            code=000,
+            message=paste0(
+                "Error in load::fn_load_phenotype(...). ",
+                "Phenotype file: ", fname_pheno, ", contains non-numeric data at column ", idx_col_y, ". ",
+                "Are you certain that your file is separated by: '", sep, "'? ",
+                "Are the phenotype data really at column '", idx_col_y, "'? ",
+                "Are your missing data encoded as any of these: ", paste(paste0("'", na.strings, "'"), collapse=", "), "? ",
+                "Do these look like numbers to you: ", paste(head(y), collapse=", "), "? ",
+                "These too: ", paste(tail(y), collapse=", "), "?"))
+        return(error)
     }
     names(y) = entry
     if (header==TRUE) {
