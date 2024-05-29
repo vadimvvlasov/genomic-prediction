@@ -1264,35 +1264,17 @@ fn_filter_loci = function(G, maf=0.01, sdev_min=0.0001,
     return(G)
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ### Load phenotype data from a comma-delimited file
 ### Outputs a named vector with $n$ entries elements
-fn_load_phenotype = function(fname_csv_txt, sep=",", header=TRUE, idx_col_id=1, idx_col_pop=2, idx_col_y=3, na.strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING")) {
-    # fname_csv_txt = "/group/pasture/Jeff/genomic_selection/tests/test_pheno.csv"; sep=","; header=TRUE; idx_col_id=1; idx_col_pop=2; idx_col_y=3; na.strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING")
-    # fname_csv_txt = "/group/pasture/Jeff/genomic_selection/tests/grape_pheno.txt"; sep="\t"; header=TRUE; idx_col_id=1; idx_col_pop=2; idx_col_y=4; na.strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING")
-    df = read.table(fname_csv_txt, sep=sep, header=header, na.strings=na.strings)
+fn_load_phenotype = function(fname_pheno, sep=",", header=TRUE, idx_col_id=1, idx_col_pop=2, idx_col_y=3, na.strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING")) {
+    # fname_pheno = "/group/pasture/Jeff/genomic_selection/tests/test_pheno.csv"; sep=","; header=TRUE; idx_col_id=1; idx_col_pop=2; idx_col_y=3; na.strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING")
+    # fname_pheno = "/group/pasture/Jeff/genomic_selection/tests/grape_pheno.txt"; sep="\t"; header=TRUE; idx_col_id=1; idx_col_pop=2; idx_col_y=4; na.strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING")
+    df = read.table(fname_pheno, sep=sep, header=header, na.strings=na.strings)
     entry = as.character(df[, idx_col_id])
     pop = as.character(df[, idx_col_pop])
     y = df[, idx_col_y]
     if (is.numeric(y)==FALSE) {
-        print(paste0("Phenotype file: ", fname_csv_txt, ", contains non-numeric data at column ", idx_col_y, "."))
+        print(paste0("Phenotype file: ", fname_pheno, ", contains non-numeric data at column ", idx_col_y, "."))
         print(paste0("      - Are you certain that your file is separated by: '", sep, "'?"))
         print(paste0("      - Is the phenotype data column really at column '", idx_col_y, "'?"))
         print(paste0("      - Are your missing data encoded as any of these: ", paste(paste0("'", na.strings, "'"), collapse=", "), "?"))
@@ -1309,9 +1291,23 @@ fn_load_phenotype = function(fname_csv_txt, sep=",", header=TRUE, idx_col_id=1, 
     return(list(y=y, pop=pop, trait_name=trait_name))
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 fn_filter_outlying_phenotypes = function(list_y_pop, verbose=FALSE) {
-    # fname_csv_txt = "/group/pasture/Jeff/genomic_selection/tests/test_pheno.csv"; header=TRUE; idx_col_id=1; idx_col_pop=2; idx_col_y=3
-    # y = fn_load_phenotype(fname_csv_txt)$y
+    # fname_pheno = "/group/pasture/Jeff/genomic_selection/tests/test_pheno.csv"; header=TRUE; idx_col_id=1; idx_col_pop=2; idx_col_y=3
+    # y = fn_load_phenotype(fname_pheno)$y
     # sigma = 1
     y = list_y_pop$y
     pop = list_y_pop$pop
@@ -1333,7 +1329,7 @@ fn_filter_outlying_phenotypes = function(list_y_pop, verbose=FALSE) {
 ### Merge genotype and phenotype data by their entry names, i.e. rownames for G and names for y
 fn_merge_genotype_and_phenotype = function(G, list_y_pop, COVAR=NULL, verbose=FALSE) {
     # G = fn_load_genotype(fname_rds_or_vcf=paste0("/group/pasture/Jeff/genomic_selection/tests/test.vcf"))
-    # list_y_pop = fn_load_phenotype(fname_csv_txt=paste0("/group/pasture/Jeff/genomic_selection/tests/test_pheno.csv"), header=TRUE, idx_col_id=1, idx_col_pop=2, idx_col_y=3)
+    # list_y_pop = fn_load_phenotype(fname_pheno=paste0("/group/pasture/Jeff/genomic_selection/tests/test_pheno.csv"), header=TRUE, idx_col_id=1, idx_col_pop=2, idx_col_y=3)
     # COVAR=NULL; verbose=FALSE
     ### All samples with genotype data will be included and samples without phenotype data will be set to NA (all.x=TRUE)
     M = merge(data.frame(id=rownames(G), G), data.frame(id=names(list_y_pop$y), pop=list_y_pop$pop, y=list_y_pop$y), by="id", all.x=TRUE)
