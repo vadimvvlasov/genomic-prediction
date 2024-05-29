@@ -15,13 +15,13 @@ fn_vcf_to_G(
 \arguments{
 \item{vcf}{biallelic genotype data as a vcfR object with GT and/or AD and DP fields (where AD takes precedence over GT)}
 
-\item{min_depth}{minimum depth per locus beyond which will be set to missing data \link{Default=0}}
+\item{min_depth}{minimum depth per locus beyond which will be set to missing data (Default=0)}
 
-\item{max_depth}{maximum depth per locus beyond which will be set to missing data \link{Default=Inf}}
+\item{max_depth}{maximum depth per locus beyond which will be set to missing data (Default=Inf)}
 
-\item{retain_minus_one_alleles_per_locus}{omit the alternative or trailing allele per locus? \link{Default=TRUE}}
+\item{retain_minus_one_alleles_per_locus}{omit the alternative or trailing allele per locus? (Default=TRUE)}
 
-\item{verbose}{show vcf to allele frequency genotype matrix conversion messages? \link{Default=FALSE}}
+\item{verbose}{show vcf to allele frequency genotype matrix conversion messages? (Default=FALSE)}
 }
 \value{
 Ok: named n samples x p biallelic loci matrix.

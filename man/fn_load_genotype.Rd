@@ -25,15 +25,15 @@ Names of the samples, entries, or pools in the header line can be any unique str
 
 \item{ploidy}{ploidy level which will generate genotype classes instead of continuous allele frequencies.
 If NULL, then continuous allele frequencies and no binning or classification into genotype classes
-will be performed \link{Default=NULL}.}
+will be performed (Default=NULL).}
 
-\item{retain_minus_one_alleles_per_locus}{omit the alternative or trailing allele per locus? \link{Default=TRUE}}
+\item{retain_minus_one_alleles_per_locus}{omit the alternative or trailing allele per locus? (Default=TRUE)}
 
-\item{min_depth}{if input is a VCF file: minimum depth per locus beyond which will be set to missing data \link{Default=0}}
+\item{min_depth}{if input is a VCF file: minimum depth per locus beyond which will be set to missing data (Default=0)}
 
-\item{max_depth}{if input is a VCF file: maximum depth per locus beyond which will be set to missing data \link{Default=Inf}}
+\item{max_depth}{if input is a VCF file: maximum depth per locus beyond which will be set to missing data (Default=Inf)}
 
-\item{verbose}{show genotype loading messages? \link{Default=FALSE}}
+\item{verbose}{show genotype loading messages? (Default=FALSE)}
 }
 \value{
 Ok: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.

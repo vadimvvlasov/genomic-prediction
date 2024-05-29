@@ -32,27 +32,27 @@ Column names need to be tab-delimited, where first element refers to the chromos
 the second should be numeric which refers to the position in the chromosome/scaffold, and
 subsequent elements are optional which may refer to the allele identifier and other identifiers.}
 
-\item{maf}{minimum allele frequency \link{Default=0.01}}
+\item{maf}{minimum allele frequency (Default=0.01)}
 
-\item{sdev_min}{minimum allele frequency standard deviation (constant allele frequency across samples is just another intercept) \link{Default=0.0001}}
+\item{sdev_min}{minimum allele frequency standard deviation (constant allele frequency across samples is just another intercept) (Default=0.0001)}
 
-\item{max_sparsity_per_locus}{maximum mean sparsity per locus, e.g. 0.1 or 0.5 \link{Default=NULL}}
+\item{max_sparsity_per_locus}{maximum mean sparsity per locus, e.g. 0.1 or 0.5([Default=NULL)}
 
-\item{frac_topmost_sparse_loci_to_remove}{fraction of the top-most sparse loci to remove, e.g. 0.01 or 0.25 \link{Default=NULL}}
+\item{frac_topmost_sparse_loci_to_remove}{fraction of the top-most sparse loci to remove, e.g. 0.01 or 0.25([Default=NULL)}
 
-\item{n_topmost_sparse_loci_to_remove}{number of top-most sparse loci to remove, e.g. 100 or 1000 \link{Default=NULL}}
+\item{n_topmost_sparse_loci_to_remove}{number of top-most sparse loci to remove, e.g. 100 or 1000([Default=NULL)}
 
-\item{max_sparsity_per_sample}{maximum mean sparsity per sample, e.g. 0.3 or 0.5 \link{Default=NULL}}
+\item{max_sparsity_per_sample}{maximum mean sparsity per sample, e.g. 0.3 or 0.5([Default=NULL)}
 
-\item{frac_topmost_sparse_samples_to_remove}{fraction of the top-most sparse samples to remove, e.g. 0.01 or 0.05 \link{Default=NULL}}
+\item{frac_topmost_sparse_samples_to_remove}{fraction of the top-most sparse samples to remove, e.g. 0.01 or 0.05([Default=NULL)}
 
-\item{n_topmost_sparse_samples_to_remove}{number of top-most sparse samples to remove, e.g. 5 or 10 \link{Default=NULL}}
+\item{n_topmost_sparse_samples_to_remove}{number of top-most sparse samples to remove, e.g. 5 or 10([Default=NULL)}
 
 \item{fname_snp_list}{name of the file containing the list of expected SNPs including their coordinates and alleles.
-This is a tab-delimited file with 3 columns: '#CHROM', 'POS', 'REF,ALT', corresponding to \link{Default=NULL}
+This is a tab-delimited file with 3 columns: '#CHROM', 'POS', 'REF,ALT', corresponding to([Default=NULL)
 chromosome names (e.g. 'chr1' & 'chrom_1'),
 numeric positions (e.g. 12345 & 100001), and
-reference-alternative allele strings separated by a comma (e.g. 'A,T' & 'allele_1,allele_alt') \link{Default=NULL}}
+reference-alternative allele strings separated by a comma (e.g. 'A,T' & 'allele_1,allele_alt')([Default=NULL)}
 }
 \value{
 Ok: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.

@@ -16,9 +16,9 @@ Column names need to be tab-delimited, where first element refers to the chromos
 the second should be numeric which refers to the position in the chromosome/scaffold, and
 subsequent elements are optional which may refer to the allele identifier and other identifiers.}
 
-\item{ploidy}{ploidy level which can refer to the number of haploid genomes to simulate pools \link{Default=2}}
+\item{ploidy}{ploidy level which can refer to the number of haploid genomes to simulate pools (Default=2)}
 
-\item{verbose}{show genotype binning or classification messages? \link{Default=FALSE}}
+\item{verbose}{show genotype binning or classification messages? (Default=FALSE)}
 }
 \value{
 Ok: named n samples x p loci-alleles matrix of numeric genotype classes

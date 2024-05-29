@@ -19,9 +19,9 @@ Row names can be any string of characters which identify the sample or entry or 
 Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name,
 and the second should be numeric which refers to the position in the chromosome/scaffold.}
 
-\item{retain_minus_one_alleles_per_locus}{omit the alternative or trailing allele per locus? \link{Default=TRUE}}
+\item{retain_minus_one_alleles_per_locus}{omit the alternative or trailing allele per locus? (Default=TRUE)}
 
-\item{verbose}{show non-numeric to numeric genotype data conversion messages? \link{Default=FALSE}}
+\item{verbose}{show non-numeric to numeric genotype data conversion messages? (Default=FALSE)}
 }
 \value{
 Ok: n samples x p loci-alleles matrix of genotype classes (numeric ranging from 0 to 1)

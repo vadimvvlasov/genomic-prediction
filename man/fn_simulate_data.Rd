@@ -22,13 +22,13 @@ fn_simulate_data(
 )
 }
 \arguments{
-\item{n}{number of samples \link{Default=100}}
+\item{n}{number of samples (Default=100)}
 
-\item{l}{number of loci \link{Default=1000}}
+\item{l}{number of loci (Default=1000)}
 
-\item{ploidy}{ploidy level which can refer to the number of haploid genomes to simulate pools \link{Default=2}}
+\item{ploidy}{ploidy level which can refer to the number of haploid genomes to simulate pools (Default=2)}
 
-\item{n_alleles}{macimum number of alleles per locus \link{Default=2}}
+\item{n_alleles}{macimum number of alleles per locus (Default=2)}
 
 \item{min_depth}{minimum depth per locus \link{Default=5}}
 
@@ -36,17 +36,17 @@ fn_simulate_data(
 
 \item{seed}{randomisation seed for replicability \link{Default=12345}}
 
-\item{save_pheno_tsv}{save the phenotype data as a tab-delimited file? \link{Default=TRUE}}
+\item{save_pheno_tsv}{save the phenotype data as a tab-delimited file? (Default=TRUE)}
 
-\item{save_geno_vcf}{save the genotype data as a vcf file? \link{Default=TRUE}}
+\item{save_geno_vcf}{save the genotype data as a vcf file? (Default=TRUE)}
 
-\item{save_geno_tsv}{save the genotype data as a tab-delimited allele frequency table file? \link{Default=FALSE}}
+\item{save_geno_tsv}{save the genotype data as a tab-delimited allele frequency table file? (Default=FALSE)}
 
-\item{save_geno_rds}{save the named genotype matrix as an Rds file? \link{Default=FALSE}}
+\item{save_geno_rds}{save the named genotype matrix as an Rds file? (Default=FALSE)}
 
-\item{non_numeric_Rds}{save non-numeric Rds genotype file? \link{Default=FALSE}}
+\item{non_numeric_Rds}{save non-numeric Rds genotype file? (Default=FALSE)}
 
-\item{verbose}{show genotype and phenotype data simulation messages? \link{Default=FALSE}}
+\item{verbose}{show genotype and phenotype data simulation messages? (Default=FALSE)}
 }
 \value{
 vcf: simulated genotype data as a vcfR object

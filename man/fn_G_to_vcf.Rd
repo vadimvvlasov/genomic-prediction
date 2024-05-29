@@ -14,11 +14,11 @@ the second should be numeric which refers to the position in the chromosome/scaf
 subsequent elements are optional which may refer to the allele identifier and other identifiers.
 Note that this function only accepts biallelic loci.}
 
-\item{min_depth}{minimum depth per locus \link{Default=100}}
+\item{min_depth}{minimum depth per locus (Default=100)}
 
-\item{max_depth}{maximum depth per locus \link{Default=1000}}
+\item{max_depth}{maximum depth per locus (Default=1000)}
 
-\item{verbose}{show allele frequency genotype matrix to vcf conversion messages? \link{Default=FALSE}}
+\item{verbose}{show allele frequency genotype matrix to vcf conversion messages? (Default=FALSE)}
 }
 \value{
 Ok: simulated genotype data as a vcfR object with GT, AD and DP fields

@@ -16,7 +16,7 @@ Column names need to be tab-delimited, where first element refers to the chromos
 the second should be numeric which refers to the position in the chromosome/scaffold, and
 subsequent elements are optional which may refer to the allele identifier and other identifiers.}
 
-\item{verbose}{show names extraction messages? \link{Default=FALSE}}
+\item{verbose}{show names extraction messages? (Default=FALSE)}
 }
 \value{
 Ok:

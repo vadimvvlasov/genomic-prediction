@@ -13,7 +13,7 @@ Column names need to be tab-delimited, where first element refers to the chromos
 the second should be numeric which refers to the position in the chromosome/scaffold, and
 subsequent elements are optional which may refer to the allele identifier and other identifiers.}
 
-\item{verbose}{show genotype data alternative allele splitting messages? \link{Default=FALSE}}
+\item{verbose}{show genotype data alternative allele splitting messages? (Default=FALSE)}
 }
 \value{
 Ok: n samples x p loci matrix of allele frequencies (numeric ranging from 0 to 1)

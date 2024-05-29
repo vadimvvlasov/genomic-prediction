@@ -32,7 +32,7 @@ setMethod(f="chain",
 #'  Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'  the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'  subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#' @param verbose show names extraction messages? [Default=FALSE]
+#' @param verbose show names extraction messages? (Default=FALSE)
 #' @returns
 #' Ok:
 #'  $vec_ids: vector of sample/entry/pool names
@@ -102,7 +102,7 @@ fn_G_extract_names = function(mat_genotypes, verbose=FALSE) {
 #'  Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'  the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'  subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#' @param verbose show genotype data alternative allele splitting messages? [Default=FALSE]
+#' @param verbose show genotype data alternative allele splitting messages? (Default=FALSE)
 #' @returns
 #' Ok: n samples x p loci matrix of allele frequencies (numeric ranging from 0 to 1)
 #' Err: grError
@@ -177,8 +177,8 @@ fn_G_split_off_alternative_allele = function(G, verbose=FALSE) {
 #'  Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'  the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'  subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#' @param ploidy ploidy level which can refer to the number of haploid genomes to simulate pools [Default=2]
-#' @param verbose show numeric to non-numeric genotype data conversion messages? [Default=FALSE]
+#' @param ploidy ploidy level which can refer to the number of haploid genomes to simulate pools (Default=2)
+#' @param verbose show numeric to non-numeric genotype data conversion messages? (Default=FALSE)
 #' @returns
 #' Ok: n samples x p loci matrix of genotype classes
 #' Err: grError
@@ -266,8 +266,8 @@ fn_G_numeric_to_non_numeric = function(G, ploidy=2, verbose=FALSE) {
 #'  Row names can be any string of characters which identify the sample or entry or pool names.
 #'  Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'  and the second should be numeric which refers to the position in the chromosome/scaffold.
-#' @param retain_minus_one_alleles_per_locus omit the alternative or trailing allele per locus? [Default=TRUE]
-#' @param verbose show non-numeric to numeric genotype data conversion messages? [Default=FALSE]
+#' @param retain_minus_one_alleles_per_locus omit the alternative or trailing allele per locus? (Default=TRUE)
+#' @param verbose show non-numeric to numeric genotype data conversion messages? (Default=FALSE)
 #' @returns
 #' Ok: n samples x p loci-alleles matrix of genotype classes (numeric ranging from 0 to 1)
 #' Err: grError
@@ -353,9 +353,9 @@ fn_G_non_numeric_to_numeric = function(G_non_numeric, retain_minus_one_alleles_p
 #'  the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'  subsequent elements are optional which may refer to the allele identifier and other identifiers.
 #'  Note that this function only accepts biallelic loci.
-#' @param min_depth minimum depth per locus [Default=100]
-#' @param max_depth maximum depth per locus [Default=1000]
-#' @param verbose show allele frequency genotype matrix to vcf conversion messages? [Default=FALSE]
+#' @param min_depth minimum depth per locus (Default=100)
+#' @param max_depth maximum depth per locus (Default=1000)
+#' @param verbose show allele frequency genotype matrix to vcf conversion messages? (Default=FALSE)
 #' @returns
 #' Ok: simulated genotype data as a vcfR object with GT, AD and DP fields
 #' Err: grError
@@ -469,10 +469,10 @@ fn_G_to_vcf = function(G, min_depth=100, max_depth=1000, verbose=FALSE) {
 #' Convert biallelic vcf data into allele frequencies where loci beyond minimum and maximum depths are set to missing
 #' 
 #' @param vcf biallelic genotype data as a vcfR object with GT and/or AD and DP fields (where AD takes precedence over GT)
-#' @param min_depth minimum depth per locus beyond which will be set to missing data [Default=0]
-#' @param max_depth maximum depth per locus beyond which will be set to missing data [Default=Inf]
-#' @param retain_minus_one_alleles_per_locus omit the alternative or trailing allele per locus? [Default=TRUE]
-#' @param verbose show vcf to allele frequency genotype matrix conversion messages? [Default=FALSE]
+#' @param min_depth minimum depth per locus beyond which will be set to missing data (Default=0)
+#' @param max_depth maximum depth per locus beyond which will be set to missing data (Default=Inf)
+#' @param retain_minus_one_alleles_per_locus omit the alternative or trailing allele per locus? (Default=TRUE)
+#' @param verbose show vcf to allele frequency genotype matrix conversion messages? (Default=FALSE)
 #' @returns
 #' Ok: named n samples x p biallelic loci matrix.
 #'  Row names can be any string of characters.
@@ -629,8 +629,8 @@ fn_vcf_to_G = function(vcf, min_depth=0, max_depth=Inf, retain_minus_one_alleles
 #'  Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'  the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'  subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#' @param ploidy ploidy level which can refer to the number of haploid genomes to simulate pools [Default=2]
-#' @param verbose show genotype binning or classification messages? [Default=FALSE]
+#' @param ploidy ploidy level which can refer to the number of haploid genomes to simulate pools (Default=2)
+#' @param verbose show genotype binning or classification messages? (Default=FALSE)
 #' @returns
 #' Ok: named n samples x p loci-alleles matrix of numeric genotype classes
 #' Err: gpError
@@ -689,19 +689,19 @@ fn_classify_allele_frequencies = function(G, ploidy=2, verbose=FALSE) {
 #' Simple wrapper of simquantgen simulation of 10 standard normally distributed QTL additive effects 
 #' on 5-chromosome genome and a single trait at 50% heritability
 #' 
-#' @param n number of samples [Default=100]
-#' @param l number of loci [Default=1000]
-#' @param ploidy ploidy level which can refer to the number of haploid genomes to simulate pools [Default=2]
-#' @param n_alleles macimum number of alleles per locus [Default=2]
+#' @param n number of samples (Default=100)
+#' @param l number of loci (Default=1000)
+#' @param ploidy ploidy level which can refer to the number of haploid genomes to simulate pools (Default=2)
+#' @param n_alleles macimum number of alleles per locus (Default=2)
 #' @param min_depth minimum depth per locus [Default=5]
 #' @param max_depth maximum depth per locus [Default=5000]
 #' @param seed randomisation seed for replicability [Default=12345]
-#' @param save_pheno_tsv save the phenotype data as a tab-delimited file? [Default=TRUE]
-#' @param save_geno_vcf save the genotype data as a vcf file? [Default=TRUE]
-#' @param save_geno_tsv save the genotype data as a tab-delimited allele frequency table file? [Default=FALSE]
-#' @param save_geno_rds save the named genotype matrix as an Rds file? [Default=FALSE]
-#' @param non_numeric_Rds save non-numeric Rds genotype file? [Default=FALSE]
-#' @param verbose show genotype and phenotype data simulation messages? [Default=FALSE]
+#' @param save_pheno_tsv save the phenotype data as a tab-delimited file? (Default=TRUE)
+#' @param save_geno_vcf save the genotype data as a vcf file? (Default=TRUE)
+#' @param save_geno_tsv save the genotype data as a tab-delimited allele frequency table file? (Default=FALSE)
+#' @param save_geno_rds save the named genotype matrix as an Rds file? (Default=FALSE)
+#' @param non_numeric_Rds save non-numeric Rds genotype file? (Default=FALSE)
+#' @param verbose show genotype and phenotype data simulation messages? (Default=FALSE)
 #' @returns
 #' vcf: simulated genotype data as a vcfR object
 #' df: simulated phenotype data as a data frame
@@ -828,11 +828,11 @@ fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, m
 #'          Names of the samples, entries, or pools in the header line can be any unique string of characters.
 #' @param ploidy ploidy level which will generate genotype classes instead of continuous allele frequencies.
 #'  If NULL, then continuous allele frequencies and no binning or classification into genotype classes
-#'  will be performed [Default=NULL].
-#' @param retain_minus_one_alleles_per_locus omit the alternative or trailing allele per locus? [Default=TRUE]
-#' @param min_depth if input is a VCF file: minimum depth per locus beyond which will be set to missing data [Default=0]
-#' @param max_depth if input is a VCF file: maximum depth per locus beyond which will be set to missing data [Default=Inf]
-#' @param verbose show genotype loading messages? [Default=FALSE]
+#'  will be performed (Default=NULL).
+#' @param retain_minus_one_alleles_per_locus omit the alternative or trailing allele per locus? (Default=TRUE)
+#' @param min_depth if input is a VCF file: minimum depth per locus beyond which will be set to missing data (Default=0)
+#' @param max_depth if input is a VCF file: maximum depth per locus beyond which will be set to missing data (Default=Inf)
+#' @param verbose show genotype loading messages? (Default=FALSE)
 #' @returns
 #' Ok: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 #'  Row names can be any string of characters which identify the sample or entry or pool names.
@@ -949,19 +949,19 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, retain_minus_one_alleles_pe
 #'  Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'  the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'  subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#' @param maf minimum allele frequency [Default=0.01]
-#' @param sdev_min minimum allele frequency standard deviation (constant allele frequency across samples is just another intercept) [Default=0.0001]
+#' @param maf minimum allele frequency (Default=0.01)
+#' @param sdev_min minimum allele frequency standard deviation (constant allele frequency across samples is just another intercept) (Default=0.0001)
 #' @param fname_snp_list name of the file containing the list of expected SNPs including their coordinates and alleles.
-#'  This is a tab-delimited file with 3 columns: '#CHROM', 'POS', 'REF,ALT', corresponding to [Default=NULL]
+#'  This is a tab-delimited file with 3 columns: '#CHROM', 'POS', 'REF,ALT', corresponding to([Default=NULL)
 #'  chromosome names (e.g. 'chr1' & 'chrom_1'), 
 #'  numeric positions (e.g. 12345 & 100001), and 
-#'  reference-alternative allele strings separated by a comma (e.g. 'A,T' & 'allele_1,allele_alt') [Default=NULL]
-#' @param max_sparsity_per_locus maximum mean sparsity per locus, e.g. 0.1 or 0.5 [Default=NULL]
-#' @param frac_topmost_sparse_loci_to_remove fraction of the top-most sparse loci to remove, e.g. 0.01 or 0.25 [Default=NULL]
-#' @param n_topmost_sparse_loci_to_remove number of top-most sparse loci to remove, e.g. 100 or 1000 [Default=NULL]
-#' @param max_sparsity_per_sample maximum mean sparsity per sample, e.g. 0.3 or 0.5 [Default=NULL]
-#' @param frac_topmost_sparse_samples_to_remove fraction of the top-most sparse samples to remove, e.g. 0.01 or 0.05 [Default=NULL]
-#' @param n_topmost_sparse_samples_to_remove number of top-most sparse samples to remove, e.g. 5 or 10 [Default=NULL]
+#'  reference-alternative allele strings separated by a comma (e.g. 'A,T' & 'allele_1,allele_alt')([Default=NULL)
+#' @param max_sparsity_per_locus maximum mean sparsity per locus, e.g. 0.1 or 0.5([Default=NULL)
+#' @param frac_topmost_sparse_loci_to_remove fraction of the top-most sparse loci to remove, e.g. 0.01 or 0.25([Default=NULL)
+#' @param n_topmost_sparse_loci_to_remove number of top-most sparse loci to remove, e.g. 100 or 1000([Default=NULL)
+#' @param max_sparsity_per_sample maximum mean sparsity per sample, e.g. 0.3 or 0.5([Default=NULL)
+#' @param frac_topmost_sparse_samples_to_remove fraction of the top-most sparse samples to remove, e.g. 0.01 or 0.05([Default=NULL)
+#' @param n_topmost_sparse_samples_to_remove number of top-most sparse samples to remove, e.g. 5 or 10([Default=NULL)
 #' @returns
 #' Ok: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 #'  Row names can be any string of characters which identify the sample or entry or pool names.
@@ -987,9 +987,10 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, retain_minus_one_alleles_pe
 #' ### Filter
 #' G_filtered = fn_filter_loci(G=G, maf=0.05, fname_snp_list=fname_snp_list, verbose=TRUE)
 #' @export
-fn_filter_loci = function(G, maf=0.01, sdev_min=0.0001, max_sparsity_per_locus=NULL, frac_topmost_sparse_loci_to_remove=NULL, 
-    n_topmost_sparse_loci_to_remove=NULL, max_sparsity_per_sample=NULL, frac_topmost_sparse_samples_to_remove=NULL, 
-    n_topmost_sparse_samples_to_remove=NULL, fname_snp_list=NULL, verbose=FALSE) {
+fn_filter_loci = function(G, maf=0.01, sdev_min=0.0001, 
+    max_sparsity_per_locus=NULL, frac_topmost_sparse_loci_to_remove=NULL, n_topmost_sparse_loci_to_remove=NULL, 
+    max_sparsity_per_sample=NULL, frac_topmost_sparse_samples_to_remove=NULL, n_topmost_sparse_samples_to_remove=NULL, 
+    fname_snp_list=NULL, verbose=FALSE) {
     ###################################################
     ### TEST
     # # list_sim = fn_simulate_data(verbose=TRUE)
@@ -1046,7 +1047,62 @@ fn_filter_loci = function(G, maf=0.01, sdev_min=0.0001, max_sparsity_per_locus=N
                 code=000,
                 message=paste0(
                     "Error in load::fn_filter_loci(...). ",
-                    "Please use a maximum sparsity perlocus (max_sparsity_per_locus) between 0 and 1."
+                    "Please use a maximum sparsity per locus (max_sparsity_per_locus) between 0 and 1."
+                ))
+            return(error)
+        }
+    }
+    if (!is.null(frac_topmost_sparse_loci_to_remove)) {
+        if ((frac_topmost_sparse_loci_to_remove < 0.0) | (frac_topmost_sparse_loci_to_remove > 1.0)) {
+            error = new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in load::fn_filter_loci(...). ",
+                    "Please use a fraction of the top-most sparse loci (frac_topmost_sparse_loci_to_remove) between 0 and 1."
+                ))
+            return(error)
+        }
+    }
+    if (!is.null(n_topmost_sparse_loci_to_remove)) {
+        if ((n_topmost_sparse_loci_to_remove < 0) | (n_topmost_sparse_loci_to_remove > ncol(G))) {
+            error = new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in load::fn_filter_loci(...). ",
+                    "Please use a number of top-most sparse loci to remove (n_topmost_sparse_loci_to_remove) between 0 and ", ncol(G), "."
+                ))
+            return(error)
+        }
+    }
+    if (!is.null(max_sparsity_per_sample)) {
+        if ((max_sparsity_per_sample < 0.0) | (max_sparsity_per_sample > 1.0)) {
+            error = new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in load::fn_filter_loci(...). ",
+                    "Please use a maximum sparsity per sample (max_sparsity_per_sample) between 0 and 1."
+                ))
+            return(error)
+        }
+    }
+    if (!is.null(frac_topmost_sparse_samples_to_remove)) {
+        if ((frac_topmost_sparse_samples_to_remove < 0.0) | (frac_topmost_sparse_samples_to_remove > 1.0)) {
+            error = new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in load::fn_filter_samples(...). ",
+                    "Please use a fraction of the top-most sparse samples (frac_topmost_sparse_samples_to_remove) between 0 and 1."
+                ))
+            return(error)
+        }
+    }
+    if (!is.null(n_topmost_sparse_samples_to_remove)) {
+        if ((n_topmost_sparse_samples_to_remove < 0) | (n_topmost_sparse_samples_to_remove > nrow(G))) {
+            error = new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in load::fn_filter_samples(...). ",
+                    "Please use a number of top-most sparse samples to remove (n_topmost_sparse_samples_to_remove) between 0 and ", nrow(G), "."
                 ))
             return(error)
         }
