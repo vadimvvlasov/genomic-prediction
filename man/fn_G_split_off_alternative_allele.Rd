@@ -2,7 +2,7 @@
 % Please edit documentation in R/load.R
 \name{fn_G_split_off_alternative_allele}
 \alias{fn_G_split_off_alternative_allele}
-\title{Remove trailing alternative allele from a numeric (allele frequency) matrix if it exists}
+\title{Split trailing alternative allele from a numeric (allele frequency) matrix if it exists}
 \usage{
 fn_G_split_off_alternative_allele(G, verbose = FALSE)
 }
@@ -16,11 +16,13 @@ subsequent elements are optional which may refer to the allele identifier and ot
 \item{verbose}{show genotype data alternative allele splitting messages? (Default=FALSE)}
 }
 \value{
-Ok: n samples x p loci matrix of allele frequencies (numeric ranging from 0 to 1)
+Ok:
+$G: n samples x p loci matrix of allele frequencies excluding trailing allele (numeric ranging from 0 to 1)
+$G_alt: n samples x p loci matrix of allele frequencies of the trailing allele (numeric ranging from 0 to 1)
 Err: grError
 }
 \description{
-Remove trailing alternative allele from a numeric (allele frequency) matrix if it exists
+Split trailing alternative allele from a numeric (allele frequency) matrix if it exists
 }
 \examples{
 G_ref = simquantgen::fn_simulate_genotypes(verbose=TRUE)

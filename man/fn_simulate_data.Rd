@@ -12,6 +12,7 @@ fn_simulate_data(
   n_alleles = 2,
   min_depth = 5,
   max_depth = 1000,
+  n_pop = 1,
   seed = 12345,
   save_pheno_tsv = TRUE,
   save_geno_vcf = TRUE,
@@ -34,6 +35,8 @@ fn_simulate_data(
 
 \item{max_depth}{maximum depth per locus \link{Default=5000}}
 
+\item{n_pop}{number of randomly assigned population groupings \link{Default=1}}
+
 \item{seed}{randomisation seed for replicability \link{Default=12345}}
 
 \item{save_pheno_tsv}{save the phenotype data as a tab-delimited file? (Default=TRUE)}
@@ -49,17 +52,16 @@ fn_simulate_data(
 \item{verbose}{show genotype and phenotype data simulation messages? (Default=FALSE)}
 }
 \value{
-vcf: simulated genotype data as a vcfR object
-df: simulated phenotype data as a data frame
-fname_geno_vcf: filename of the simulated genotype data as a vcf file
-fname_geno_tsv: filename of the simulated genotype data as a tab-delimited allele frequency table file
-fname_geno_rds: filename of the simulated named genotype matrix as an Rds file
-fname_pheno_tsv: filename of the simulated phenotype data as a tab-delimited file
+$fname_geno_vcf: filename of the simulated genotype data as a vcf file
+$fname_geno_tsv: filename of the simulated genotype data as a tab-delimited allele frequency table file
+$fname_geno_rds: filename of the simulated named genotype matrix as an Rds file
+$fname_pheno_tsv: filename of the simulated phenotype data as a tab-delimited file
 }
 \description{
 Simple wrapper of simquantgen simulation of 10 standard normally distributed QTL additive effects
 on 5-chromosome genome and a single trait at 50\% heritability
 }
 \examples{
-list_sim = fn_simulate_data(verbose=TRUE, save_geno_vcf=TRUE, save_geno_tsv=TRUE, save_geno_rds=TRUE, save_pheno_tsv=TRUE)
+list_sim = fn_simulate_data(verbose=TRUE, 
+ save_geno_vcf=TRUE, save_geno_tsv=TRUE, save_geno_rds=TRUE, save_pheno_tsv=TRUE)
 }

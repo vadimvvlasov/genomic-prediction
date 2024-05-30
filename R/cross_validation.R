@@ -53,8 +53,8 @@ fn_kfold_cross_validation = function(i, vec_set_partition_groupings, mat_idx_shu
     time_rand_id = paste0(gsub(" ", "", as.character(Sys.time())), ".", sample.int(1e6, size=1))
     fname_metrics_out = paste0(prefix_tmp, "-metrics-rep_", r, "-fold_", k, "-model_", model, "-", time_rand_id, ".csv")
     fname_y_pred_out = paste0(prefix_tmp, "-y_pred-rep_", r, "-fold_", k, "-model_", model, "-", time_rand_id, ".csv")
-    write.table(df_metrics, file=fname_metrics_out, sep=",", quote=FALSE, row.names=FALSE, col.names=TRUE)
-    write.table(df_y_pred, file=fname_y_pred_out, sep=",", quote=FALSE, row.names=FALSE, col.names=TRUE)
+    utils::write.table(df_metrics, file=fname_metrics_out, sep=",", quote=FALSE, row.names=FALSE, col.names=TRUE)
+    utils::write.table(df_y_pred, file=fname_y_pred_out, sep=",", quote=FALSE, row.names=FALSE, col.names=TRUE)
     gc()
     return(list(df_metrics=df_metrics, df_y_pred=df_y_pred, fname_metrics_out=fname_metrics_out, fname_y_pred_out=fname_y_pred_out))
 }
@@ -96,7 +96,7 @@ fn_cross_validation = function(G, y, COVAR=NULL, models_to_test=c("ridge","lasso
     mat_params = mat_params[order(mat_params$fold), ]
     ### Limit the number of forks by the memory available and the size of G and y
     total_memory = mem_mb / 1e3 ### in gigabytes
-    data_size = 2 * max(1, c(round(as.numeric(gsub(" Gb", "", format(object.size(G), units="Gb"))) + as.numeric(gsub(" Gb", "", format(object.size(y), units="Gb"))))))
+    data_size = 2 * max(1, c(round(as.numeric(gsub(" Gb", "", format(utils::object.size(G), units="Gb"))) + as.numeric(gsub(" Gb", "", format(utils::object.size(y), units="Gb"))))))
     n_forks = max(c(1, min(c(nrow(mat_params), n_threads, floor((total_memory-data_size) / data_size))))) ### force the minimum number of threads to 1
     ### Report the folds, replication, models being tested, memory allocation and number of parallel threads
     if (verbose==TRUE) {
@@ -220,7 +220,7 @@ fn_pairwise_cross_validation = function(G_training, G_validation, y_training, y_
     }
     ### Limit the number of forks by the memory available and the size of G and y
     total_memory = mem_mb / 1e3 ### in gigabytes
-    data_size = 50 * as.numeric(gsub(" Gb", "", format(object.size(c(G, y)), units="Gb")))
+    data_size = 50 * as.numeric(gsub(" Gb", "", format(utils::object.size(c(G, y)), units="Gb")))
     n_forks = min(c(n_threads, floor((total_memory-10) / data_size)))
     ### Multi-threaded cross-fold validation
     time_ini = Sys.time()
@@ -281,7 +281,7 @@ fn_leave_one_population_out_cross_validation = function(G, y, pop, COVAR=NULL, m
     n = nrow(G)
     p = ncol(G)
     # ### Estimate kinship matrix which will be used as covariate
-    # K = cor(t(G))
+    # K = stats::cor(t(G))
     # ### Sort the samples by population
     # idx = order(pop)
     # G = G[idx, , drop=FALSE]
@@ -310,7 +310,7 @@ fn_leave_one_population_out_cross_validation = function(G, y, pop, COVAR=NULL, m
     }
     ### Limit the number of forks by the memory available and the size of G and y
     total_memory = mem_mb * 1e3
-    data_size = 50 * as.numeric(gsub(" Gb", "", format(object.size(c(G, y)), units="Gb")))
+    data_size = 50 * as.numeric(gsub(" Gb", "", format(utils::object.size(c(G, y)), units="Gb")))
     n_forks = min(c(n_threads, floor((total_memory-10) / data_size), length(models_to_test)))
     ### Multi-threaded cross-fold validation (Note: y-predictions are standard normalised)
     time_ini = Sys.time()
@@ -563,8 +563,8 @@ fn_within_across_perse_genomic_prediction = function(G, idx_col_y, args, dir_tmp
     print("(using Pearson's correlation)")
     ### Only considering within population k-fold cross-validation to identify the best model per population
     ### Using Pearson's correlation as the genomic prediction accuracy metric
-    agg_corr = aggregate(corr ~ model + pop, FUN=mean, data=METRICS_WITHIN_POP)
-    agg_corr_sd = aggregate(corr ~ model + pop, FUN=sd, data=METRICS_WITHIN_POP)
+    agg_corr = stats::aggregate(corr ~ model + pop, FUN=mean, data=METRICS_WITHIN_POP)
+    agg_corr_sd = stats::aggregate(corr ~ model + pop, FUN=stats::sd, data=METRICS_WITHIN_POP)
     agg_corr = merge(agg_corr, agg_corr_sd, by=c("model", "pop"))
     colnames(agg_corr) = c("model", "pop", "corr", "corr_sd")
     vec_popns = c()
@@ -583,8 +583,8 @@ fn_within_across_perse_genomic_prediction = function(G, idx_col_y, args, dir_tmp
         vec_corr_sd = c(vec_corr_sd, corr_sd)
     }
     ### Append overall best model across all populations
-    agg_overall_mean = aggregate(corr ~ model, FUN=mean, data=METRICS_WITHIN_POP)
-    agg_overall_sdev = aggregate(corr ~ model, FUN=sd, data=METRICS_WITHIN_POP)
+    agg_overall_mean = stats::aggregate(corr ~ model, FUN=mean, data=METRICS_WITHIN_POP)
+    agg_overall_sdev = stats::aggregate(corr ~ model, FUN=stats::sd, data=METRICS_WITHIN_POP)
     agg_overall = merge(agg_overall_mean, agg_overall_sdev, by="model")
     colnames(agg_overall) = c("model", "corr", "corr_sd")
     agg_overall = agg_overall[which(agg_overall[,2]==max(agg_overall[,2], na.rm=TRUE))[1], ]
@@ -729,7 +729,7 @@ tests_cross_validation = function() {
             k_folds=10
             n_reps=3
             out_kfold_cv = fn_cross_validation(G=G, y=y, COVAR=COVAR, models_to_test=models_to_test, k_folds=k_folds, n_reps=n_reps, n_threads=n_threads, mem_mb=mem_mb, verbose=TRUE)
-            agg_kfold_cv = aggregate(corr ~ model, FUN=mean, data=out_kfold_cv$df_metrics)
+            agg_kfold_cv = stats::aggregate(corr ~ model, FUN=mean, data=out_kfold_cv$df_metrics)
             expect_equal(agg_kfold_cv$corr[agg_kfold_cv$model=="lasso"] > agg_kfold_cv$corr[agg_kfold_cv$model=="ridge"], TRUE)
             expect_equal(agg_kfold_cv$corr[agg_kfold_cv$model=="lasso"] > agg_kfold_cv$corr[agg_kfold_cv$model=="gBLUP"], TRUE)
             gc()
@@ -746,7 +746,7 @@ tests_cross_validation = function() {
             k_folds=10
             n_reps=3
             n = length(y)
-            idx_bool = as.logical(rbinom(n=n, size=1, prob=0.5))
+            idx_bool = as.logical(stats::rbinom(n=n, size=1, prob=0.5))
             idx_a = which(idx_bool)
             idx_b = which(!idx_bool)
             G_a = G[idx_a, ]
@@ -760,13 +760,13 @@ tests_cross_validation = function() {
                                                  y_training=y_a,
                                                  y_validation=y_a_null,
                                                  COVAR=COVAR, models_to_test=models_to_test, n_threads=n_threads, mem_mb=mem_mb)
-            agg_pairwise_cv_null = aggregate(corr ~ model, FUN=mean, data=out_pairwise_cv_null$df_metrics)
+            agg_pairwise_cv_null = stats::aggregate(corr ~ model, FUN=mean, data=out_pairwise_cv_null$df_metrics)
             out_pairwise_cv_a_vs_b = fn_pairwise_cross_validation(G_training=G_a,
                                                  G_validation=G_b,
                                                  y_training=y_a,
                                                  y_validation=y_b,
                                                  COVAR=COVAR, models_to_test=models_to_test, n_threads=n_threads, mem_mb=mem_mb)
-            agg_pairwise_cv_a_vs_b = aggregate(corr ~ model, FUN=mean, data=out_pairwise_cv_a_vs_b$df_metrics)
+            agg_pairwise_cv_a_vs_b = stats::aggregate(corr ~ model, FUN=mean, data=out_pairwise_cv_a_vs_b$df_metrics)
             expect_equal(agg_pairwise_cv_a_vs_b$corr[agg_pairwise_cv_a_vs_b$model=="lasso"] > agg_pairwise_cv_a_vs_b$corr[agg_pairwise_cv_a_vs_b$model=="ridge"], TRUE)
             expect_equal(agg_pairwise_cv_a_vs_b$corr[agg_pairwise_cv_a_vs_b$model=="lasso"] > agg_pairwise_cv_a_vs_b$corr[agg_pairwise_cv_a_vs_b$model=="gBLUP"], TRUE)
             gc()
@@ -779,12 +779,12 @@ tests_cross_validation = function() {
     test_that(
         "fn_leave_one_population_out_cross_validation", {
             print("fn_leave_one_population_out_cross_validation:")
-            clusters = kmeans(G, centers=5)$cluster
+            clusters = stats::kmeans(G, centers=5)$cluster
             out_lopo_cv = fn_leave_one_population_out_cross_validation(G=G,
                                                                  y=y,
                                                                  pop=clusters,
                                                                  COVAR=COVAR, models_to_test=models_to_test, n_threads=n_threads, mem_mb=mem_mb)
-            agg_lopo_cv = aggregate(corr~model, FUN=mean, data=out_lopo_cv$df_metrics)
+            agg_lopo_cv = stats::aggregate(corr~model, FUN=mean, data=out_lopo_cv$df_metrics)
             expect_equal(agg_lopo_cv$corr[agg_lopo_cv$model=="lasso"] > agg_lopo_cv$corr[agg_lopo_cv$model=="ridge"], TRUE)
             expect_equal(agg_lopo_cv$corr[agg_lopo_cv$model=="lasso"] > agg_lopo_cv$corr[agg_lopo_cv$model=="gBLUP"], TRUE)
             gc()

@@ -1,13 +1,27 @@
-### Genomic prediction metrics
-### Add more metrics which we may be interested in.
-### NOTES:
-###     - the number of non-zero estimated marker effects are extracted within each model, i.e. in `models.R`
-###     - the run-time of each genomic predicition and validation on a single set is measured during each cross-validation replicate, i.e in `cross-validation.R`
-library(testthat)
-
+#' Genomic prediction metrics
+#' Add more metrics which we may be interested in.
+#' NOTES:
+#'     - the number of non-zero estimated marker effects are extracted within each model, i.e. in `models.R`
+#'     - the run-time of each genomic prediction and validation on a single set is measured during each cross-validation replicate, i.e in `cross-validation.R`
+#'
+#' @param y_true numeric vector observed phenotype values
+#' @param y_pred numeric vector predicted phenotype values
+#' @returns
+#'  $mbe: mean bias error
+#'  $mae: mean absolute error
+#'  $rmse: root mean squared error
+#'  $r2: coefficient of determination
+#'  $corr: Pearson's product moment correlation
+#'  $power_t10: fraction of observed top 10 phenotype values correctly predicted
+#'  $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+#'  $h2: estimated narrow-sense heritability weighted by Pearson's correlation between observed and predicted phenotype values
+#' @example
+#' y_pred = stats::rnorm(100)
+#' y_true = y_pred + rnorm(100)
+#' list_metrics = fn_prediction_performance_metrics(y_true=y_true, y_pred=y_pred)
 fn_prediction_performance_metrics = function(y_true, y_pred) {
-    # y_true = rnorm(100)
-    # y_pred = rnorm(100); # y_pred = y_true + rnorm(n=100, mean=0, sd=0.1)
+    # y_true = stats::rnorm(100)
+    # y_pred = stats::rnorm(100); # y_pred = y_true + stats::rnorm(n=100, mean=0, stats::sd=0.1)
     y_true = as.vector(y_true)
     y_pred = as.vector(y_pred)
     if (length(y_true) != length(y_pred)) {
@@ -19,7 +33,7 @@ fn_prediction_performance_metrics = function(y_true, y_pred) {
     mae = mean(abs(error))
     rmse = sqrt(mean(error^2))
     r2 = 1 - (sum(error^2) / sum((y_true-mean(y_true))^2))
-    corr = suppressWarnings(cor(y_true, y_pred, method="pearson"))
+    corr = suppressWarnings(stats::cor(y_true, y_pred, method="pearson"))
     if (is.na(corr)) {
         corr = 0.0
     }
@@ -38,8 +52,8 @@ fn_prediction_performance_metrics = function(y_true, y_pred) {
     ###     - the variance in the predicted trait values is proportional to the additive genetic variance (~Va)
     ###     - the variance in the true trait values represent the total phenotypic variance (Vp)
     ###     - the correlation between predicted and true trait values is the factor that relates the variance of the predicted trait values with the true heritability, i.e. h2_predicted = corr(true,pred) * h2_true
-    h2 = round((var(y_pred) / var(y_true)) / corr, 10)
-    if (is.na(h2) == FALSE) {
+    h2 = round((stats::var(y_pred) / stats::var(y_true)) / corr, 10)
+    if (!is.na(h2)) {
         if ((h2 < 0.0) | (h2 > 1.0)) {
             h2 = NA
         }
@@ -47,8 +61,15 @@ fn_prediction_performance_metrics = function(y_true, y_pred) {
         h2 = 0.0
     }
     ### Output
-    out = list(mbe=mbe, mae=mae, rmse=rmse, r2=r2, corr=corr, power_t10=power_t10, power_b10=power_b10, h2=h2)
-    return(out)
+    return(list(
+        mbe=mbe,
+        mae=mae,
+        rmse=rmse,
+        r2=r2,
+        corr=corr,
+        power_t10=power_t10,
+        power_b10=power_b10,
+        h2=h2))
 }
 
 #####################################################################

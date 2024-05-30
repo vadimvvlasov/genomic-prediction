@@ -76,14 +76,14 @@
 #     if (length(vec_range)==1) {
 #         vec_idx_col_y = c(vec_idx_col_y, vec_range)
 #     } else {
-#         ini = head(vec_range, 1)
-#         fin = tail(vec_range, 1)
+#         ini = utils::head(vec_range, 1)
+#         fin = utils::tail(vec_range, 1)
 #         vec_idx_col_y = c(vec_idx_col_y, ini:fin)
 #     }
 # }
 # vec_idx_col_y = sort(unique(vec_idx_col_y))
 # ### Check if we have all the required columns in the phenotype file
-# tmp_pheno = read.table(args$fname_pheno, sep=args$sep, header=args$header, na.strings=args$na_strings)
+# tmp_pheno = utils::read.table(args$fname_pheno, sep=args$sep, header=args$header, na.strings=args$na_strings)
 # idx_col_max = max(c(args$idx_col_id, args$idx_col_pop, vec_idx_col_y))
 # if (ncol(tmp_pheno) < idx_col_max) {
 #     print(paste0("[Error] Incompatible column/s specified for the phenotype file: ", args$fname_pheno, ". Please check the following phenotype-related parameters:"))
@@ -127,7 +127,7 @@
 #     }
 # }
 # ### Parse missing phenotype data codes and model names
-# fn_sign = read.delim(file.path(dir_src, "models.R"))$X
+# fn_sign = utils::read.delim(file.path(dir_src, "models.R"))$X
 # idx = which(grepl("function\\(G, y, idx_training, idx_validation, other_params=", fn_sign) & !grepl("^#", fn_sign))
 # vec_available_models = gsub("fn_", "", unlist(lapply(strsplit(fn_sign[idx], " = "), FUN=function(x){x[1]})))
 # args$na_strings = unlist(strsplit(gsub(" ", "", args$na_strings), ","))
@@ -189,7 +189,7 @@
 #     eval(parse(text=paste0("out$`", trait_name, "` = gp")))
 # }
 # ### Output Rds of list of data frames
-# suffix = paste0(gsub("/", "", format(Sys.time(), format="%D%H%M%S")), round(runif(n=1, min=1e6, max=9e6)))
+# suffix = paste0(gsub("/", "", format(Sys.time(), format="%D%H%M%S")), round(stats::runif(n=1, min=1e6, max=9e6)))
 # if (args$output_file_prefix == "") {
 #     output_file_rds = paste0(gsub(".vcf.gz$", "", ignore.case=TRUE, gsub(".vcf$", "", ignore.case=TRUE, gsub(".rds$", "", ignore.case=TRUE, args$fname_rds_or_vcf))), "-GENOMIC_PREDICTION_CV_GEBV-", suffix, ".Rds")
 # } else {

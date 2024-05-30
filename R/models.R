@@ -24,7 +24,7 @@ fn_least_squares_moore_penrose = function(G, y, idx_training, idx_validation, ot
     # idx_validation = c(1:round(n*0.1))
     # idx_training = !(c(1:n) %in% idx_validation)
     # # other_params=list(tol=.Machine$double.eps)
-    # other_params=list(tol=.Machine$double.eps, covariate=matrix(rnorm(2*n), ncol=2))
+    # other_params=list(tol=.Machine$double.eps, covariate=matrix(stats::rnorm(2*n), ncol=2))
     ### Make sure that our genotype and phenotype data are labelled, i.e. have row and column names
     if (is.null(rownames(G)) | is.null(colnames(G)) | is.null(rownames(y))) {
         print("Error: Genotype and/or phenotype data have no labels. Please include the row names (entry names) and column names (loci names).")
@@ -94,7 +94,7 @@ fn_ridge = function(G, y, idx_training, idx_validation, other_params=list(covari
         b_hat = c(sol$glmnet.fit$a0[idx], sol$glmnet.fit$beta[, idx])
         y_pred = cbind(rep(1, length(idx_validation)), X_validation) %*% b_hat
     } else {
-        y_pred = predict(sol, newx=X_validation, s="lambda.min")
+        y_pred = stats::predict(sol, newx=X_validation, s="lambda.min")
     }
     colnames(y_pred) = "pred"
     df_y = merge(data.frame(id=rownames(y)[idx_validation], true=y_validation), data.frame(id=rownames(y_pred), pred=y_pred), by="id")
@@ -145,7 +145,7 @@ fn_lasso = function(G, y, idx_training, idx_validation, other_params=list(covari
         b_hat = c(sol$glmnet.fit$a0[idx], sol$glmnet.fit$beta[, idx])
         y_pred = cbind(rep(1, length(idx_validation)), X_validation) %*% b_hat
     } else {
-        y_pred = predict(sol, newx=X_validation, s="lambda.min")
+        y_pred = stats::predict(sol, newx=X_validation, s="lambda.min")
     }
     colnames(y_pred) = "pred"
     df_y = merge(data.frame(id=rownames(y)[idx_validation], true=y_validation), data.frame(id=rownames(y_pred), pred=y_pred), by="id")
@@ -196,7 +196,7 @@ fn_elastic_net = function(G, y, idx_training, idx_validation, other_params=list(
         b_hat = c(sol$glmnet.fit$a0[idx], sol$glmnet.fit$beta[, idx])
         y_pred = cbind(rep(1, length(idx_validation)), X_validation) %*% b_hat
     } else {
-        y_pred = predict(sol, newx=X_validation, s="lambda.min")
+        y_pred = stats::predict(sol, newx=X_validation, s="lambda.min")
     }
     colnames(y_pred) = "pred"
     df_y = merge(data.frame(id=rownames(y)[idx_validation], true=y_validation), data.frame(id=rownames(y_pred), pred=y_pred), by="id")
@@ -217,7 +217,7 @@ fn_Bayes_A = function(G, y, idx_training, idx_validation, other_params=list(nIte
     #     burnIn=100,
     #     h2=0.5,
     #     out_prefix="bglr_bayesA",
-    #     covariate=matrix(rnorm(2*n), ncol=2))
+    #     covariate=matrix(stats::rnorm(2*n), ncol=2))
     ### Make sure that our genotype and phenotype data are labelled, i.e. have row and column names
     if (is.null(rownames(G)) | is.null(colnames(G)) | is.null(rownames(y))) {
         print("Error: Genotype and/or phenotype data have no labels. Please include the row names (entry names) and column names (loci names).")
@@ -236,7 +236,7 @@ fn_Bayes_A = function(G, y, idx_training, idx_validation, other_params=list(nIte
     } else {
         ETA = list(MRK=list(X=G, model="BayesA"))
     }
-    other_params$out_prefix = gsub(" ", "-", paste(other_params$out_prefix, Sys.time(), runif(1), sep="-")) ### attempt at preventing overwrites to the running Gibbs samplers in parallel
+    other_params$out_prefix = gsub(" ", "-", paste(other_params$out_prefix, Sys.time(), stats::runif(1), sep="-")) ### attempt at preventing overwrites to the running Gibbs samplers in parallel
     sol = BGLR::BGLR(y=yNA, ETA=ETA, nIter=other_params$nIter, burnIn=other_params$burnIn, R2=other_params$h2, saveAt=other_params$out_prefix, verbose=FALSE)
     y_pred = sol$yHat[idx_validation]
     names(y_pred) = rownames(yNA)[idx_validation]
@@ -263,7 +263,7 @@ fn_Bayes_B = function(G, y, idx_training, idx_validation, other_params=list(nIte
     #     burnIn=100,
     #     h2=0.5,
     #     out_prefix="bglr_bayesB",
-    #     covariate=matrix(rnorm(2*n), ncol=2))
+    #     covariate=matrix(stats::rnorm(2*n), ncol=2))
     ### Make sure that our genotype and phenotype data are labelled, i.e. have row and column names
     if (is.null(rownames(G)) | is.null(colnames(G)) | is.null(rownames(y))) {
         print("Error: Genotype and/or phenotype data have no labels. Please include the row names (entry names) and column names (loci names).")
@@ -282,7 +282,7 @@ fn_Bayes_B = function(G, y, idx_training, idx_validation, other_params=list(nIte
     } else {
         ETA = list(MRK=list(X=G, model="BayesB"))
     }
-    other_params$out_prefix = gsub(" ", "-", paste(other_params$out_prefix, Sys.time(), runif(1), sep="-")) ### attempt at preventing overwrites to the running Gibbs samplers in parallel
+    other_params$out_prefix = gsub(" ", "-", paste(other_params$out_prefix, Sys.time(), stats::runif(1), sep="-")) ### attempt at preventing overwrites to the running Gibbs samplers in parallel
     sol = BGLR::BGLR(y=yNA, ETA=ETA, nIter=other_params$nIter, burnIn=other_params$burnIn, R2=other_params$h2, saveAt=other_params$out_prefix, verbose=FALSE)
     y_pred = sol$yHat[idx_validation]
     names(y_pred) = rownames(yNA)[idx_validation]
@@ -309,7 +309,7 @@ fn_Bayes_C = function(G, y, idx_training, idx_validation, other_params=list(nIte
     #     burnIn=100,
     #     h2=0.5,
     #     out_prefix="bglr_bayesC",
-    #     covariate=matrix(rnorm(2*n), ncol=2))
+    #     covariate=matrix(stats::rnorm(2*n), ncol=2))
     ### Make sure that our genotype and phenotype data are labelled, i.e. have row and column names
     if (is.null(rownames(G)) | is.null(colnames(G)) | is.null(rownames(y))) {
         print("Error: Genotype and/or phenotype data have no labels. Please include the row names (entry names) and column names (loci names).")
@@ -328,7 +328,7 @@ fn_Bayes_C = function(G, y, idx_training, idx_validation, other_params=list(nIte
     } else {
         ETA = list(MRK=list(X=G, model="BayesC"))
     }
-    other_params$out_prefix = gsub(" ", "-", paste(other_params$out_prefix, Sys.time(), runif(1), sep="-")) ### attempt at preventing overwrites to the running Gibbs samplers in parallel
+    other_params$out_prefix = gsub(" ", "-", paste(other_params$out_prefix, Sys.time(), stats::runif(1), sep="-")) ### attempt at preventing overwrites to the running Gibbs samplers in parallel
     sol = BGLR::BGLR(y=yNA, ETA=ETA, nIter=other_params$nIter, burnIn=other_params$burnIn, R2=other_params$h2, saveAt=other_params$out_prefix, verbose=FALSE)
     y_pred = sol$yHat[idx_validation]
     names(y_pred) = rownames(yNA)[idx_validation]
@@ -378,15 +378,15 @@ fn_gBLUP = function(G, y, idx_training, idx_validation, other_params=list(covari
     if (is.null(other_params$covariate) == FALSE) {
         X = scale(other_params$covariate)
         if (ncol(X) > 10) {
-            X = prcomp(X)$x[, 1:10]
+            X = stats::prcomp(X)$x[, 1:10]
         }
         for (j in 1:ncol(X)) {
             eval(parse(text=paste0("df_training$x_", j, " = X[, j]")))
         }
         covariates_string = paste(paste0("x_", 1:ncol(X)), collapse="+")
-        eval(parse(text=paste0("mod = mmer(y ~ 1 + ", covariates_string, ", random= ~vsr(id, Gu=A ), rcov= ~vsr(units), data=df_training, dateWarning=FALSE, verbose=FALSE)")))
+        eval(parse(text=paste0("mod = sommer::mmer(y ~ 1 + ", covariates_string, ", random= ~vsr(id, Gu=A ), rcov= ~vsr(units), data=df_training, dateWarning=FALSE, verbose=FALSE)")))
     } else {
-        mod = mmer(y ~ 1, random= ~vsr(id, Gu=A ), rcov= ~vsr(units), data=df_training, dateWarning=FALSE, verbose=FALSE)
+        mod = sommer::mmer(y ~ 1, random= ~vsr(id, Gu=A ), rcov= ~vsr(units), data=df_training, dateWarning=FALSE, verbose=FALSE)
     }
     ### Merge expected and predicted GEBVs
     df_y_validation = data.frame(id=rownames(y_validation), y_validation)
@@ -409,7 +409,7 @@ tests_models = function() {
     G = simquantgen::fn_simulate_genotypes(n=n, l=500, ploidy=2, n_alleles=n_alleles, min_allele_freq=0.001, n_chr=5, max_pos=135e6, dist_bp_at_50perc_r2=5e6, n_threads=2, verbose=TRUE)
     y = simquantgen::fn_simulate_phenotypes(G, n_alleles=n_alleles, dist_effects="norm", n_effects=10, purely_additive=TRUE, n_networks=1, n_effects_per_network=50, h2=0.5, pheno_reps=1, verbose=TRUE)$Y
     z = fn_simulate_phenotypes(G, n_alleles=n_alleles, dist_effects="norm", n_effects=10, purely_additive=FALSE, n_networks=50, n_effects_per_network=500, h2=0.5, pheno_reps=1, verbose=TRUE)$Y
-    C = matrix(rnorm(3*n), ncol=3)
+    C = matrix(stats::rnorm(3*n), ncol=3)
     idx_validation = c(1:round(n*0.1))
     idx_training = !(c(1:n) %in% idx_validation)
     test_that(

@@ -86,10 +86,10 @@ test_that("fn_simulate_data", {
     unlink(list_sim$fname_pheno_tsv)
     list_sim = fn_simulate_data(min_depth=1000, max_depth=1000, save_geno_vcf=TRUE, save_geno_rds=TRUE, save_geno_tsv=TRUE, save_pheno_tsv=TRUE, verbose=TRUE)
     G_vcf = fn_vcf_to_G(vcf=vcfR::read.vcfR(list_sim$fname_geno_vcf))
-    df_tsv = read.delim(list_sim$fname_geno_tsv, sep="\t", header=TRUE)
+    df_tsv = utils::read.delim(list_sim$fname_geno_tsv, sep="\t", header=TRUE)
     G_tsv = as.matrix(t(df_tsv[, c(-1,-2,-3)])); rownames(G_tsv) = colnames(df_tsv)[c(-1,-2,-3)]; colnames(G_tsv) = paste(df_tsv$chr, df_tsv$pos, df_tsv$allele, sep="\t")
     G_rds = readRDS(list_sim$fname_geno_rds)
-    df_pheno = read.delim(list_sim$fname_pheno_tsv, sep="\t", header=TRUE)
+    df_pheno = utils::read.delim(list_sim$fname_pheno_tsv, sep="\t", header=TRUE)
     expect_equal(sum(abs(G_vcf - G_tsv) < 1e-7), prod(dim(G_vcf)))
     expect_equal(sum(abs(G_vcf - G_rds) < 1e-7), prod(dim(G_vcf)))
     expect_equal(sum(abs(G_rds - G_tsv) < 1e-7), prod(dim(G_vcf)))
@@ -121,7 +121,7 @@ test_that("fn_load_genotype", {
     unlink(list_sim$fname_pheno_tsv)
 })
 
-test_that("fn_filter_loci", {
+test_that("fn_filter_genotype", {
     list_sim = fn_simulate_data(verbose=TRUE)
     maf = 0.05
     sdev_min = 0.0001
@@ -134,7 +134,7 @@ test_that("fn_filter_loci", {
     verbose = TRUE
     ### Do not load the alternative alleles
     G = fn_load_genotype(list_sim$fname_geno_vcf)
-    G_filtered_1 = fn_filter_loci(G=G, verbose=TRUE)
+    G_filtered_1 = fn_filter_genotype(G=G, verbose=TRUE)
     expect_equal(sum(dim(G) == dim(G_filtered_1)), 2)
     ### Simulate SNP list for filtering
     G = fn_load_genotype(list_sim$fname_geno_vcf, retain_minus_one_alleles_per_locus=FALSE)
@@ -146,19 +146,19 @@ test_that("fn_filter_loci", {
     df_snp_list$REF_ALT[1:n_sim_missing] = "allele_2,allele_4"
     colnames(df_snp_list) = c("#CHROM", "POS", "REF,ALT")
     fname_snp_list = "tmp_snp_list.txt"
-    write.table(df_snp_list, file=fname_snp_list, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
+    utils::write.table(df_snp_list, file=fname_snp_list, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
     ### Filter with the alternative alleles
-    G_filtered_2 = fn_filter_loci(G=G, maf=0.05, fname_snp_list=fname_snp_list, verbose=TRUE)
+    G_filtered_2 = fn_filter_genotype(G=G, maf=0.05, fname_snp_list=fname_snp_list, verbose=TRUE)
     expect_equal(ncol(G_filtered_2), ncol(G) - (2*n_sim_missing))
     ### Filter without the alternative alleles
     G = fn_load_genotype(list_sim$fname_geno_vcf)
-    G_filtered_3 = fn_filter_loci(G=G, maf=0.05, fname_snp_list=fname_snp_list, verbose=TRUE)
+    G_filtered_3 = fn_filter_genotype(G=G, maf=0.05, fname_snp_list=fname_snp_list, verbose=TRUE)
     expect_equal(ncol(G_filtered_3), ncol(G) - n_sim_missing)
     G_filtered_2_split_G = fn_G_split_off_alternative_allele(G=G_filtered_2, verbose=TRUE)$G
     expect_equal(sum(abs(G_filtered_3 - G_filtered_2_split_G) < 1e-12), prod(dim(G_filtered_3)))
     ### Using additional filtering by sparsity (only works if G has missing data)
     G = fn_load_genotype(list_sim$fname_geno_vcf, min_depth=10, max_depth=500)
-    G_filtered_4 = fn_filter_loci(G=G, maf=0.05, fname_snp_list=fname_snp_list,
+    G_filtered_4 = fn_filter_genotype(G=G, maf=0.05, fname_snp_list=fname_snp_list,
         max_sparsity_per_locus=max_sparsity_per_locus,
         frac_topmost_sparse_loci_to_remove=frac_topmost_sparse_loci_to_remove,
         n_topmost_sparse_loci_to_remove=n_topmost_sparse_loci_to_remove,
@@ -168,17 +168,17 @@ test_that("fn_filter_loci", {
         verbose=TRUE)
     expect_equal(nrow(G_filtered_4) < nrow(G), TRUE)
     expect_equal(ncol(G_filtered_4) < ncol(G), TRUE)
-    G_filtered_5 = fn_filter_loci(G=G, maf=0.05,
+    G_filtered_5 = fn_filter_genotype(G=G, maf=0.05,
         frac_topmost_sparse_loci_to_remove=0.1,
         verbose=TRUE)
-    G_filtered_6 = fn_filter_loci(G=G, maf=0.05,
+    G_filtered_6 = fn_filter_genotype(G=G, maf=0.05,
         n_topmost_sparse_loci_to_remove=100,
         verbose=TRUE)
     expect_equal(sum((G_filtered_5 - G_filtered_6) < 1e-7, na.rm=TRUE), sum(!is.na(G_filtered_5)))
-    G_filtered_7 = fn_filter_loci(G=G, maf=0.05,
+    G_filtered_7 = fn_filter_genotype(G=G, maf=0.05,
         frac_topmost_sparse_samples_to_remove=0.1,
         verbose=TRUE)
-    G_filtered_8 = fn_filter_loci(G=G, maf=0.05,
+    G_filtered_8 = fn_filter_genotype(G=G, maf=0.05,
         n_topmost_sparse_samples_to_remove=10,
         verbose=TRUE)
     expect_equal(sum((G_filtered_7 - G_filtered_8) < 1e-7, na.rm=TRUE), sum(!is.na(G_filtered_7)))
@@ -186,4 +186,57 @@ test_that("fn_filter_loci", {
     unlink(list_sim$fname_geno_vcf)
     unlink(list_sim$fname_pheno_tsv)
     unlink(fname_snp_list)
+})
+
+test_that("fn_load_phenotype", {
+    list_sim = fn_simulate_data(verbose=TRUE)
+    df_y = utils::read.table(list_sim$fname_pheno_tsv, header=TRUE)
+    fname_csv = gsub(".tsv$", ".csv", list_sim$fname_pheno_tsv)
+    fname_ssv_no_header = gsub(".tsv$", "-no_header.ssv", list_sim$fname_pheno_tsv)
+    utils::write.table(df_y, file=fname_csv, sep=",", row.names=FALSE, col.names=TRUE, quote=FALSE)
+    utils::write.table(df_y, file=fname_ssv_no_header, sep=";", row.names=FALSE, col.names=FALSE, quote=FALSE)
+    list_pheno_tsv = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv, verbose=TRUE)
+    list_pheno_csv = fn_load_phenotype(fname_pheno=fname_csv, sep=",", verbose=TRUE)
+    list_pheno_ssv_no_header = fn_load_phenotype(fname_pheno=fname_ssv_no_header, sep=";", header=FALSE, verbose=TRUE)
+    expect_equal(sum(list_pheno_tsv$y - list_pheno_csv$y), 0)
+    expect_equal(sum(list_pheno_tsv$y - list_pheno_ssv_no_header$y), 0)
+    unlink(list_sim$fname_geno_vcf)
+    unlink(list_sim$fname_pheno_tsv)
+    unlink(fname_csv)
+    unlink(fname_ssv_no_header)
+})
+
+test_that("fn_filter_phenotype", {
+    list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
+    list_pheno$y[1] = Inf
+    list_pheno$y[2] = NA
+    list_pheno_filtered = fn_filter_phenotype(list_pheno, remove_NA=TRUE, verbose=TRUE)
+    expect_equal(length(list_pheno_filtered$y), 98)
+    unlink(list_sim$fname_geno_vcf)
+    unlink(list_sim$fname_pheno_tsv)
+})
+
+test_that("fn_merge_genotype_and_phenotype", {
+    list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
+    rownames(G)[1] = "entry_exclude_me"
+    rownames(G)[2] = "entry_exclude_me_too"
+    list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
+    COVAR = matrix(stats::rnorm(n=(10*nrow(G))), nrow=nrow(G))
+    rownames(COVAR) = rownames(G); colnames(COVAR) = paste0("covariate_", 1:ncol(COVAR))
+    list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, COVAR=COVAR, verbose=TRUE)
+    expect_equal(nrow(list_merged$G), length(list_merged$list_pheno$y))
+    expect_equal(nrow(list_merged$G), nrow(list_merged$COVAR))
+    expect_equal(sum(is.na(list_merged$list_pheno$y)), 2)
+    unlink(list_sim$fname_geno_vcf)
+    unlink(list_sim$fname_pheno_tsv)
+})
+
+test_that("fn_estimate_memory_footprint", {
+    X = matrix(0.0, nrow=500, ncol=500e3)
+    list_mem = fn_estimate_memory_footprint(X=X, verbose=TRUE)
+    expect_equal(list_mem$size_X, object.size(X))
+    expect_equal(list_mem$size_total > list_mem$size_X, TRUE)
+    expect_equal(list_mem$n_threads, 5)
 })

@@ -48,7 +48,8 @@ Load genotype data as an allele frequency matrix
 Load genotype data as an allele frequency matrix
 }
 \examples{
-list_sim = fn_simulate_data(verbose=TRUE, save_geno_vcf=TRUE, save_geno_tsv=TRUE, save_geno_rds=TRUE, save_pheno_tsv=TRUE)
+list_sim = fn_simulate_data(verbose=TRUE, 
+ save_geno_vcf=TRUE, save_geno_tsv=TRUE, save_geno_rds=TRUE, save_pheno_tsv=TRUE)
 G_vcf = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf, verbose=TRUE)
 G_tsv = fn_load_genotype(fname_geno=list_sim$fname_geno_tsv, verbose=TRUE)
 G_rds = fn_load_genotype(fname_geno=list_sim$fname_geno_rds, verbose=TRUE)
