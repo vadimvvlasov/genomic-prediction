@@ -1,13 +1,12 @@
 suppressWarnings(suppressPackageStartupMessages(library(simquantgen)))
 suppressWarnings(suppressPackageStartupMessages(library(vcfR)))
 suppressWarnings(suppressPackageStartupMessages(library(txtplot)))
-suppressWarnings(suppressPackageStartupMessages(library(testthat)))
 
 ### Create an error class
 methods::setClass("gpError", representation(code="numeric", message="character"), prototype(code=0, message="Empty error message. Please define."))
 ### Create an error chaining method
 methods::setGeneric("chain", function(x, y){
-    methods::standardGeneric("chain")
+    standardGeneric("chain")
 })
 methods::setMethod(f="chain",
   signature=c(x="gpError", y="gpError"),
@@ -695,10 +694,10 @@ fn_classify_allele_frequencies = function(G, ploidy=2, verbose=FALSE) {
 #' @param l number of loci (Default=1000)
 #' @param ploidy ploidy level which can refer to the number of haploid genomes to simulate pools (Default=2)
 #' @param n_alleles macimum number of alleles per locus (Default=2)
-#' @param min_depth minimum depth per locus [Default=5]
-#' @param max_depth maximum depth per locus [Default=5000]
-#' @param n_pop number of randomly assigned population groupings [Default=1]
-#' @param seed randomisation seed for replicability [Default=12345]
+#' @param min_depth minimum depth per locus (Default=5)
+#' @param max_depth maximum depth per locus (Default=5000)
+#' @param n_pop number of randomly assigned population groupings (Default=1)
+#' @param seed randomisation seed for replicability (Default=12345)
 #' @param save_pheno_tsv save the phenotype data as a tab-delimited file? (Default=TRUE)
 #' @param save_geno_vcf save the genotype data as a vcf file? (Default=TRUE)
 #' @param save_geno_tsv save the genotype data as a tab-delimited allele frequency table file? (Default=FALSE)
@@ -955,16 +954,16 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, retain_minus_one_alleles_pe
 #' @param maf minimum allele frequency (Default=0.01)
 #' @param sdev_min minimum allele frequency standard deviation (constant allele frequency across samples is just another intercept) (Default=0.0001)
 #' @param fname_snp_list name of the file containing the list of expected SNPs including their coordinates and alleles.
-#'  This is a tab-delimited file with 3 columns: '#CHROM', 'POS', 'REF,ALT', corresponding to([Default=NULL)
+#'  This is a tab-delimited file with 3 columns: '#CHROM', 'POS', 'REF,ALT', corresponding to (Default=NULL)
 #'  chromosome names (e.g. 'chr1' & 'chrom_1'), 
 #'  numeric positions (e.g. 12345 & 100001), and 
-#'  reference-alternative allele strings separated by a comma (e.g. 'A,T' & 'allele_1,allele_alt')([Default=NULL)
-#' @param max_sparsity_per_locus maximum mean sparsity per locus, e.g. 0.1 or 0.5([Default=NULL)
-#' @param frac_topmost_sparse_loci_to_remove fraction of the top-most sparse loci to remove, e.g. 0.01 or 0.25([Default=NULL)
-#' @param n_topmost_sparse_loci_to_remove number of top-most sparse loci to remove, e.g. 100 or 1000([Default=NULL)
-#' @param max_sparsity_per_sample maximum mean sparsity per sample, e.g. 0.3 or 0.5([Default=NULL)
-#' @param frac_topmost_sparse_samples_to_remove fraction of the top-most sparse samples to remove, e.g. 0.01 or 0.05([Default=NULL)
-#' @param n_topmost_sparse_samples_to_remove number of top-most sparse samples to remove, e.g. 5 or 10([Default=NULL)
+#'  reference-alternative allele strings separated by a comma (e.g. 'A,T' & 'allele_1,allele_alt') (Default=NULL)
+#' @param max_sparsity_per_locus maximum mean sparsity per locus, e.g. 0.1 or 0.5 (Default=NULL)
+#' @param frac_topmost_sparse_loci_to_remove fraction of the top-most sparse loci to remove, e.g. 0.01 or 0.25 (Default=NULL)
+#' @param n_topmost_sparse_loci_to_remove number of top-most sparse loci to remove, e.g. 100 or 1000 (Default=NULL)
+#' @param max_sparsity_per_sample maximum mean sparsity per sample, e.g. 0.3 or 0.5 (Default=NULL)
+#' @param frac_topmost_sparse_samples_to_remove fraction of the top-most sparse samples to remove, e.g. 0.01 or 0.05 (Default=NULL)
+#' @param n_topmost_sparse_samples_to_remove number of top-most sparse samples to remove, e.g. 5 or 10 (Default=NULL)
 #' @param verbose show genotype filtering messages? (Default=FALSE)
 #' @returns
 #' Ok: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
@@ -1274,7 +1273,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
 #' Load phenotype data from a text-delimited file
 #'
 #' @param fname_pheno filname of the text-delimited phenotype data
-#' @param sep column-delimiter in the phenotype file (Default='\t')
+#' @param sep column-delimiter in the phenotype file (Default="\t")
 #' @param header does the phenotype file have a header line? (Default=TRUE)
 #' @param idx_col_id which column correspond to the sample/entry/pool/genotype names? (Default=1)
 #' @param idx_col_pop which column correspond to the population groupings? (Default=2)

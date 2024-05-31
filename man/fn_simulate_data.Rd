@@ -31,13 +31,13 @@ fn_simulate_data(
 
 \item{n_alleles}{macimum number of alleles per locus (Default=2)}
 
-\item{min_depth}{minimum depth per locus \link{Default=5}}
+\item{min_depth}{minimum depth per locus (Default=5)}
 
-\item{max_depth}{maximum depth per locus \link{Default=5000}}
+\item{max_depth}{maximum depth per locus (Default=5000)}
 
-\item{n_pop}{number of randomly assigned population groupings \link{Default=1}}
+\item{n_pop}{number of randomly assigned population groupings (Default=1)}
 
-\item{seed}{randomisation seed for replicability \link{Default=12345}}
+\item{seed}{randomisation seed for replicability (Default=12345)}
 
 \item{save_pheno_tsv}{save the phenotype data as a tab-delimited file? (Default=TRUE)}
 

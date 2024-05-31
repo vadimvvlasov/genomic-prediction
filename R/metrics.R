@@ -1,8 +1,10 @@
+# source("R/load.R")
+
 #' Genomic prediction metrics
-#' Add more metrics which we may be interested in.
 #' NOTES:
-#'     - the number of non-zero estimated marker effects are extracted within each model, i.e. in `models.R`
-#'     - the run-time of each genomic prediction and validation on a single set is measured during each cross-validation replicate, i.e in `cross-validation.R`
+#'  - Add more metrics which we may be interested in. while keeping the function signatures, i.e. input and output consistent
+#'  - The number of non-zero estimated marker effects are extracted within each model, i.e. in `models.R`
+#'  - Run time of each genomic prediction and validation on a single set is measured during each cross-validation replicate, i.e in `cross-validation.R`
 #'
 #' @param y_true numeric vector observed phenotype values
 #' @param y_pred numeric vector predicted phenotype values
@@ -15,50 +17,91 @@
 #'  $power_t10: fraction of observed top 10 phenotype values correctly predicted
 #'  $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
 #'  $h2: estimated narrow-sense heritability weighted by Pearson's correlation between observed and predicted phenotype values
-#' @example
+#'      Formula:
+#'      - h2_predicted = corr(observed, predicted) * h2_true
+#'      - Caveat: yields NA if the estimated heritability lies beyond 0 and 1
+#'          which happens when correlation between observed and predicted phenotypes is negative, and
+#'          the predicted phenotypes have higher variance than observed phenotypes.
+#'          This unexpected higher variance in the predictions implies that the genomic prediction model performs very poorly,
+#'          and therefore heritability estimates from them should not be considered.
+#'      Assumptions:
+#'      - correlation between predicted and true trait values relates the variance of the predicted trait values with the true heritability,
+#'      - predicted trait values are due to purely additive effects,
+#'      - variance in the predicted trait values is proportional to the additive genetic variance (~Va)
+#'      - variance in the true trait values represent the total phenotypic variance (Vp)
+#' @examples
 #' y_pred = stats::rnorm(100)
-#' y_true = y_pred + rnorm(100)
-#' list_metrics = fn_prediction_performance_metrics(y_true=y_true, y_pred=y_pred)
-fn_prediction_performance_metrics = function(y_true, y_pred) {
+#' y_true = y_pred + stats::rnorm(100)
+#' list_metrics = fn_prediction_performance_metrics(y_true=y_true, y_pred=y_pred, verbose=TRUE)
+#' @export
+fn_prediction_performance_metrics = function(y_true, y_pred, verbose=FALSE) {
+    ###################################################
+    ### TEST
     # y_true = stats::rnorm(100)
     # y_pred = stats::rnorm(100); # y_pred = y_true + stats::rnorm(n=100, mean=0, stats::sd=0.1)
+    # # y_pred = rep(NA, length(y_true))
+    # verbose = TRUE
+    ###################################################
     y_true = as.vector(y_true)
     y_pred = as.vector(y_pred)
-    if (length(y_true) != length(y_pred)) {
-        print("Please make sure the observed and predicted phenotype vectors are the same length.")
-        return(list(mbe=NA, mae=NA, rmse=NA, r2=NA, corr=NA, , power_t10=NA, power_b10=NA))
+    n = length(y_true)
+    if (n != length(y_pred)) {
+        error = methods::new("gpError",
+            code=000,
+            message=paste0(
+                "Error in metrics::fn_prediction_performance_metrics(...). ",
+                "The vector of observed phenotypes has a length of ", n,
+                " which does not match the length of the vector of predicted phenotypes with ",
+                length(y_pred), " elements."
+            ))
+        return(error)
     }
     error = y_true - y_pred
-    mbe = mean(error)
-    mae = mean(abs(error))
-    rmse = sqrt(mean(error^2))
-    r2 = 1 - (sum(error^2) / sum((y_true-mean(y_true))^2))
-    corr = suppressWarnings(stats::cor(y_true, y_pred, method="pearson"))
-    if (is.na(corr)) {
-        corr = 0.0
+    mbe = mean(error, na.rm=TRUE)
+    mae = mean(abs(error), na.rm=TRUE)
+    rmse = sqrt(mean(error^2, na.rm=TRUE))
+    if (sum(is.na(error)) == n) {
+        r2 = NA
+    } else {
+        r2 = 1 - (sum(error^2, na.rm=TRUE) / sum((y_true-mean(y_true, na.rm=TRUE))^2, na.rm=TRUE))
     }
+    corr = suppressWarnings(stats::cor(y_true, y_pred, method="pearson"))
     ### Power to select true top and bottom 10%
-    n = length(y_true)
     n_top_or_bottom_10 = max(c(1, round(0.1*n)))
     top10_dec_true = order(y_true, decreasing=TRUE)[1:n_top_or_bottom_10]
-    top10_dec_pred = order(y_pred, decreasing=TRUE)[1:n_top_or_bottom_10]
-    power_t10 = sum((top10_dec_true %in% top10_dec_pred)) / n_top_or_bottom_10
     bottom10_dec_true = order(y_true, decreasing=FALSE)[1:n_top_or_bottom_10]
-    bottom10_dec_pred = order(y_pred, decreasing=FALSE)[1:n_top_or_bottom_10]
-    power_b10 = sum((bottom10_dec_true %in% bottom10_dec_pred)) / n_top_or_bottom_10
+    if (sum(is.na(error)) == n) {
+        power_t10 = NA
+        power_b10 = NA
+    } else {
+        top10_dec_pred = order(y_pred, decreasing=TRUE)[1:n_top_or_bottom_10]
+        bottom10_dec_pred = order(y_pred, decreasing=FALSE)[1:n_top_or_bottom_10]
+        power_t10 = sum((top10_dec_true %in% top10_dec_pred)) / n_top_or_bottom_10
+        power_b10 = sum((bottom10_dec_true %in% bottom10_dec_pred)) / n_top_or_bottom_10
+    }
     ### Narrow-sense heritability scaled by prediction accuracy in terms of Pearson's correlation
-    ### Assumptions:
-    ###     - the predicted trait values are due to purely additive effects,
-    ###     - the variance in the predicted trait values is proportional to the additive genetic variance (~Va)
-    ###     - the variance in the true trait values represent the total phenotypic variance (Vp)
-    ###     - the correlation between predicted and true trait values is the factor that relates the variance of the predicted trait values with the true heritability, i.e. h2_predicted = corr(true,pred) * h2_true
-    h2 = round((stats::var(y_pred) / stats::var(y_true)) / corr, 10)
+    h2 = round((stats::var(y_pred, na.rm=TRUE) / stats::var(y_true)) / corr, 10)
     if (!is.na(h2)) {
         if ((h2 < 0.0) | (h2 > 1.0)) {
             h2 = NA
         }
-    } else {
-        h2 = 0.0
+    }
+    if (verbose) {
+        vec_idx = which(!is.na(y_true) & !is.na(y_pred))
+        if (length(vec_idx) > 0) {
+            print("Scatter plot of the observed and predicted phenotypes")
+            txtplot::txtplot(x=y_true, y=y_pred)
+        } else {
+            print("All pairs of phenotype values have missing data.")
+        }
+        print(paste0("Mean bias error (mbe) = ", mbe))
+        print(paste0("Mean absolute error (mae) = ", mae))
+        print(paste0("Root mean square error (rmse) = ", rmse))
+        print(paste0("Coefficient of determination (r2) = ", r2))
+        print(paste0("Power to identify top 10 (power_t10) = ", mbe))
+        print(paste0("Power to identify bottom 10 (power_b10) = ", power_b10))
+        print(paste0("Pearson's correlation (corr) = ", corr))
+        print(paste0("Narrow-sense heritability estimate (h2) = ", h2))
     }
     ### Output
     return(list(
@@ -70,22 +113,4 @@ fn_prediction_performance_metrics = function(y_true, y_pred) {
         power_t10=power_t10,
         power_b10=power_b10,
         h2=h2))
-}
-
-#####################################################################
-############################### Tests ###############################
-#####################################################################
-tests_metrics = function() {
-    test_that(
-        "fn_prediction_performance_metrics", {
-            print("fn_prediction_performance_metrics:")
-            n = 100
-            y1 = 1:n
-            y2 = y1 + pi
-            m0 = fn_prediction_performance_metrics(y1, y1)
-            m1 = fn_prediction_performance_metrics(y1, y2)
-            expect_equal(m0, list(mbe=0, mae=0, rmse=0, r2=1, corr=1, power_t10=1, power_b10=1, h2=1))
-            expect_equal(m1, list(mbe=-pi, mae=pi, rmse=pi, r2=(1-(n*(pi^2)/sum((y1-mean(y1))^2))), corr=1, power_t10=1, power_b10=1, h2=1))
-        }
-    )
 }
