@@ -146,7 +146,7 @@ test_that("fn_filter_genotype", {
     df_snp_list = data.frame(CHROM=mat_loci[,1], POS=as.numeric(mat_loci[,2]), REF_ALT=paste0("allele_1,allele_alt"))
     df_snp_list$REF_ALT[1:n_sim_missing] = "allele_2,allele_4"
     colnames(df_snp_list) = c("#CHROM", "POS", "REF,ALT")
-    fname_snp_list = "tmp_snp_list.txt"
+    fname_snp_list = tempfile(fileext=".snplist")
     utils::write.table(df_snp_list, file=fname_snp_list, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
     ### Filter with the alternative alleles
     G_filtered_2 = fn_filter_genotype(G=G, maf=0.05, fname_snp_list=fname_snp_list, verbose=TRUE)

@@ -29,7 +29,7 @@ fn_simulate_data(
 
 \item{ploidy}{ploidy level which can refer to the number of haploid genomes to simulate pools (Default=2)}
 
-\item{n_alleles}{macimum number of alleles per locus (Default=2)}
+\item{n_alleles}{maximum number of alleles per locus (Default=2)}
 
 \item{min_depth}{minimum depth per locus (Default=5)}
 

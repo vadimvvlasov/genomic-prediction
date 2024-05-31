@@ -16,6 +16,8 @@
 #'  $corr: Pearson's product moment correlation
 #'  $power_t10: fraction of observed top 10 phenotype values correctly predicted
 #'  $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+#'  $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+#'  $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
 #'  $h2: estimated narrow-sense heritability weighted by Pearson's correlation between observed and predicted phenotype values
 #'      Formula:
 #'      - h2_predicted = corr(observed, predicted) * h2_true
@@ -80,7 +82,9 @@ fn_prediction_performance_metrics = function(y_true, y_pred, verbose=FALSE) {
         power_b10 = sum((bottom10_dec_true %in% bottom10_dec_pred)) / n_top_or_bottom_10
     }
     ### Narrow-sense heritability scaled by prediction accuracy in terms of Pearson's correlation
-    h2 = round((stats::var(y_pred, na.rm=TRUE) / stats::var(y_true)) / corr, 10)
+    var_pred = stats::var(y_pred, na.rm=TRUE)
+    var_true = stats::var(y_true, na.rm=TRUE)
+    h2 = round((var_pred/var_true) / corr, 10)
     if (!is.na(h2)) {
         if ((h2 < 0.0) | (h2 > 1.0)) {
             h2 = NA
@@ -101,6 +105,8 @@ fn_prediction_performance_metrics = function(y_true, y_pred, verbose=FALSE) {
         print(paste0("Power to identify top 10 (power_t10) = ", mbe))
         print(paste0("Power to identify bottom 10 (power_b10) = ", power_b10))
         print(paste0("Pearson's correlation (corr) = ", corr))
+        print(paste0("Variance of predicted phenotypes (var_pred) = ", var_pred, " (estimator of additive genetic variance)"))
+        print(paste0("Variance of observed phenotypes (var_true) = ", var_true, " (estimator of total phenotypic variance)"))
         print(paste0("Narrow-sense heritability estimate (h2) = ", h2))
     }
     ### Output
@@ -112,5 +118,7 @@ fn_prediction_performance_metrics = function(y_true, y_pred, verbose=FALSE) {
         corr=corr,
         power_t10=power_t10,
         power_b10=power_b10,
+        var_pred=var_pred,
+        var_true=var_true,
         h2=h2))
 }

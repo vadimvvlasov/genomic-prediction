@@ -472,6 +472,14 @@ fn_within_across_perse_genomic_prediction = function(G, idx_col_y, args, dir_tmp
         print("##################################################")
         print("Across population cross-validation:")
         print("(Leave-one-population-out CV)")
+
+
+
+        ### REDUCE NUMBER OF THREADS HERE ARE DATA SIZE differs from WITHIN POP CV!
+        ### USE MAXIMUM NUMBER OF THREADS ESTIMATION
+
+
+
         list_out = fn_leave_one_population_out_cross_validation(G=G, 
                                                                 y=y,
                                                                 pop=pop,

@@ -693,7 +693,7 @@ fn_classify_allele_frequencies = function(G, ploidy=2, verbose=FALSE) {
 #' @param n number of samples (Default=100)
 #' @param l number of loci (Default=1000)
 #' @param ploidy ploidy level which can refer to the number of haploid genomes to simulate pools (Default=2)
-#' @param n_alleles macimum number of alleles per locus (Default=2)
+#' @param n_alleles maximum number of alleles per locus (Default=2)
 #' @param min_depth minimum depth per locus (Default=5)
 #' @param max_depth maximum depth per locus (Default=5000)
 #' @param n_pop number of randomly assigned population groupings (Default=1)
@@ -755,10 +755,11 @@ fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, m
     fname_geno_rds = NULL
     fname_pheno_tsv = NULL
     ### Define date-time-random-number identifier so that we minimise the possibility of unintentional over-writing of the output file/s
-    date = gsub("-", "", gsub("[.]", "", gsub(":", "", gsub(" ", "", as.character(Sys.time())))))
+    # date = gsub("-", "", gsub("[.]", "", gsub(":", "", gsub(" ", "", as.character(Sys.time())))))
     ### Save phenotype file
     if (save_pheno_tsv) {
-        fname_pheno_tsv = file.path(getwd(), paste0("simulated_phenotype-", date, ".tsv"))
+        # fname_pheno_tsv = file.path(getwd(), paste0("simulated_phenotype-", date, ".tsv"))
+        fname_pheno_tsv = tempfile(fileext=".tsv")
         utils::write.table(df, file=fname_pheno_tsv, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
         if (verbose) {
             print("Output phenotype file (tsv):")
@@ -777,7 +778,8 @@ fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, m
             error = chain(vcf, error)
             return(error)
         }
-        fname_geno_vcf = file.path(getwd(), paste0("simulated_genotype-", date, ".vcf.gz"))
+        # fname_geno_vcf = file.path(getwd(), paste0("simulated_genotype-", date, ".vcf.gz"))
+        fname_geno_vcf = tempfile(fileext=".vcf.gz")
         vcfR::write.vcf(vcf, file=fname_geno_vcf)
         if (verbose) {
             print("Output genotype file (sync.gz):")
@@ -787,7 +789,8 @@ fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, m
     if (save_geno_tsv)  {
         list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=G, verbose=verbose)
         df_geno = data.frame(chr=list_ids_chr_pos_all$vec_chr, pos=list_ids_chr_pos_all$vec_pos, allele=list_ids_chr_pos_all$vec_all, t(G))
-        fname_geno_tsv = file.path(getwd(), paste0("simulated_genotype-", date, ".tsv"))
+        # fname_geno_tsv = file.path(getwd(), paste0("simulated_genotype-", date, ".tsv"))
+        fname_geno_tsv = tempfile(fileext=".tsv")
         utils::write.table(df_geno, file=fname_geno_tsv, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
         if (verbose) {
             print("Output genotype file (tsv):")
@@ -796,7 +799,8 @@ fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, m
     }
     if (save_geno_rds) {
         ### Convert loci names so that the chromosome, position and allele are tab-delimited
-        fname_geno_rds = file.path(getwd(), paste0("simulated_genotype-", date, ".Rds"))
+        # fname_geno_rds = file.path(getwd(), paste0("simulated_genotype-", date, ".Rds"))
+        fname_geno_rds = tempfile(fileext=".Rds")
         ### Revert to numeric if we have more than 52 alleles (limit of the Latin alphabet)
         if (!non_numeric_Rds) {
             saveRDS(G, file=fname_geno_rds)
@@ -987,7 +991,7 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, retain_minus_one_alleles_pe
 #'  REF_ALT=paste0("allele_1,allele_alt"))
 #' df_snp_list$REF_ALT[1:100] = "allele_2,allele_4"
 #' colnames(df_snp_list) = c("#CHROM", "POS", "REF,ALT")
-#' fname_snp_list = "tmp_snp_list.txt"
+#' fname_snp_list = tempfile(fileext=".snplist")
 #' utils::write.table(df_snp_list, file=fname_snp_list, sep="\t", 
 #'  row.names=FALSE, col.names=TRUE, quote=FALSE)
 #' ### Filter
@@ -1021,7 +1025,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
     # df_snp_list = data.frame(CHROM=mat_loci[,1], POS=as.numeric(mat_loci[,2]), REF_ALT=paste0("allele_1,allele_alt"))
     # df_snp_list$REF_ALT[1:100] = "allele_2,allele_4"
     # colnames(df_snp_list) = c("#CHROM", "POS", "REF,ALT")
-    # fname_snp_list = "tmp_snp_list.txt"
+    # fname_snp_list = tempfile(fileext=".snplist")
     # utils::write.table(df_snp_list, file=fname_snp_list, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
     # verbose = TRUE
     ###################################################

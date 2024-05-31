@@ -12,28 +12,59 @@ suppressWarnings(suppressPackageStartupMessages(library(sommer)))
 ###     4.) vector of numeric indexes corresponding to the index of the validation set in the genotype matrix and phenotype vector
 ###     5.) a list of other parameters required by the internal functions
 
-fn_ols = function(list_merged, vec_idx_training, vec_idx_validation, other_params=list(diag_inflate=1e-4)) {
+#' Ordinary least squares model
+#'
+#' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
+#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'      Row names can be any string of characters which identify the sample or entry or pool names.
+#'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
+#'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
+#'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
+#'  $list_pheno:
+#'      $y: named vector of numeric phenotype data
+#'      $pop: population or groupings corresponding to each element of y
+#'      $trait_name: name of the trait
+#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#' @param vec_idx_training vector of numeric indexes referring to the training set
+#' @param vec_idx_validation vector of numeric indexes referring to the validation set
+fn_ols = function(list_merged, vec_idx_training, vec_idx_validation, other_params=list(diag_inflate=1e-4), verbose=FALSE) {
     ###################################################
     ### TEST
-    list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
-    G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
-    list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
-    COVAR = G %*% t(G); # rownames(COVAR) = NULL
-    list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, COVAR=COVAR, verbose=TRUE)
-    n = nrow(list_merged$G)
-    vec_idx_training = sample(c(1:n), floor(n/2))
-    vec_idx_validation = c(1:n)[!(c(1:n) %in% vec_idx_training)]
-    other_params=list(diag_inflate=1e-4)
+    # list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    # G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
+    # list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
+    # COVAR = G %*% t(G); # rownames(COVAR) = NULL
+    # list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, COVAR=COVAR, verbose=TRUE)
+    # n = nrow(list_merged$G)
+    # vec_idx_training = sample(c(1:n), floor(n/2))
+    # vec_idx_validation = c(1:n)[!(c(1:n) %in% vec_idx_training)]
+    # other_params=list(diag_inflate=1e-6)
+    # verbose = TRUE
     ###################################################
     if (methods::is(list_merged, "gpError")) {
         error = chain(list_merged, 
             methods::new("gpError",
                 code=000,
                 message=paste0(
-                    "Error in models::fn_ols(list_merged, vec_idx_training, vec_idx_validation, other_params). ",
+                    "Error in models::fn_ols(...). ",
                     "Input data is an error type."
                 )))
         return(error)
+    }
+    if (!is.logical(c(vec_idx_training, vec_idx_training)) |
+        (sum(is.na(c(vec_idx_training, vec_idx_training))) > 0) |
+        (min(c(vec_idx_training, vec_idx_training)) < 0) |
+        (max(c(vec_idx_training, vec_idx_training)) > nrow(list_merged$G))) {
+            error = methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in models::fn_ols(...). ",
+                    "Please make sure that the vector of indexes for the training and validation sets are not booleans. ",
+                    "We require the indexes to be positive integers without missing values. ",
+                    "Also, the maximum index (", max(c(vec_idx_training, vec_idx_training)), 
+                    ") should be less than or equal to the total number of samples/entries/pools in the input data: (", 
+                    nrow(list_merged$G), ")."))
+            return(error)
     }
     X_training = list_merged$G[vec_idx_training, ]
     y_training = list_merged$list_pheno$y[vec_idx_training]
@@ -44,35 +75,68 @@ fn_ols = function(list_merged, vec_idx_training, vec_idx_validation, other_param
         X_training = cbind(list_merged$COVAR[vec_idx_training, ], X_training)
         X_validation = cbind(list_merged$COVAR[vec_idx_validation, ], X_validation)
     }
-
-    if (nrow(X_training) > ncol(X_training)) {
+    ### Solve the least squares equations
+    n = nrow(X_training)
+    p = ncol(X_training)
+    if (n >= p) {
+        ### Canonical least squares equations
         A = t(X_training) %*% X_training
-        inv_A = tryCatch(solve(A), error=function(x) {
-            B = A
-            diag(B) = diag(B) + other_params$diag_inflate
-            out = tryCatch(solve(B), error=function(e){return(NA)})
-            return(out)
+        A_inv = tryCatch(solve(A), error=function(x) {
+            diag(A) = diag(A) + other_params$diag_inflate
+            x_inv = tryCatch(solve(A), error=function(x) {
+                NA
+            })
         })
-        diag(A %*% inv_A)
-        if (is.na(inv_A)) {
+        if (is.na(A_inv)) {
             error = methods::new("gpError",
                 code=000,
                 message=paste0(
-                    "Error in models::fn_ols(list_merged, vec_idx_training, vec_idx_validation, other_params)"
+                    "Error in models::fn_ols(...). ",
+                    "Failed to compute the inverse of X'X. ",
+                    "Consider increasing the other_params$diag_inflate: ", other_params$diag_inflate, 
+                    " to force the calculation of the inverse of X'X."
                 ))
+            return(error)
         }
+        b = A_inv %*% t(X_training) %*% y_training
+    } else {
+        ### Non-canonical least squares equations
+        A = X_training %*% t(X_training)
+        A_inv = tryCatch(solve(A), error=function(A) {
+            B = A
+            diag(B) = diag(B) + other_params$diag_inflate
+            B_inv = tryCatch(solve(B), error=function(B) {
+                return(NA)
+            })
+            return(B_inv)
+        })
+        if (is.na(A_inv)) {
+            error = methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in models::fn_ols(...). ",
+                    "Failed to compute the inverse of XX'. ",
+                    "Consider increasing the other_params$diag_inflate: ", other_params$diag_inflate, 
+                    " to force the calculation of the inverse of XX'."
+                ))
+            return(error)
+        }
+        b = t(X_training) %*% A_inv %*% y_training
     }
-
-
-
-    A = t(X_training) %*% X_training
-    inv_A = solve()
-    b = inv_A %*% t(X_training) %*% y_training
     y_pred = X_validation %*% b
-    df_y = merge(data.frame(id=rownames(y)[vec_idx_validation], true=y_validation), data.frame(id=rownames(y_pred), pred=y_pred), by="id")
-    perf = fn_prediction_performance_metrics(y_true=df_y$true, y_pred=df_y$pred)
+    df_y = merge(
+        data.frame(id=names(y_validation), true=y_validation), 
+        data.frame(id=rownames(y_pred), pred=y_pred),
+        by="id")
+    perf = fn_prediction_performance_metrics(y_true=df_y$true, y_pred=df_y$pred, verbose=verbose)
     perf$y_pred = y_pred
+    perf$b = b[,1]; names(perf$b) = colnames(X_training)
     perf$n_non_zero = sum(abs(b) > .Machine$double.eps)
+    if (verbose) {
+        print("Allele effects distribution:")
+        txtplot::txtdensity(perf$b[!is.na(perf$b) & !is.infinite(perf$b)])
+        print(paste0("Number of non-zero effects: ", perf$n_non_zero, " (", round(100*p/perf$n_non_zero), "%)"))
+    }
     return(perf)
 }
 

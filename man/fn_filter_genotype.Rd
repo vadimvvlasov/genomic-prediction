@@ -89,7 +89,7 @@ df_snp_list = data.frame(CHROM=mat_loci[,1],
  REF_ALT=paste0("allele_1,allele_alt"))
 df_snp_list$REF_ALT[1:100] = "allele_2,allele_4"
 colnames(df_snp_list) = c("#CHROM", "POS", "REF,ALT")
-fname_snp_list = "tmp_snp_list.txt"
+fname_snp_list = tempfile(fileext=".snplist")
 utils::write.table(df_snp_list, file=fname_snp_list, sep="\t", 
  row.names=FALSE, col.names=TRUE, quote=FALSE)
 ### Filter
