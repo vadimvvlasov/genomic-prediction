@@ -1,7 +1,7 @@
 # library(testthat)
-# source("/group/pasture/Jeff/gp/R/load.R")
-# source("/group/pasture/Jeff/gp/R/metrics.R")
-# source("/group/pasture/Jeff/gp/R/models.R")
+# source("R/load.R")
+# source("R/metrics.R")
+# source("R/models.R")
 
 test_that("fn_ols", {
     set.seed(123)

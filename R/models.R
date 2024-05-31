@@ -73,13 +73,14 @@ fn_ols = function(list_merged, vec_idx_training, vec_idx_validation, other_param
     # other_params=list(diag_inflate=1e-6)
     # verbose = TRUE
     ###################################################
+    ### Input sanity check
     if (methods::is(list_merged, "gpError")) {
         error = chain(list_merged, 
             methods::new("gpError",
                 code=000,
                 message=paste0(
                     "Error in models::fn_ols(...). ",
-                    "Input data is an error type."
+                    "Input data (list_merged) is an error type."
                 )))
         return(error)
     }
@@ -179,55 +180,82 @@ fn_ols = function(list_merged, vec_idx_training, vec_idx_validation, other_param
         n_non_zero=n_non_zero))
 }
 
-fn_ridge = function(G, y, vec_idx_training, vec_idx_validation, other_params=list(covariate=NULL)) {
-    # n = 100; n_alleles = 2
-    # G = simquantgen::fn_simulate_genotypes(n=n, l=500, ploidy=2, n_alleles=n_alleles, min_allele_freq=0.001, n_chr=5, max_pos=135e6, dist_bp_at_50perc_r2=5e6, n_threads=2)
-    # y = simquantgen::fn_simulate_phenotypes(G, n_alleles=n_alleles, dist_effects="norm", n_effects=10, purely_additive=TRUE, n_networks=1, n_effects_per_network=50, h2=0.75, pheno_reps=1)$Y
-    # y = scale(y, center=TRUE, scale=TRUE)
-    # vec_idx_validation = c(1:round(n*0.1))
-    # vec_idx_training = !(c(1:n) %in% vec_idx_validation)
-    # other_params=list(covariate=NULL)
-    ### Make sure that our genotype and phenotype data are labelled, i.e. have row and column names
-    if (is.null(rownames(G)) | is.null(colnames(G)) | is.null(rownames(y))) {
-        print("Error: Genotype and/or phenotype data have no labels. Please include the row names (entry names) and column names (loci names).")
-        return(-1)
+fn_ridge = function(list_merged, vec_idx_training, vec_idx_validation, other_params=list(n_folds=10)) {
+    ###################################################
+    ### TEST
+    # list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    # G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
+    # list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
+    # COVAR = G %*% t(G); # rownames(COVAR) = NULL
+    # list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, COVAR=COVAR, verbose=TRUE)
+    # n = nrow(list_merged$G)
+    # vec_idx_training = sample(c(1:n), floor(n/2))
+    # vec_idx_validation = c(1:n)[!(c(1:n) %in% vec_idx_training)]
+    # other_params=list(n_folds=10)
+    # verbose = TRUE
+    ###################################################
+    ### Input sanity check
+    if (methods::is(list_merged, "gpError")) {
+        error = chain(list_merged, 
+            methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in models::fn_ridge(...). ",
+                    "Input data (list_merged) is an error type."
+                )))
+        return(error)
     }
-    X_training = G[vec_idx_training, ]
-    y_training = y[vec_idx_training]
-    X_validation = G[vec_idx_validation, ]
-    y_validation = y[vec_idx_validation]
+    if (is.logical(c(vec_idx_training, vec_idx_training)) |
+        (sum(is.na(c(vec_idx_training, vec_idx_training))) > 0) |
+        (min(c(vec_idx_training, vec_idx_training)) < 0) |
+        (max(c(vec_idx_training, vec_idx_training)) > nrow(list_merged$G))) {
+            error = methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in models::fn_ridge(...). ",
+                    "Please make sure that the vector of indexes for the training and validation sets are not booleans. ",
+                    "We require the indexes to be positive integers without missing values. ",
+                    "Also, the maximum index (", max(c(vec_idx_training, vec_idx_training)), 
+                    ") should be less than or equal to the total number of samples/entries/pools in the input data: (", 
+                    nrow(list_merged$G), ")."))
+            return(error)
+    }
+    X_training = list_merged$G[vec_idx_training, ]
+    y_training = list_merged$list_pheno$y[vec_idx_training]
+    X_validation = list_merged$G[vec_idx_validation, ]
+    y_validation = list_merged$list_pheno$y[vec_idx_validation]
     ### Adding covariate to explanatory matrix
-    C = other_params$covariate
-    if (is.null(C) == FALSE) {
-        if (nrow(C) < max(c(vec_idx_training, vec_idx_validation))) {
-            print("Error: The covariate matrix is incompatible with the genotype data, i.e. there are less rows in the covariate matrix that the indices in vec_idx_training oridx_validation.")
-            return(-1)
-        }
-        X_training = cbind(C[vec_idx_training, ], X_training)
-        X_validation = cbind(C[vec_idx_validation, ], X_validation)
+    if (!is.null(list_merged$COVAR)) {
+        X_training = cbind(list_merged$COVAR[vec_idx_training, ], X_training)
+        X_validation = cbind(list_merged$COVAR[vec_idx_validation, ], X_validation)
     }
-    sol = glmnet::cv.glmnet(x=X_training, y=y_training, alpha=0) ### Ridge -> alpha = 0.0
-    ### If the optimisation picks a lambda which does not provide estimates of the effects of the genotype data then we use the next best lambda
-    n_non_zero = sol$nzero[sol$lambda==sol$lambda.min]
-    if (n_non_zero == 0) {
-        idx = which(sol$lambda==sol$lambda.min)
-        for (i in 1:(length(sol$lambda)-1)) {
-            if (sol$nzero[idx] == 0) {
-                idx = idx + 1
-            }
-        }
-        n_non_zero = sol$nzero[idx]
-        b_hat = c(sol$glmnet.fit$a0[idx], sol$glmnet.fit$beta[, idx])
+    ### Solve via ridge regularisation
+    sol = glmnet::cv.glmnet(x=X_training, y=y_training, alpha=0, nfolds=other_params$n_folds, parallel=FALSE) ### Ridge -> alpha = 0.0
+    ### Find the first lambda with the lowest squared error (deviance) while having non-zero SNP effects
+    for (i in 1:length(sol$lambda)) {
+        # i = 1
+        # n_non_zero = sol$nzero[i]
+        b_hat = c(sol$glmnet.fit$a0[i], sol$glmnet.fit$beta[, i])
+        names(b_hat) = c("intercept", colnames(X_training))
         y_pred = cbind(rep(1, length(vec_idx_validation)), X_validation) %*% b_hat
-    } else {
-        y_pred = stats::predict(sol, newx=X_validation, s="lambda.min")
+        n_non_zero = sum(b_hat >= .Machine$double.eps)
+        if (n_non_zero <= 1) {
+            next
+        } else {
+            break
+        }
     }
-    colnames(y_pred) = "pred"
-    df_y = merge(data.frame(id=rownames(y)[vec_idx_validation], true=y_validation), data.frame(id=rownames(y_pred), pred=y_pred), by="id")
-    perf = fn_prediction_performance_metrics(y_true=df_y$true, y_pred=df_y$pred)
-    perf$y_pred = y_pred
-    perf$n_non_zero = n_non_zero; names(perf$n_non_zero) = NULL
-    return(perf)
+    df_y_validation = merge(
+        data.frame(id=names(y_validation), pop=list_merged$list_pheno$pop[vec_idx_validation], y_true=y_validation), 
+        data.frame(id=rownames(y_pred), y_pred=y_pred),
+        by="id")
+    list_perf = fn_prediction_performance_metrics(y_true=df_y_validation$y_true, y_pred=df_y_validation$y_pred, verbose=verbose)
+    ### Output
+    return(list(
+        list_perf=list_perf,
+        df_y_validation=df_y_validation,
+        vec_effects=b,
+        n_non_zero=n_non_zero))
 }
 
 fn_lasso = function(G, y, vec_idx_training, vec_idx_validation, other_params=list(covariate=NULL)) {
@@ -523,114 +551,4 @@ fn_gBLUP = function(G, y, vec_idx_training, vec_idx_validation, other_params=lis
     perf$y_pred = df_y$pred; names(perf$y_pred) = df_y$id
     perf$n_non_zero = NA; names(perf$n_non_zero) = NULL ### This is empty because individual alleles or markers were not used directly in the gBLUP model
     return(perf)
-}
-
-#####################################################################
-############################### Tests ###############################
-#####################################################################
-tests_models = function() {
-    source(paste0(dirname_functions, "/simquantgen/R/sim.R"))
-    set.seed(123)
-    n = 100; n_alleles = 2
-    G = simquantgen::fn_simulate_genotypes(n=n, l=500, ploidy=2, n_alleles=n_alleles, min_allele_freq=0.001, n_chr=5, max_pos=135e6, dist_bp_at_50perc_r2=5e6, n_threads=2, verbose=TRUE)
-    y = simquantgen::fn_simulate_phenotypes(G, n_alleles=n_alleles, dist_effects="norm", n_effects=10, purely_additive=TRUE, n_networks=1, n_effects_per_network=50, h2=0.5, pheno_reps=1, verbose=TRUE)$Y
-    z = fn_simulate_phenotypes(G, n_alleles=n_alleles, dist_effects="norm", n_effects=10, purely_additive=FALSE, n_networks=50, n_effects_per_network=500, h2=0.5, pheno_reps=1, verbose=TRUE)$Y
-    C = matrix(stats::rnorm(3*n), ncol=3)
-    vec_idx_validation = c(1:round(n*0.1))
-    vec_idx_training = !(c(1:n) %in% vec_idx_validation)
-    test_that(
-        "fn_ols", {
-            print("fn_ols:")
-            perf = fn_ols(G, y, vec_idx_training, vec_idx_validation)
-            expect_equal(perf$corr > 0.0, TRUE)
-            expect_equal(perf$n_non_zero == 500, TRUE)
-            perf = fn_ols(G, y, vec_idx_training, vec_idx_validation, other_params=list(tol=.Machine$double.eps, covariate=C))
-            expect_equal(perf$corr > 0.0, TRUE)
-            expect_equal(perf$n_non_zero == 503, TRUE)
-        }
-    )
-
-    test_that(
-        "fn_ridge", {
-            print("fn_ridge:")
-            perf = fn_ridge(G, y, vec_idx_training, vec_idx_validation)
-            expect_equal(perf$corr > 0.0, TRUE)
-            expect_equal(perf$n_non_zero == 500, TRUE)
-            perf = fn_ridge(G, y, vec_idx_training, vec_idx_validation, other_params=list(covariate=C))
-            expect_equal(perf$corr > 0.0, TRUE)
-            expect_equal(perf$n_non_zero == 503, TRUE)
-        }
-    )
-
-    test_that(
-        "fn_lasso", {
-            print("fn_lasso:")
-            perf = fn_lasso(G, y, vec_idx_training, vec_idx_validation)
-            expect_equal(perf$corr > 0.1, TRUE)
-            expect_equal(perf$n_non_zero < 500, TRUE)
-            perf = fn_lasso(G, y, vec_idx_training, vec_idx_validation, other_params=list(covariate=C))
-            expect_equal(perf$corr > 0.1, TRUE)
-            expect_equal(perf$n_non_zero < 503, TRUE)
-        }
-    )
-
-    test_that(
-        "fn_elastic_net", {
-            print("fn_elastic_net:")
-            perf = fn_elastic_net(G, y, vec_idx_training, vec_idx_validation)
-            expect_equal(perf$corr > 0.1, TRUE)
-            expect_equal(perf$n_non_zero < 500, TRUE)
-            perf = fn_elastic_net(G, y, vec_idx_training, vec_idx_validation, other_params=list(covariate=C))
-            expect_equal(perf$corr > 0.1, TRUE)
-            expect_equal(perf$n_non_zero < 503, TRUE)
-        }
-    )
-
-    test_that(
-        "fn_Bayes_A", {
-            print("fn_Bayes_A:")
-            perf = fn_Bayes_A(G, y, vec_idx_training, vec_idx_validation, other_params=list(nIter=1000, burnIn=100, h2=0.5, out_prefix="bglr_bayesA"))
-            expect_equal(perf$corr > 0.1, TRUE)
-            expect_equal(perf$n_non_zero == 500, TRUE)
-            perf = fn_Bayes_A(G, y, vec_idx_training, vec_idx_validation, other_params=list(nIter=1000, burnIn=100, h2=0.5, out_prefix="bglr_bayesA", covariate=C))
-            expect_equal(perf$corr > 0.1, TRUE)
-            expect_equal(perf$n_non_zero == 500, TRUE) ### Excludes the fixed covariate effects
-        }
-    )
-
-    test_that(
-        "fn_Bayes_B", {
-            print("fn_Bayes_B:")
-            perf = fn_Bayes_B(G, y, vec_idx_training, vec_idx_validation, other_params=list(nIter=1000, burnIn=100, h2=0.5, out_prefix="bglr_bayesB"))
-            expect_equal(perf$corr > 0.1, TRUE)
-            expect_equal(perf$n_non_zero == 500, TRUE)
-            perf = fn_Bayes_B(G, y, vec_idx_training, vec_idx_validation, other_params=list(nIter=1000, burnIn=100, h2=0.5, out_prefix="bglr_bayesB", covariate=C))
-            expect_equal(perf$corr > 0.1, TRUE)
-            expect_equal(perf$n_non_zero == 500, TRUE) ### Excludes the fixed covariate effects
-        }
-    )
-
-    test_that(
-        "fn_Bayes_C", {
-            print("fn_Bayes_C:")
-            perf = fn_Bayes_C(G, y, vec_idx_training, vec_idx_validation, other_params=list(nIter=1000, burnIn=100, h2=0.5, out_prefix="bglr_bayesC"))
-            expect_equal(perf$corr > 0.1, TRUE)
-            expect_equal(perf$n_non_zero == 500, TRUE)
-            perf = fn_Bayes_C(G, y, vec_idx_training, vec_idx_validation, other_params=list(nIter=1000, burnIn=100, h2=0.5, out_prefix="bglr_bayesC", covariate=C))
-            expect_equal(perf$corr > 0.1, TRUE)
-            expect_equal(perf$n_non_zero == 500, TRUE) ### Excludes the fixed covariate effects
-        }
-    )
-
-    test_that(
-        "fn_gBLUP", {
-            print("fn_gBLUP:")
-            perf = fn_gBLUP(G, y, vec_idx_training, vec_idx_validation)
-            expect_equal(perf$corr > 0.1, TRUE)
-            expect_equal(is.na(perf$n_non_zero), TRUE)
-            perf = fn_gBLUP(G, y, vec_idx_training, vec_idx_validation, other_params=list(covariate=C))
-            expect_equal(perf$corr > 0.1, TRUE)
-            expect_equal(is.na(perf$n_non_zero), TRUE) ### Excludes the fixed covariate effects
-        }
-    )
 }

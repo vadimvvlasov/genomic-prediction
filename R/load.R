@@ -133,6 +133,15 @@ fn_G_split_off_alternative_allele = function(G, verbose=FALSE) {
     }
     ### Extract sample/entry/pool, and loci names
     list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=G, verbose=verbose)
+    if (methods::is(list_ids_chr_pos_all, "gpError")) {
+        error = chain(list_ids_chr_pos_all, methods::new("gpError",
+            code=000,
+            message=paste0(
+                "Error in load::fn_G_split_off_alternative_allele(...). ",
+                "Error type returned by list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=G, verbose=verbose)."
+            )))
+        return(error)
+    }
     ### Iterate across loci removing the trailing alternative allele
     vec_loci = sort(unique(paste0(list_ids_chr_pos_all$vec_chr, "\t", list_ids_chr_pos_all$vec_pos)))
     p = length(vec_loci)
@@ -207,6 +216,15 @@ fn_G_numeric_to_non_numeric = function(G, ploidy=2, verbose=FALSE) {
     }
     ### Extract sample/entry/pool, and loci names
     list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=G, verbose=verbose)
+    if (methods::is(list_ids_chr_pos_all, "gpError")) {
+        error = chain(list_ids_chr_pos_all, methods::new("gpError",
+            code=000,
+            message=paste0(
+                "Error in load::fn_G_numeric_to_non_numeric(...). ",
+                "Error type returned by list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=G, verbose=verbose)."
+            )))
+        return(error)
+    }
     ### Extract the unique loci and sort per chromosome
     df_loci = as.data.frame(matrix(unlist(strsplit(unique(paste0(list_ids_chr_pos_all$vec_chr, "\t", list_ids_chr_pos_all$vec_pos)), "\t")), byrow=TRUE, ncol=2))
     colnames(df_loci) = c("chr", "pos")
@@ -340,10 +358,19 @@ fn_G_non_numeric_to_numeric = function(G_non_numeric, retain_minus_one_alleles_p
     colnames(G) = vec_colnames
     ### Return numeric allele frequency genotype matrix with or without all the alleles
     if (retain_minus_one_alleles_per_locus) {
-        return(fn_G_split_off_alternative_allele(G=G, verbose=verbose)$G)
-    } else {
-        return(G)
+        list_G_G_alt = fn_G_split_off_alternative_allele(G=G, verbose=verbose)
+        if (methods::is(list_G_G_alt, "gpError")) {
+            error = chain(list_G_G_alt, methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in load::fn_G_non_numeric_to_numeric(...). ",
+                    "Error type returned by list_G_G_alt = fn_G_split_off_alternative_allele(G=G, verbose=verbose)."
+                )))
+            return(error)
+        }
     }
+    ### Output
+    return(list_G_G_alt$G)
 }
 
 #' Convert numeric allele frequency matrix into a vcfR::vcf object
@@ -384,12 +411,30 @@ fn_G_to_vcf = function(G, min_depth=100, max_depth=1000, verbose=FALSE) {
     }
     ### Split-off the alternative allele from the reference allele
     list_G_G_alt = fn_G_split_off_alternative_allele(G=G, verbose=verbose)
+    if (methods::is(list_G_G_alt, "gpError")) {
+        error = chain(list_G_G_alt, methods::new("gpError",
+            code=000,
+            message=paste0(
+                "Error in load::fn_G_to_vcf(...). ",
+                "Error type returned by list_G_G_alt = fn_G_split_off_alternative_allele(G=G, verbose=verbose)."
+            )))
+        return(error)
+    }
     G_alt = list_G_G_alt$G_alt
     G = list_G_G_alt$G
     n = nrow(G)
     p = ncol(G)
     ### Extract the names of the entries/samples/pools and loci
     list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=G, verbose=verbose)
+    if (methods::is(list_ids_chr_pos_all, "gpError")) {
+        error = chain(list_ids_chr_pos_all, methods::new("gpError",
+            code=000,
+            message=paste0(
+                "Error in load::fn_G_to_vcf(...). ",
+                "Error type returned by list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=G, verbose=verbose)."
+            )))
+        return(error)
+    }
     ### Make sure the input matrix is biallelic
     ### Also, convert the tabs in the loci-alleles names into dashes so as not to interfere with the VCF format
     vec_loci_names = paste0(list_ids_chr_pos_all$vec_chr, "_", list_ids_chr_pos_all$vec_pos)
@@ -510,7 +555,10 @@ fn_vcf_to_G = function(vcf, min_depth=0, max_depth=Inf, retain_minus_one_alleles
     }
     vec_pool_names = colnames(vcf@gt)[-1]
     vec_elements = unique(vcf@gt[, 1])
-    if (!((sum(grepl("AD", vec_elements)) == length(vec_elements)) | (sum(grepl("GT", vec_elements)) == length(vec_elements)))) {
+    ### Make sure that all the loci consistently have either the AD or GT field across all type of field combinations, e.g. c(GT:AD, AD, GT:PL:AD) where the AD field is consistenly present
+    bool_consistent_AD = sum(grepl("AD", vec_elements)) == length(vec_elements)
+    bool_consistent_GT = sum(grepl("GT", vec_elements)) == length(vec_elements)
+    if (!(bool_consistent_AD | bool_consistent_GT)) {
         error = methods::new("gpError", 
             code=000,
             message=paste0(
@@ -520,7 +568,9 @@ fn_vcf_to_G = function(vcf, min_depth=0, max_depth=Inf, retain_minus_one_alleles
                 "Reformat your vcf file to have the same fields across loci."))
         return(error)
     }
-    if ((!(sum(grepl("AD", vec_elements)==length(vec_elements))) & !(sum(grepl("GT", vec_elements))==length(vec_elements))) | !(sum(grepl("DP", vec_elements))==length(vec_elements))) {
+    ### Also make sure that the GP field is present so that we can filter by depth
+    bool_consistent_DP = sum(grepl("DP", vec_elements)) == length(vec_elements)
+    if (!bool_consistent_DP) {
         error = methods::new("gpError", 
             code=000,
             message=paste0(
@@ -705,10 +755,12 @@ fn_classify_allele_frequencies = function(G, ploidy=2, verbose=FALSE) {
 #' @param non_numeric_Rds save non-numeric Rds genotype file? (Default=FALSE)
 #' @param verbose show genotype and phenotype data simulation messages? (Default=FALSE)
 #' @returns
-#' $fname_geno_vcf: filename of the simulated genotype data as a vcf file
-#' $fname_geno_tsv: filename of the simulated genotype data as a tab-delimited allele frequency table file
-#' $fname_geno_rds: filename of the simulated named genotype matrix as an Rds file
-#' $fname_pheno_tsv: filename of the simulated phenotype data as a tab-delimited file
+#' Ok:
+#'  $fname_geno_vcf: filename of the simulated genotype data as a vcf file
+#'  $fname_geno_tsv: filename of the simulated genotype data as a tab-delimited allele frequency table file
+#'  $fname_geno_rds: filename of the simulated named genotype matrix as an Rds file
+#'  $fname_pheno_tsv: filename of the simulated phenotype data as a tab-delimited file
+#' Err: gpError
 #' @examples
 #' list_sim = fn_simulate_data(verbose=TRUE, 
 #'  save_geno_vcf=TRUE, save_geno_tsv=TRUE, save_geno_rds=TRUE, save_pheno_tsv=TRUE)
@@ -769,13 +821,12 @@ fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, m
     if (save_geno_vcf) {
         vcf = fn_G_to_vcf(G=G, min_depth=min_depth, max_depth=max_depth, verbose=verbose)
         if (methods::is(vcf, "gpError")) {
-            error = methods::new("gpError",
+            error = chain(vcf, methods::new("gpError",
                 code=000,
                 message=paste0(
                     "Error in load::fn_simulate_data(...). ",
                     "Please set n_alleles=2 as we can only convert biallelic loci into VCF format at the moment."
-                ))
-            error = chain(vcf, error)
+                )))
             return(error)
         }
         # fname_geno_vcf = file.path(getwd(), paste0("simulated_genotype-", date, ".vcf.gz"))
@@ -788,6 +839,15 @@ fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, m
     }
     if (save_geno_tsv)  {
         list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=G, verbose=verbose)
+        if (methods::is(list_ids_chr_pos_all, "gpError")) {
+            error = chain(list_ids_chr_pos_all, methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in load::fn_simulate_data(...). ",
+                    "Error type returned by list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=G, verbose=verbose)."
+                )))
+            return(error)
+        }
         df_geno = data.frame(chr=list_ids_chr_pos_all$vec_chr, pos=list_ids_chr_pos_all$vec_pos, allele=list_ids_chr_pos_all$vec_all, t(G))
         # fname_geno_tsv = file.path(getwd(), paste0("simulated_genotype-", date, ".tsv"))
         fname_geno_tsv = tempfile(fileext=".tsv")
@@ -806,6 +866,15 @@ fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, m
             saveRDS(G, file=fname_geno_rds)
         } else {
             G_non_numeric = fn_G_numeric_to_non_numeric(G=G, ploidy=ploidy, verbose=verbose)
+            if (methods::is(G_non_numeric, "gpError")) {
+                error = chain(G_non_numeric, methods::new("gpError",
+                    code=000,
+                    message=paste0(
+                        "Error in load::fn_simulate_data(...). ",
+                        "Error type returned by G_non_numeric = fn_G_numeric_to_non_numeric(G=G, ploidy=ploidy, verbose=verbose)."
+                    )))
+                return(error)
+            }
             saveRDS(G_non_numeric, file=fname_geno_rds)
         }
         if (verbose) {
@@ -874,7 +943,16 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, retain_minus_one_alleles_pe
         ################
         G = readRDS(fname_geno)
         if (is.numeric(G)==FALSE) {
-            fn_G_non_numeric_to_numeric(G_non_numeric=G, verbose=verbose)
+            G = fn_G_non_numeric_to_numeric(G_non_numeric=G, verbose=verbose)
+            if (methods::is(G, "gpError")) {
+                error = chain(G, methods::new("gpError",
+                    code=000,
+                    message=paste0(
+                        "Error in load::fn_load_genotype(...). ",
+                        "Error type returned by G = fn_G_non_numeric_to_numeric(G_non_numeric=G, verbose=verbose)."
+                    )))
+                return(error)
+            }
         }
         if (verbose) {print("Genotype loaded from an RDS file.")}
         return(G)
@@ -923,11 +1001,29 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, retain_minus_one_alleles_pe
     })
     ### Retain a-1 allele/s per locus, i.e. remove duplicates assuming all loci are biallelic
     if (retain_minus_one_alleles_per_locus==TRUE) {
-        G = fn_G_split_off_alternative_allele(G=G, verbose=verbose)$G
+        list_G_G_alt = fn_G_split_off_alternative_allele(G=G, verbose=verbose)
+        if (methods::is(list_G_G_alt, "gpError")) {
+            error = chain(list_G_G_alt, methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in load::fn_load_genotype(...). ",
+                    "Error type returned by list_G_G_alt = fn_G_split_off_alternative_allele(G=G, verbose=verbose)."
+                )))
+            return(error)
+        }
     }
     ### Bin allele frequencies
     if (!is.null(ploidy)) {
-        G = fn_classify_allele_frequencies(G=G, ploidy=ploidy, verbose=verbose)
+        G = fn_classify_allele_frequencies(G=list_G_G_alt$G, ploidy=ploidy, verbose=verbose)
+        if (methods::is(G, "gpError")) {
+            error = chain(G, methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in load::fn_load_genotype(...). ",
+                    "Error type returned by G = fn_classify_allele_frequencies(G=list_G_G_alt$G, ploidy=ploidy, verbose=verbose)"
+                )))
+            return(error)
+        }
     }
     ### Show the allele frequency stats
     if (verbose) {
@@ -1508,7 +1604,7 @@ fn_merge_genotype_and_phenotype = function(G, list_pheno, COVAR=NULL, verbose=FA
     ### All samples with genotype data will be included and samples without phenotype data will be set to NA (all.x=TRUE)
     ### Samples with phenotype but without genotype data are omitted.
     M = merge(
-        data.frame(id=rownames(G), G), 
+        data.frame(id=rownames(G), G, check.names=FALSE), 
         data.frame(id=names(list_pheno$y), pop=list_pheno$pop, y=list_pheno$y), 
         by="id", all.x=TRUE)
     if (sum(!is.na(M$y)) == 0) {

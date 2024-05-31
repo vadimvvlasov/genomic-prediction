@@ -174,6 +174,8 @@ devtools::document()
 
 ## Unit tests
 
+On Nix: `nix-shell --run bash --pure`. See [shell.nix](./shell.nix).
+
 Value modularity and write tests for each function definition.
 
 See the main tests function and each Rscript for individual unit tests:

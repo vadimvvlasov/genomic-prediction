@@ -1,5 +1,5 @@
 # library(testthat)
-# source("/group/pasture/Jeff/gp/R/load.R")
+# source("R/load.R")
 
 test_that("fn_G_extract_names", {
     n = 100

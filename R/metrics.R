@@ -9,6 +9,7 @@
 #' @param y_true numeric vector observed phenotype values
 #' @param y_pred numeric vector predicted phenotype values
 #' @returns
+#' Ok:
 #'  $mbe: mean bias error
 #'  $mae: mean absolute error
 #'  $rmse: root mean squared error
@@ -31,6 +32,7 @@
 #'      - predicted trait values are due to purely additive effects,
 #'      - variance in the predicted trait values is proportional to the additive genetic variance (~Va)
 #'      - variance in the true trait values represent the total phenotypic variance (Vp)
+#' Err: gpError
 #' @examples
 #' y_pred = stats::rnorm(100)
 #' y_true = y_pred + stats::rnorm(100)

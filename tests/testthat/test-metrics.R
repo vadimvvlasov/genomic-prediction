@@ -1,6 +1,6 @@
 # library(testthat)
-# source("/group/pasture/Jeff/gp/R/load.R")
-# source("/group/pasture/Jeff/gp/R/metrics.R")
+# source("R/load.R")
+# source("R/metrics.R")
 
 test_that("fn_prediction_performance_metrics", {
     n = 100
