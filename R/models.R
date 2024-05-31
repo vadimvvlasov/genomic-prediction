@@ -27,6 +27,38 @@ suppressWarnings(suppressPackageStartupMessages(library(sommer)))
 #'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
 #' @param vec_idx_training vector of numeric indexes referring to the training set
 #' @param vec_idx_validation vector of numeric indexes referring to the validation set
+#' @param other_params list of additional parameters, specifically $diag_inflate which refers to the value used for 
+#'  diagonal inflation for singular matrices (Default=list(diag_inflate=1e-4))
+#' @param verbose show ordinary least squares regression messages? (Default=FALSE)
+#' @returns
+#'  Ok:
+#'      $list_perf:
+#'          $mbe: mean bias error
+#'          $mae: mean absolute error
+#'          $rmse: root mean squared error
+#'          $r2: coefficient of determination
+#'          $corr: Pearson's product moment correlation
+#'          $power_t10: fraction of observed top 10 phenotype values correctly predicted
+#'          $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+#'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          $h2: narrow-sense heritability estimate
+#'      $df_y_validation: data frame of the validation set with names of the samples/entries/pools, 
+#'          population, observed and predicted phenotypic values
+#'      $vec_effects: named numeric vector of estimated effects, where the names correspond to the
+#'          SNP/allele identity including chromosome/scaffold, position and optionally allele.
+#'      $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+#'  Err: gpError
+#' @examples
+#' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+#' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
+#' list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
+#' list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, verbose=TRUE)
+#' n = nrow(list_merged$G)
+#' vec_idx_training = sample(c(1:n), floor(n/2))
+#' vec_idx_validation = c(1:n)[!(c(1:n) %in% vec_idx_training)]
+#' list_ols = fn_ols(list_merged, vec_idx_training, vec_idx_validation, verbose=TRUE)
+#' @export
 fn_ols = function(list_merged, vec_idx_training, vec_idx_validation, other_params=list(diag_inflate=1e-4), verbose=FALSE) {
     ###################################################
     ### TEST
@@ -51,7 +83,7 @@ fn_ols = function(list_merged, vec_idx_training, vec_idx_validation, other_param
                 )))
         return(error)
     }
-    if (!is.logical(c(vec_idx_training, vec_idx_training)) |
+    if (is.logical(c(vec_idx_training, vec_idx_training)) |
         (sum(is.na(c(vec_idx_training, vec_idx_training))) > 0) |
         (min(c(vec_idx_training, vec_idx_training)) < 0) |
         (max(c(vec_idx_training, vec_idx_training)) > nrow(list_merged$G))) {
@@ -87,7 +119,7 @@ fn_ols = function(list_merged, vec_idx_training, vec_idx_validation, other_param
                 NA
             })
         })
-        if (is.na(A_inv)) {
+        if (is.na(A_inv[1])) {
             error = methods::new("gpError",
                 code=000,
                 message=paste0(
@@ -110,7 +142,7 @@ fn_ols = function(list_merged, vec_idx_training, vec_idx_validation, other_param
             })
             return(B_inv)
         })
-        if (is.na(A_inv)) {
+        if (is.na(A_inv[1])) {
             error = methods::new("gpError",
                 code=000,
                 message=paste0(
@@ -123,21 +155,28 @@ fn_ols = function(list_merged, vec_idx_training, vec_idx_validation, other_param
         }
         b = t(X_training) %*% A_inv %*% y_training
     }
-    y_pred = X_validation %*% b
-    df_y = merge(
-        data.frame(id=names(y_validation), true=y_validation), 
-        data.frame(id=rownames(y_pred), pred=y_pred),
-        by="id")
-    perf = fn_prediction_performance_metrics(y_true=df_y$true, y_pred=df_y$pred, verbose=verbose)
-    perf$y_pred = y_pred
-    perf$b = b[,1]; names(perf$b) = colnames(X_training)
-    perf$n_non_zero = sum(abs(b) > .Machine$double.eps)
+    ### Name the effects and count the number of non-zero effects
+    b = b[,1]
+    names(b) = colnames(X_training)
+    n_non_zero = sum(abs(b) > .Machine$double.eps)
     if (verbose) {
         print("Allele effects distribution:")
-        txtplot::txtdensity(perf$b[!is.na(perf$b) & !is.infinite(perf$b)])
-        print(paste0("Number of non-zero effects: ", perf$n_non_zero, " (", round(100*p/perf$n_non_zero), "%)"))
+        txtplot::txtdensity(b[!is.na(b) & !is.infinite(b)])
+        print(paste0("Number of non-zero effects: ", n_non_zero, " (", round(100*p/n_non_zero), "%)"))
     }
-    return(perf)
+    ### Predict and assess prediction accuracy
+    y_pred = X_validation %*% b
+    df_y_validation = merge(
+        data.frame(id=names(y_validation), pop=list_merged$list_pheno$pop[vec_idx_validation], y_true=y_validation), 
+        data.frame(id=rownames(y_pred), y_pred=y_pred),
+        by="id")
+    list_perf = fn_prediction_performance_metrics(y_true=df_y_validation$y_true, y_pred=df_y_validation$y_pred, verbose=verbose)
+    ### Output
+    return(list(
+        list_perf=list_perf,
+        df_y_validation=df_y_validation,
+        vec_effects=b,
+        n_non_zero=n_non_zero))
 }
 
 fn_ridge = function(G, y, vec_idx_training, vec_idx_validation, other_params=list(covariate=NULL)) {
