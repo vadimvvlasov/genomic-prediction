@@ -510,7 +510,7 @@ fn_vcf_to_G = function(vcf, min_depth=0, max_depth=Inf, retain_minus_one_alleles
     }
     vec_pool_names = colnames(vcf@gt)[-1]
     vec_elements = unique(vcf@gt[, 1])
-    if (length(vec_elements) > 1) {
+    if (!((sum(grepl("AD", vec_elements)) == length(vec_elements)) | (sum(grepl("GT", vec_elements)) == length(vec_elements)))) {
         error = methods::new("gpError", 
             code=000,
             message=paste0(
@@ -520,7 +520,7 @@ fn_vcf_to_G = function(vcf, min_depth=0, max_depth=Inf, retain_minus_one_alleles
                 "Reformat your vcf file to have the same fields across loci."))
         return(error)
     }
-    if ((!grepl("AD", vec_elements) & !grepl("GT", vec_elements)) | !grepl("DP", vec_elements)) {
+    if ((!(sum(grepl("AD", vec_elements)==length(vec_elements))) & !(sum(grepl("GT", vec_elements))==length(vec_elements))) | !(sum(grepl("DP", vec_elements))==length(vec_elements))) {
         error = methods::new("gpError", 
             code=000,
             message=paste0(
@@ -557,7 +557,7 @@ fn_vcf_to_G = function(vcf, min_depth=0, max_depth=Inf, retain_minus_one_alleles
     #################################################
 
     ### Extract genotype data where the AD field takes precedence over the GT field
-    if (grepl("AD", vec_elements)) {
+    if (sum(grepl("AD", vec_elements)) == length(vec_elements)) {
         mat_allele_counts = vcfR::extract.gt(vcf, element="AD")
         if (length(unlist(strsplit(mat_allele_counts[1,1], ","))) > 2) {
             error = methods::new("gpError",
@@ -582,7 +582,7 @@ fn_vcf_to_G = function(vcf, min_depth=0, max_depth=Inf, retain_minus_one_alleles
         mat_alt_counts[idx_for_alt] = 0
         ### Calculate reference allele frequencies
         G = mat_ref_counts / (mat_ref_counts + mat_alt_counts)
-    } else if (grepl("GT", vec_elements)) {
+    } else if (sum(grepl("GT", vec_elements)) == length(vec_elements)) {
         GT = vcfR::extract.gt(vcf, element="GT")
         G = matrix(NA, nrow=length(vec_loci_ref_names), ncol=length(vec_pool_names))
         G[(GT == "0/0") | (GT == "0|0")] = 1.0
@@ -924,6 +924,10 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, retain_minus_one_alleles_pe
     ### Retain a-1 allele/s per locus, i.e. remove duplicates assuming all loci are biallelic
     if (retain_minus_one_alleles_per_locus==TRUE) {
         G = fn_G_split_off_alternative_allele(G=G, verbose=verbose)$G
+    }
+    ### Bin allele frequencies
+    if (!is.null(ploidy)) {
+        G = fn_classify_allele_frequencies(G=G, ploidy=ploidy, verbose=verbose)
     }
     ### Show the allele frequency stats
     if (verbose) {
