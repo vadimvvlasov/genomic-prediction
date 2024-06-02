@@ -679,7 +679,7 @@ fn_Bayes_A = function(list_merged, vec_idx_training, vec_idx_validation, other_p
             error = methods::new("gpError",
                 code=000,
                 message=paste0(
-                    "Error in models::fn_elastic_net(...). ",
+                    "Error in models::fn_Bayes_A(...). ",
                     "Please make sure that the vector of indexes for the training and validation sets are not booleans. ",
                     "We require the indexes to be positive integers without missing values. ",
                     "Also, the maximum index (", max(c(vec_idx_training, vec_idx_training)), 
@@ -692,13 +692,13 @@ fn_Bayes_A = function(list_merged, vec_idx_training, vec_idx_validation, other_p
     yNA[vec_idx_validation] = NA
     ### Define Bayes A regression function including covariates if they exist
     if (!is.null(list_merged$COVAR)) {
-        ETA = list(MRK=list(X=G, model="BayesA"),
+        ETA = list(MRK=list(X=list_merged$G, model="BayesA"),
                        list(X=list_merged$COVAR, model="FIXED"))
     } else {
-        ETA = list(MRK=list(X=G, model="BayesA"))
+        ETA = list(MRK=list(X=list_merged$G, model="BayesA"))
     }
     ### Attempt at preventing overwrites to the running Gibbs samplers in parallel
-    other_params$out_prefix = gsub(" ", "-", paste(other_params$out_prefix, Sys.time(), stats::runif(1), sep="-"))
+    other_params$out_prefix = gsub(":", ".", gsub(" ", "-", paste(other_params$out_prefix, Sys.time(), stats::runif(1), sep="-")))
     ### Solve via Bayes A
     sol = BGLR::BGLR(y=yNA, ETA=ETA, nIter=other_params$nIter, burnIn=other_params$burnIn, saveAt=other_params$out_prefix, verbose=FALSE)
     ### Extract effects
@@ -730,96 +730,276 @@ fn_Bayes_A = function(list_merged, vec_idx_training, vec_idx_validation, other_p
         n_non_zero=n_non_zero))
 }
 
-fn_Bayes_B = function(G, y, vec_idx_training, vec_idx_validation, other_params=list(nIter=12e3, burnIn=2e3, h2=0.5, out_prefix="bglr_bayesB-", covariate=NULL)) {
-    # n = 100; n_alleles = 2
-    # G = simquantgen::fn_simulate_genotypes(n=n, l=500, ploidy=2, n_alleles=n_alleles, min_allele_freq=0.001, n_chr=5, max_pos=135e6, dist_bp_at_50perc_r2=5e6, n_threads=2)
-    # y = simquantgen::fn_simulate_phenotypes(G, n_alleles=n_alleles, dist_effects="norm", n_effects=10, purely_additive=TRUE, n_networks=1, n_effects_per_network=50, h2=0.75, pheno_reps=1)$Y
-    # y = scale(y, center=TRUE, scale=TRUE)
-    # vec_idx_validation = c(1:round(n*0.1))
-    # vec_idx_training = !(c(1:n) %in% vec_idx_validation)
-    # other_params=list(nIter=1000,
+#' Bayes B regression model (scaled t-distributed effects)
+#'
+#' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
+#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'      Row names can be any string of characters which identify the sample or entry or pool names.
+#'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
+#'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
+#'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
+#'  $list_pheno:
+#'      $y: named vector of numeric phenotype data
+#'      $pop: population or groupings corresponding to each element of y
+#'      $trait_name: name of the trait
+#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#' @param vec_idx_training vector of numeric indexes referring to the training set
+#' @param vec_idx_validation vector of numeric indexes referring to the validation set
+#' @param other_params list of additional parameters, 
+#'  other_params$nIter total number of iterations (Default=12e3)
+#'  other_params$burnIn number of burn-in iterations (Default=2e3)
+#'  other_params$out_prefix prefix of temporary output files (Default="bglr_bayesB-")
+#' @param verbose show Bayes B regression messages? (Default=FALSE)
+#' @returns
+#'  Ok:
+#'      $list_perf:
+#'          $mbe: mean bias error
+#'          $mae: mean absolute error
+#'          $rmse: root mean squared error
+#'          $r2: coefficient of determination
+#'          $corr: Pearson's product moment correlation
+#'          $power_t10: fraction of observed top 10 phenotype values correctly predicted
+#'          $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+#'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          $h2: narrow-sense heritability estimate
+#'      $df_y_validation: data frame of the validation set with names of the samples/entries/pools, 
+#'          population, observed and predicted phenotypic values
+#'      $vec_effects: named numeric vector of estimated effects, where the names correspond to the
+#'          SNP/allele identity including chromosome/scaffold, position and optionally allele.
+#'      $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+#'  Err: gpError
+#' @examples
+#' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+#' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
+#' list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
+#' list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, verbose=TRUE)
+#' n = nrow(list_merged$G)
+#' vec_idx_training = sample(c(1:n), floor(n/2))
+#' vec_idx_validation = c(1:n)[!(c(1:n) %in% vec_idx_training)]
+#' list_ols = fn_ols(list_merged, vec_idx_training, vec_idx_validation, verbose=TRUE)
+#' @export
+fn_Bayes_B = function(list_merged, vec_idx_training, vec_idx_validation, other_params=list(nIter=12e3, burnIn=2e3, out_prefix="bglr_bayesB-"), verbose=FALSE) {
+    ###################################################
+    ### TEST
+    # list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    # G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
+    # list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
+    # COVAR = G %*% t(G); # rownames(COVAR) = NULL
+    # list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, COVAR=COVAR, verbose=TRUE)
+    # n = nrow(list_merged$G)
+    # vec_idx_training = sample(c(1:n), floor(n/2))
+    # vec_idx_validation = c(1:n)[!(c(1:n) %in% vec_idx_training)]
+    # other_params=list(
+    #     nIter=1000,
     #     burnIn=100,
-    #     h2=0.5,
     #     out_prefix="bglr_bayesB",
     #     covariate=matrix(stats::rnorm(2*n), ncol=2))
-    ### Make sure that our genotype and phenotype data are labelled, i.e. have row and column names
-    if (is.null(rownames(G)) | is.null(colnames(G)) | is.null(rownames(y))) {
-        print("Error: Genotype and/or phenotype data have no labels. Please include the row names (entry names) and column names (loci names).")
-        return(-1)
+    # verbose = TRUE
+    ###################################################
+    ### Input sanity check
+    if (methods::is(list_merged, "gpError")) {
+        error = chain(list_merged, 
+            methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in models::fn_elastic_net(...). ",
+                    "Input data (list_merged) is an error type."
+                )))
+        return(error)
+    }
+    if (is.logical(c(vec_idx_training, vec_idx_training)) |
+        (sum(is.na(c(vec_idx_training, vec_idx_training))) > 0) |
+        (min(c(vec_idx_training, vec_idx_training)) < 0) |
+        (max(c(vec_idx_training, vec_idx_training)) > nrow(list_merged$G))) {
+            error = methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in models::fn_Bayes_B(...). ",
+                    "Please make sure that the vector of indexes for the training and validation sets are not booleans. ",
+                    "We require the indexes to be positive integers without missing values. ",
+                    "Also, the maximum index (", max(c(vec_idx_training, vec_idx_training)), 
+                    ") should be less than or equal to the total number of samples/entries/pools in the input data: (", 
+                    nrow(list_merged$G), ")."))
+            return(error)
     }
     ### Set validation set to missing
-    yNA = y
+    yNA = list_merged$list_pheno$y
     yNA[vec_idx_validation] = NA
-    if (is.null(other_params$covariate)==FALSE) {
-        if (nrow(other_params$covariate) != nrow(G)) {
-            print("The covariate and genotype matrices are incompatible, i.e. unequal number of rows.")
-            return(-1)
-        }
-        ETA = list(MRK=list(X=G, model="BayesB"),
-                       list(X=other_params$covariate, model="FIXED"))
+    ### Define Bayes B regression function including covariates if they exist
+    if (!is.null(list_merged$COVAR)) {
+        ETA = list(MRK=list(X=list_merged$G, model="BayesB"),
+                       list(X=list_merged$COVAR, model="FIXED"))
     } else {
-        ETA = list(MRK=list(X=G, model="BayesB"))
+        ETA = list(MRK=list(X=list_merged$G, model="BayesB"))
     }
-    other_params$out_prefix = gsub(" ", "-", paste(other_params$out_prefix, Sys.time(), stats::runif(1), sep="-")) ### attempt at preventing overwrites to the running Gibbs samplers in parallel
-    sol = BGLR::BGLR(y=yNA, ETA=ETA, nIter=other_params$nIter, burnIn=other_params$burnIn, R2=other_params$h2, saveAt=other_params$out_prefix, verbose=FALSE)
-    y_pred = sol$yHat[vec_idx_validation]
-    names(y_pred) = rownames(yNA)[vec_idx_validation]
-    df_y = merge(data.frame(id=rownames(y)[vec_idx_validation], true=y[vec_idx_validation]), data.frame(id=names(y_pred), pred=y_pred), by="id")
-    perf = fn_prediction_performance_metrics(y_true=df_y$true, y_pred=df_y$pred)
-    perf$y_pred = matrix(y_pred, ncol=1)
-    colnames(perf$y_pred) = "pred"
-    rownames(perf$y_pred) = names(y_pred)
-    perf$n_non_zero = sum(abs(sol$ETA$MRK$b) > .Machine$double.eps)
+    ### Attempt at preventing overwrites to the running Gibbs samplers in parallel
+    other_params$out_prefix = gsub(":", ".", gsub(" ", "-", paste(other_params$out_prefix, Sys.time(), stats::runif(1), sep="-")))
+    ### Solve via Bayes B
+    sol = BGLR::BGLR(y=yNA, ETA=ETA, nIter=other_params$nIter, burnIn=other_params$burnIn, saveAt=other_params$out_prefix, verbose=FALSE)
+    ### Extract effects
+    b_hat = sol$ETA$MRK$b
+    n_non_zero = sum(b_hat >= .Machine$double.eps)
+    if (verbose) {
+        p = ncol(list_merged$G)
+        print("Allele effects distribution:")
+        txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)])
+        print("Relative posisitions of allele effects across the genome:")
+        txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)])
+        print(paste0("Number of non-zero effects: ", n_non_zero, " (", round(100*n_non_zero/p), "%)"))
+    }
+    ### Evalute prediction performance
+    df_y_validation = merge(
+        data.frame(id=names(list_merged$list_pheno$y[vec_idx_validation]), pop=list_merged$list_pheno$pop[vec_idx_validation], y_true=list_merged$list_pheno$y[vec_idx_validation]), 
+        data.frame(id=names(yNA)[vec_idx_validation], y_pred=sol$yHat[vec_idx_validation]),
+        by="id")
+    list_perf = fn_prediction_performance_metrics(y_true=df_y_validation$y_true, y_pred=df_y_validation$y_pred, verbose=verbose)
+    ### Clean-up temporary files
     for (f in list.files(dirname(other_params$out_prefix), pattern=basename(other_params$out_prefix))) {
         file.remove(f)    
     }
-    return(perf)
+    ### Output
+    return(list(
+        list_perf=list_perf,
+        df_y_validation=df_y_validation,
+        vec_effects=b_hat,
+        n_non_zero=n_non_zero))
 }
 
-fn_Bayes_C = function(G, y, vec_idx_training, vec_idx_validation, other_params=list(nIter=12e3, burnIn=2e3, h2=0.5, out_prefix="bglr_bayesC-", covariate=NULL)) {
-    # n = 100; n_alleles = 2
-    # G = simquantgen::fn_simulate_genotypes(n=n, l=500, ploidy=2, n_alleles=n_alleles, min_allele_freq=0.001, n_chr=5, max_pos=135e6, dist_bp_at_50perc_r2=5e6, n_threads=2)
-    # y = simquantgen::fn_simulate_phenotypes(G, n_alleles=n_alleles, dist_effects="norm", n_effects=10, purely_additive=TRUE, n_networks=1, n_effects_per_network=50, h2=0.75, pheno_reps=1)$Y
-    # y = scale(y, center=TRUE, scale=TRUE)
-    # vec_idx_validation = c(1:round(n*0.1))
-    # vec_idx_training = !(c(1:n) %in% vec_idx_validation)
-    # other_params=list(nIter=1000,
+#' Bayes C regression model (scaled t-distributed effects)
+#'
+#' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
+#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'      Row names can be any string of characters which identify the sample or entry or pool names.
+#'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
+#'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
+#'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
+#'  $list_pheno:
+#'      $y: named vector of numeric phenotype data
+#'      $pop: population or groupings corresponding to each element of y
+#'      $trait_name: name of the trait
+#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#' @param vec_idx_training vector of numeric indexes referring to the training set
+#' @param vec_idx_validation vector of numeric indexes referring to the validation set
+#' @param other_params list of additional parameters, 
+#'  other_params$nIter total number of iterations (Default=12e3)
+#'  other_params$burnIn number of burn-in iterations (Default=2e3)
+#'  other_params$out_prefix prefix of temporary output files (Default="bglr_bayesB-")
+#' @param verbose show Bayes C regression messages? (Default=FALSE)
+#' @returns
+#'  Ok:
+#'      $list_perf:
+#'          $mbe: mean bias error
+#'          $mae: mean absolute error
+#'          $rmse: root mean squared error
+#'          $r2: coefficient of determination
+#'          $corr: Pearson's product moment correlation
+#'          $power_t10: fraction of observed top 10 phenotype values correctly predicted
+#'          $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+#'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          $h2: narrow-sense heritability estimate
+#'      $df_y_validation: data frame of the validation set with names of the samples/entries/pools, 
+#'          population, observed and predicted phenotypic values
+#'      $vec_effects: named numeric vector of estimated effects, where the names correspond to the
+#'          SNP/allele identity including chromosome/scaffold, position and optionally allele.
+#'      $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+#'  Err: gpError
+#' @examples
+#' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+#' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
+#' list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
+#' list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, verbose=TRUE)
+#' n = nrow(list_merged$G)
+#' vec_idx_training = sample(c(1:n), floor(n/2))
+#' vec_idx_validation = c(1:n)[!(c(1:n) %in% vec_idx_training)]
+#' list_ols = fn_ols(list_merged, vec_idx_training, vec_idx_validation, verbose=TRUE)
+#' @export
+fn_Bayes_C = function(list_merged, vec_idx_training, vec_idx_validation, other_params=list(nIter=12e3, burnIn=2e3, out_prefix="bglr_bayesC-"), verbose=FALSE) {
+    ###################################################
+    ### TEST
+    # list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    # G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
+    # list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
+    # COVAR = G %*% t(G); # rownames(COVAR) = NULL
+    # list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, COVAR=COVAR, verbose=TRUE)
+    # n = nrow(list_merged$G)
+    # vec_idx_training = sample(c(1:n), floor(n/2))
+    # vec_idx_validation = c(1:n)[!(c(1:n) %in% vec_idx_training)]
+    # other_params=list(
+    #     nIter=1000,
     #     burnIn=100,
-    #     h2=0.5,
     #     out_prefix="bglr_bayesC",
     #     covariate=matrix(stats::rnorm(2*n), ncol=2))
-    ### Make sure that our genotype and phenotype data are labelled, i.e. have row and column names
-    if (is.null(rownames(G)) | is.null(colnames(G)) | is.null(rownames(y))) {
-        print("Error: Genotype and/or phenotype data have no labels. Please include the row names (entry names) and column names (loci names).")
-        return(-1)
+    # verbose = TRUE
+    ###################################################
+    ### Input sanity check
+    if (methods::is(list_merged, "gpError")) {
+        error = chain(list_merged, 
+            methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in models::fn_elastic_net(...). ",
+                    "Input data (list_merged) is an error type."
+                )))
+        return(error)
+    }
+    if (is.logical(c(vec_idx_training, vec_idx_training)) |
+        (sum(is.na(c(vec_idx_training, vec_idx_training))) > 0) |
+        (min(c(vec_idx_training, vec_idx_training)) < 0) |
+        (max(c(vec_idx_training, vec_idx_training)) > nrow(list_merged$G))) {
+            error = methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in models::fn_Bayes_C(...). ",
+                    "Please make sure that the vector of indexes for the training and validation sets are not booleans. ",
+                    "We require the indexes to be positive integers without missing values. ",
+                    "Also, the maximum index (", max(c(vec_idx_training, vec_idx_training)), 
+                    ") should be less than or equal to the total number of samples/entries/pools in the input data: (", 
+                    nrow(list_merged$G), ")."))
+            return(error)
     }
     ### Set validation set to missing
-    yNA = y
+    yNA = list_merged$list_pheno$y
     yNA[vec_idx_validation] = NA
-    if (is.null(other_params$covariate)==FALSE) {
-        if (nrow(other_params$covariate) != nrow(G)) {
-            print("The covariate and genotype matrices are incompatible, i.e. unequal number of rows.")
-            return(-1)
-        }
-        ETA = list(MRK=list(X=G, model="BayesC"),
-                       list(X=other_params$covariate, model="FIXED"))
+    ### Define Bayes C regression function including covariates if they exist
+    if (!is.null(list_merged$COVAR)) {
+        ETA = list(MRK=list(X=list_merged$G, model="BayesC"),
+                       list(X=list_merged$COVAR, model="FIXED"))
     } else {
-        ETA = list(MRK=list(X=G, model="BayesC"))
+        ETA = list(MRK=list(X=list_merged$G, model="BayesC"))
     }
-    other_params$out_prefix = gsub(" ", "-", paste(other_params$out_prefix, Sys.time(), stats::runif(1), sep="-")) ### attempt at preventing overwrites to the running Gibbs samplers in parallel
-    sol = BGLR::BGLR(y=yNA, ETA=ETA, nIter=other_params$nIter, burnIn=other_params$burnIn, R2=other_params$h2, saveAt=other_params$out_prefix, verbose=FALSE)
-    y_pred = sol$yHat[vec_idx_validation]
-    names(y_pred) = rownames(yNA)[vec_idx_validation]
-    df_y = merge(data.frame(id=rownames(y)[vec_idx_validation], true=y[vec_idx_validation]), data.frame(id=names(y_pred), pred=y_pred), by="id")
-    perf = fn_prediction_performance_metrics(y_true=df_y$true, y_pred=df_y$pred)
-    perf$y_pred = matrix(y_pred, ncol=1)
-    colnames(perf$y_pred) = "pred"
-    rownames(perf$y_pred) = names(y_pred)
-    perf$n_non_zero = sum(abs(sol$ETA$MRK$b) > .Machine$double.eps)
+    ### Attempt at preventing overwrites to the running Gibbs samplers in parallel
+    other_params$out_prefix = gsub(":", ".", gsub(" ", "-", paste(other_params$out_prefix, Sys.time(), stats::runif(1), sep="-")))
+    ### Solve via Bayes C
+    sol = BGLR::BGLR(y=yNA, ETA=ETA, nIter=other_params$nIter, burnIn=other_params$burnIn, saveAt=other_params$out_prefix, verbose=FALSE)
+    ### Extract effects
+    b_hat = sol$ETA$MRK$b
+    n_non_zero = sum(b_hat >= .Machine$double.eps)
+    if (verbose) {
+        p = ncol(list_merged$G)
+        print("Allele effects distribution:")
+        txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)])
+        print("Relative posisitions of allele effects across the genome:")
+        txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)])
+        print(paste0("Number of non-zero effects: ", n_non_zero, " (", round(100*n_non_zero/p), "%)"))
+    }
+    ### Evalute prediction performance
+    df_y_validation = merge(
+        data.frame(id=names(list_merged$list_pheno$y[vec_idx_validation]), pop=list_merged$list_pheno$pop[vec_idx_validation], y_true=list_merged$list_pheno$y[vec_idx_validation]), 
+        data.frame(id=names(yNA)[vec_idx_validation], y_pred=sol$yHat[vec_idx_validation]),
+        by="id")
+    list_perf = fn_prediction_performance_metrics(y_true=df_y_validation$y_true, y_pred=df_y_validation$y_pred, verbose=verbose)
+    ### Clean-up temporary files
     for (f in list.files(dirname(other_params$out_prefix), pattern=basename(other_params$out_prefix))) {
         file.remove(f)    
     }
-    return(perf)
+    ### Output
+    return(list(
+        list_perf=list_perf,
+        df_y_validation=df_y_validation,
+        vec_effects=b_hat,
+        n_non_zero=n_non_zero))
 }
 
 fn_gBLUP = function(G, y, vec_idx_training, vec_idx_validation, other_params=list(covariate=NULL, mem_mb=1000)) {
