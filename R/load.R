@@ -1004,6 +1004,9 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, retain_minus_one_alleles_pe
             return(G)
         })
     })
+    if (methods::is(G, "gpError")) {
+        return(G)
+    }
     ### Retain a-1 allele/s per locus, i.e. remove duplicates assuming all loci are biallelic
     if (retain_minus_one_alleles_per_locus==TRUE) {
         list_G_G_alt = fn_G_split_off_alternative_allele(G=G, verbose=verbose)
