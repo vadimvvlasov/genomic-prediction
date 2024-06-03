@@ -1043,6 +1043,7 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, retain_minus_one_alleles_pe
     }
     ### Show the allele frequency stats
     if (verbose) {
+        print(paste0("Genotype data has ", nrow(G), " samples/entries/pools genotyped across ", ncol(G), " loci/alleles/SNPs."))
         print("Distribution of allele frequencies")
         vec_idx_row_sample = sample(1:nrow(G), size=100)
         vec_idx_col_sample = sample(1:ncol(G), size=100)

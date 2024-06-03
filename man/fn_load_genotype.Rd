@@ -16,12 +16,17 @@ fn_load_genotype(
 }
 \arguments{
 \item{fname_geno}{filename of the genotype file
-This may be in:
+This may be in 1 of 3 formats:
 - VCF format,
 - allele frequency table saved as a tab-delimited file with a header line and the first 3 columns refer to the
 chromosome (chr), position (pos), and allele (allele),
 with subsequent columns referring to the allele frequencies of a sample, entry or pool.
-Names of the samples, entries, or pools in the header line can be any unique string of characters.}
+Names of the samples, entries, or pools in the header line can be any unique string of characters.
+- Rds file containing a single numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+Row names can be any string of characters which identify the sample or entry or pool names.
+Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name,
+the second should be numeric which refers to the position in the chromosome/scaffold, and
+subsequent elements are optional which may refer to the allele identifier and other identifiers.}
 
 \item{ploidy}{ploidy level which will generate genotype classes instead of continuous allele frequencies.
 If NULL, then continuous allele frequencies and no binning or classification into genotype classes

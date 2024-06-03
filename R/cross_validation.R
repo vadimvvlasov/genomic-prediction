@@ -2,7 +2,7 @@
 # source("R/metrics.R")
 # source("R/models.R")
 
-#' Ordinary least squares model
+#' Cross-validate on a single fold, replicate, and model
 #'
 #' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
 #'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
@@ -15,11 +15,18 @@
 #'      $pop: population or groupings corresponding to each element of y
 #'      $trait_name: name of the trait
 #'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
-#' @param vec_idx_training vector of numeric indexes referring to the training set
-#' @param vec_idx_validation vector of numeric indexes referring to the validation set
-#' @param other_params list of additional parameters, specifically $diag_inflate which refers to the value used for 
-#'  diagonal inflation for singular matrices (Default=list(diag_inflate=1e-4))
-#' @param verbose show ordinary least squares regression messages? (Default=FALSE)
+#' @param i index referring to the row in df_params (below) from which 
+#'  the replicate id, fold number and model will be sourced from
+#' @param df_params data frame containing all possible or just a defined non-exhaustive set of 
+#'  combinations of replication, fold and model to be used in cross-validation
+#' @param mat_idx_shuffle numeric n sample x r replications matrix of sample/entry/pool index shuffling where
+#'  each column refer to a random shuffling of samples/entry/pool from which the identities of the
+#'  training and validation sets will be sourced from
+#' @param vec_set_partition_groupings vector of numeric partitioning indexes where each index refer to the
+#'  fold which will serve as the validation population
+#' @param prefix_tmp string referring to the prefix of the temporary files, 
+#'  i.e. prefix (which can include an existing directory) of Bayesian (BGLR) model temporary files
+#' @param verbose show cross-validation on a single fold, replicate, and model messages? (Default=FALSE)
 #' @returns
 #'  Ok:
 #'      $list_perf:
@@ -49,51 +56,146 @@
 #' vec_idx_validation = c(1:n)[!(c(1:n) %in% vec_idx_training)]
 #' list_ols = fn_ols(list_merged, vec_idx_training, vec_idx_validation, verbose=TRUE)
 #' @export
-fn_kfold_cross_validation = function(i, vec_set_partition_groupings, mat_idx_shuffle, mat_params, G, y, COVAR=NULL, prefix_tmp="gsTmp", mem_mb=1000){
+fn_cv_1 = function(list_merged, 
+    i, df_params, mat_idx_shuffle, vec_set_partition_groupings, 
+    prefix_tmp="gsTmp", verbose=FALSE){
     ###################################################
     ### TEST
     # list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
     # G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
     # list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
-    # COVAR = G %*% t(G); # rownames(COVAR) = NULL
+    # COVAR = G %*% t(G)
+    # n = nrow(G)
+    # n_reps = 3
+    # k_folds = 5
+    # set_size = floor(n / k_folds)
+    # vec_models_to_test = c("ridge", "lasso", "elastic_net", "Bayes_A", "Bayes_B", "Bayes_C", "gBLUP")
     # list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, COVAR=COVAR, verbose=TRUE)
-    # n = nrow(list_merged$G)
-    # vec_idx_training = sample(c(1:n), floor(n/2))
-    # vec_idx_validation = c(1:n)[!(c(1:n) %in% vec_idx_training)]
-    # other_params=list(diag_inflate=1e-6)
+    # i = 1
+    # df_params = expand.grid(rep=c(1:n_reps), fold=c(1:k_folds), model=vec_models_to_test)
+    # mat_idx_shuffle = matrix(sample(1:n, size=n, replace=FALSE), ncol=1)
+    # if (n_reps > 1) {
+    #     for (r in 2:n_reps) {
+    #         mat_idx_shuffle = cbind(mat_idx_shuffle, sample(1:n, size=n, replace=FALSE))
+    #     }
+    # }
+    # vec_set_partition_groupings = rep(1:k_folds, each=set_size)
+    # if (length(vec_set_partition_groupings) < n) {
+    #     vec_set_partition_groupings = c(vec_set_partition_groupings, rep(k_folds, times=(n-length(vec_set_partition_groupings))))
+    # }
+    # prefix_tmp="gsTmp"
     # verbose = TRUE
     ###################################################
+    ### Input sanity check
+    if (methods::is(list_merged, "gpError")) {
+        error = chain(list_merged, 
+            methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in cross_validation::fn_cv_1(...). ",
+                    "Input data (list_merged) is an error type."
+                )))
+        return(error)
+    }
+    if ((i < 1) | (i > nrow(df_params))) {
+        error = chain(list_merged, 
+            methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in cross_validation::fn_cv_1(...). ",
+                    "The index (i) of df_params is beyond the number of rows in df_params (may also be less than 1)."
+                )))
+        return(error)
+    }
+    if (sum((colnames(df_params) == c("rep", "fold", "model"))) != 3) {
+        error = chain(list_merged, 
+            methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in cross_validation::fn_cv_1(...). ",
+                    "The data frame of parameters is incorrect. We are expecting the following columns in order: 'rep', 'fold', and 'model'.",
+                    "The supplied data frame has the following columns or fields: ", paste(colnames(df_params), collapse=", ")
+                )))
+        return(error)
+    }
+    if (nrow(mat_idx_shuffle) != nrow(list_merged$G)) {
+        error = chain(list_merged, 
+            methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in cross_validation::fn_cv_1(...). ",
+                    "The number of rows in the shuffling matrix (mat_idx_shuffle; ", nrow(mat_idx_shuffle), " rows) ",
+                    "does not match the number of samples in the input genotype and phenotype (and covariate) data (",
+                    nrow(list_merged$G) , " rows)."
+                )))
+        return(error)
+    }
+    if (ncol(mat_idx_shuffle) != max(df_params$rep)) {
+        error = chain(list_merged, 
+            methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in cross_validation::fn_cv_1(...). ",
+                    "The number of columns in the shuffling matrix (mat_idx_shuffle; ", ncol(mat_idx_shuffle), " columns) ",
+                    "does not match the replications requested (", max(df_params$rep) , " replications)."
+                )))
+        return(error)
+    }
+    if (length(vec_set_partition_groupings) != nrow(list_merged$G)) {
+        error = chain(list_merged, 
+            methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in cross_validation::fn_cv_1(...). ",
+                    "The number of elements in the vector of set partitioning (vec_set_partition_groupings; ", 
+                    length(vec_set_partition_groupings), " elements) does not match the number of samples in ",
+                    "the input genotype and phenotype (and covariate) data (", nrow(list_merged$G) , " rows)."
+                )))
+        return(error)
+    }
+    if (sum(range(vec_set_partition_groupings) == range(df_params$fold)) != 2) {
+        error = chain(list_merged, 
+            methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in cross_validation::fn_cv_1(...). ",
+                    "The number of folds present in the vector of set partitioning (vec_set_partition_groupings; fold ", 
+                    min(vec_set_partition_groupings), " to fold ", max(vec_set_partition_groupings), ") ",
+                    "does not match the number of folds requested (fold ", min(df_params$fold), " to fold ",
+                    max(df_params$fold), ")."
+                )))
+        return(error)
+    }
+
+
     ### Define prefix of intermediate output files
     if (prefix_tmp == "") {
         prefix_tmp = "gsTmp"
     }
     ### Define rep, fold, and model
-    r = mat_params$rep[i]
-    k = mat_params$fold[i]
-    model = mat_params$model[i]
+    r = df_params$rep[i]
+    k = df_params$fold[i]
+    model = df_params$model[i]
     ### Define the partitioning of the dataset
-    kfold = max(mat_params$fold)
+    kfold = max(df_params$fold)
     n = nrow(G)
     l = ncol(G)
     if (n != length(y)) {
         print("The X matrix and y vector do have the same number of entries!")
         return(0)
     }
-    ### Define the parameters
+    ### Shuffle the samples and divide into validation and training sets
+    ###     as determined by the current replication and fold
     vec_idx_shuffle = mat_idx_shuffle[, r]
     idx_validation = vec_idx_shuffle[vec_set_partition_groupings==k]
     idx_training = vec_idx_shuffle[vec_set_partition_groupings!=k]
-    # for (model in models_to_test) {
-    # model = "lasso"
+    ### Define additional model input/s
     time_ini = Sys.time()
     if (grepl("Bayes", model)==TRUE) {
         ### Append the input prefix into the temporary file prefix generated by Bayesian models so we don't overwite these when performing parallel computations
-        other_params = list(nIter=12e3, burnIn=2e3, h2=0.5, out_prefix=paste0(dirname(prefix_tmp), "/bglr_", model, "-", basename(prefix_tmp), "-"), covariate=COVAR)
+        other_params = list(nIter=12e3, burnIn=2e3, h2=0.5, out_prefix=paste0(dirname(prefix_tmp), "/bglr_", model, "-", basename(prefix_tmp), "-"))
     } else {
-        other_params = list(covariate=COVAR)
-    }
-    if (grepl("gBLUP", model)==TRUE) {
-        other_params = list(covariate=COVAR, mem_mb=mem_mb)
+        other_params = list(n_folds=10)
     }
     perf = eval(parse(text=paste0("fn_", model, "(G=G, y=y, idx_training=idx_training, idx_validation=idx_validation, other_params=other_params)")))
     duration_mins = difftime(Sys.time(), time_ini, units="min")
@@ -120,7 +222,7 @@ fn_kfold_cross_validation = function(i, vec_set_partition_groupings, mat_idx_shu
 ### K-fold cross validation across GP models with parallelisation across folds, replications and models
 ### Generates csv files with one row each for each fold x rep x model iteration. Clean these up if you like. These were just made to make sure we have output in case the entire function fails and we still have output to look at.
 ### Outputs a list containing a data frame of prediction accuracy metrics and a data frame of predicted phenotypes
-fn_cross_validation = function(G, y, COVAR=NULL, models_to_test=c("ridge","lasso","elastic_net","Bayes_A","Bayes_B","Bayes_C", "gBLUP"), k_folds=10, n_reps=3, n_threads=32, mem_mb=64000, prefix_tmp="", verbose=FALSE) {
+fn_cross_validation = function(G, y, COVAR=NULL, vec_models_to_test=c("ridge","lasso","elastic_net","Bayes_A","Bayes_B","Bayes_C","gBLUP"), k_folds=10, n_reps=3, n_threads=32, mem_mb=64000, prefix_tmp="", verbose=FALSE) {
     ### Input data dimensions
     n = nrow(G)
     l = ncol(G)
@@ -149,20 +251,20 @@ fn_cross_validation = function(G, y, COVAR=NULL, models_to_test=c("ridge","lasso
         }
     }
     ### Prepare matrix of rep x fold x model combinations and sort by fold so that we can start comparing as soon as results become available
-    mat_params = expand.grid(rep=c(1:n_reps), fold=c(1:k_folds), model=models_to_test)
-    mat_params = mat_params[order(mat_params$rep), ]
-    mat_params = mat_params[order(mat_params$fold), ]
+    df_params = expand.grid(rep=c(1:n_reps), fold=c(1:k_folds), model=vec_models_to_test)
+    df_params = df_params[order(df_params$rep), ]
+    df_params = df_params[order(df_params$fold), ]
     ### Limit the number of forks by the memory available and the size of G and y
     total_memory = mem_mb / 1e3 ### in gigabytes
     data_size = 2 * max(1, c(round(as.numeric(gsub(" Gb", "", format(utils::object.size(G), units="Gb"))) + as.numeric(gsub(" Gb", "", format(utils::object.size(y), units="Gb"))))))
-    n_forks = max(c(1, min(c(nrow(mat_params), n_threads, floor((total_memory-data_size) / data_size))))) ### force the minimum number of threads to 1
+    n_forks = max(c(1, min(c(nrow(df_params), n_threads, floor((total_memory-data_size) / data_size))))) ### force the minimum number of threads to 1
     ### Report the folds, replication, models being tested, memory allocation and number of parallel threads
     if (verbose==TRUE) {
         print("Genomic prediction cross-validation:")
         print(paste0("     - ", k_folds, " folds x ", n_reps, " replications with ", set_size, " entries per set."))
         print(paste0("     - ", n, " entries x ", l, " loci x (n_alleles - 1)."))
         print("Models being tested:")
-        for (mod in models_to_test) {
+        for (mod in vec_models_to_test) {
             print(paste0("     - ", mod))
         }
         print(paste0("Total memory: ", total_memory, " Gb"))
@@ -172,8 +274,8 @@ fn_cross_validation = function(G, y, COVAR=NULL, models_to_test=c("ridge","lasso
     ### Multi-threaded cross-fold validation
     time_ini = Sys.time()
     list_perf = tryCatch(
-        parallel::mclapply(c(1:nrow(mat_params)), 
-            FUN=fn_kfold_cross_validation, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, mat_params=mat_params, G=G, y=y, COVAR=COVAR, prefix_tmp=prefix_tmp, mem_mb=(floor(total_memory/n_forks)*1e3), 
+        parallel::mclapply(c(1:nrow(df_params)), 
+            FUN=fn_cv_1, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, df_params=df_params, G=G, y=y, COVAR=COVAR, prefix_tmp=prefix_tmp, mem_mb=(floor(total_memory/n_forks)*1e3), 
             mc.cores=n_forks, mc.preschedule=FALSE, mc.set.seed=TRUE, mc.silent=FALSE, mc.cleanup=TRUE),
         error = function(e){c()}
     )
@@ -184,23 +286,23 @@ fn_cross_validation = function(G, y, COVAR=NULL, models_to_test=c("ridge","lasso
     #     print(paste0("Reducing the maximum number of threads to be used: ", n_forks))
     #     print(gc())
     #     list_perf = tryCatch(
-    #         parallel::mclapply(c(1:nrow(mat_params)), 
-    #             FUN=fn_kfold_cross_validation, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, mat_params=mat_params, G=G, y=y, COVAR=COVAR, prefix_tmp=prefix_tmp, mem_mb=(floor(total_memory/n_forks)*1e3), 
+    #         parallel::mclapply(c(1:nrow(df_params)), 
+    #             FUN=fn_cv_1, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, df_params=df_params, G=G, y=y, COVAR=COVAR, prefix_tmp=prefix_tmp, mem_mb=(floor(total_memory/n_forks)*1e3), 
     #             mc.cores=n_forks, mc.preschedule=FALSE, mc.set.seed=TRUE, mc.silent=FALSE, mc.cleanup=TRUE),
     #         error = function(e){c()}
     #     )
     # }
     # list_perf = list()
-    # for (i in c(1:nrow(mat_params))) {
+    # for (i in c(1:nrow(df_params))) {
     #     print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
     #     print(i)
-    #     print(mat_params[i, ])
+    #     print(df_params[i, ])
     #     print(dim(COVAR))
-    #     list_perf = c(list_perf, fn_kfold_cross_validation(
+    #     list_perf = c(list_perf, fn_cv_1(
     #         i=i,
     #         vec_set_partition_groupings=vec_set_partition_groupings,
     #         mat_idx_shuffle=mat_idx_shuffle,
-    #         mat_params=mat_params,
+    #         df_params=df_params,
     #         G=G,
     #         y=y,
     #         COVAR=COVAR,
@@ -245,7 +347,7 @@ fn_cross_validation = function(G, y, COVAR=NULL, models_to_test=c("ridge","lasso
 ### Pairwise population cross-validation, i.e. 1 population for training and the other for validation
 ### Generates csv files with one row each for each fold x rep x model iteration. Clean these up if you like. These were just made to make sure we have output in case the entire function fails and we still have output to look at.
 ### Outputs a list containing a data frame of prediction accuracy metrics and a data frame of predicted phenotypes
-fn_pairwise_cross_validation = function(G_training, G_validation, y_training, y_validation, COVAR=NULL, models_to_test=c("ridge","lasso","elastic_net","Bayes_A","Bayes_B","Bayes_C"), n_threads=32, mem_mb=64000, prefix_tmp="", verbose=FALSE) {
+fn_pairwise_cross_validation = function(G_training, G_validation, y_training, y_validation, COVAR=NULL, vec_models_to_test=c("ridge","lasso","elastic_net","Bayes_A","Bayes_B","Bayes_C"), n_threads=32, mem_mb=64000, prefix_tmp="", verbose=FALSE) {
     ### Data dimensions
     for (suffix in c("training", "validation")) {
         eval(parse(text=paste0("n_", suffix, " = nrow(G_", suffix, ")")))
@@ -267,12 +369,12 @@ fn_pairwise_cross_validation = function(G_training, G_validation, y_training, y_
     ### No shuffling needed as cross-validation is not replicated
     mat_idx_shuffle = matrix(1:(n_training+n_validation), ncol=1)
     ### Prepare matrix of rep x fold x model combinations
-    mat_params = expand.grid(rep=c(1), fold=c(1), model=models_to_test)
+    df_params = expand.grid(rep=c(1), fold=c(1), model=vec_models_to_test)
     ### Report the folds, replication and models being tested
     if (verbose==TRUE) {
         print("Genomic prediction cross-validation:")
         print("Models being tested:")
-        for (mod in models_to_test) {
+        for (mod in vec_models_to_test) {
             print(paste0("     - ", mod))
         }
     }
@@ -282,10 +384,10 @@ fn_pairwise_cross_validation = function(G_training, G_validation, y_training, y_
     n_forks = min(c(n_threads, floor((total_memory-10) / data_size)))
     ### Multi-threaded cross-fold validation
     time_ini = Sys.time()
-    list_perf = parallel::mclapply(c(1:nrow(mat_params)), FUN=fn_kfold_cross_validation, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, mat_params=mat_params, G=G, y=y, COVAR=COVAR, prefix_tmp=prefix_tmp, mem_mb=(floor(total_memory/n_forks)*1e3), mc.cores=n_forks)
-    for (i in 1:nrow(mat_params)) {
+    list_perf = parallel::mclapply(c(1:nrow(df_params)), FUN=fn_cv_1, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, df_params=df_params, G=G, y=y, COVAR=COVAR, prefix_tmp=prefix_tmp, mem_mb=(floor(total_memory/n_forks)*1e3), mc.cores=n_forks)
+    for (i in 1:nrow(df_params)) {
         i = 7
-        x = fn_kfold_cross_validation(i=i, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, mat_params=mat_params, G=G, y=y, COVAR=COVAR, prefix_tmp=prefix_tmp, mem_mb=(floor(total_memory/n_forks)*1e3))
+        x = fn_cv_1(i=i, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, df_params=df_params, G=G, y=y, COVAR=COVAR, prefix_tmp=prefix_tmp, mem_mb=(floor(total_memory/n_forks)*1e3))
     }
     duration_mins = difftime(Sys.time(), time_ini, units="min")
     print(paste0("Multi-threaded pairwise cross-fold validation finished after ", duration_mins, " minutes."))
@@ -324,7 +426,7 @@ fn_pairwise_cross_validation = function(G_training, G_validation, y_training, y_
 ## Leave-one-population-out, i.e., using 1 population as the validation set and the rest as the training set
 ### Generates csv files with one row each for each fold x rep x model iteration. Clean these up if you like. These were just made to make sure we have output in case the entire function fails and we still have output to look at.
 ### Outputs a list containing a data frame of prediction accuracy metrics (which includes the validation population field corresponding to each fold-validation) and a data frame of predicted phenotypes
-fn_leave_one_population_out_cross_validation = function(G, y, pop, COVAR=NULL, models_to_test=c("ridge","lasso","elastic_net","Bayes_A","Bayes_B","Bayes_C"), n_threads=32, mem_mb=64000, prefix_tmp="", verbose=FALSE) {
+fn_leave_one_population_out_cross_validation = function(G, y, pop, COVAR=NULL, vec_models_to_test=c("ridge","lasso","elastic_net","Bayes_A","Bayes_B","Bayes_C"), n_threads=32, mem_mb=64000, prefix_tmp="", verbose=FALSE) {
     # n=100; l=1000; ploidy=100; n_alleles=2; min_allele_freq=0.01; n_chr=7; max_pos=1e6; dist_bp_at_50perc_r2=1e3; n_threads=8
     # G = simquantgen::fn_simulate_genotypes(n=n, l=l, ploidy=ploidy, n_alleles=n_alleles, min_allele_freq=min_allele_freq, n_chr=n_chr, max_pos=max_pos, dist_bp_at_50perc_r2=dist_bp_at_50perc_r2, n_threads=n_threads)
     # dist_effects=c("norm", "chi2")[1]; n_effects=100; purely_additive=FALSE; n_networks=10; n_effects_per_network=50; h2=0.5; pheno_reps=1
@@ -332,7 +434,7 @@ fn_leave_one_population_out_cross_validation = function(G, y, pop, COVAR=NULL, m
     # # y = simquantgen::fn_simulate_phenotypes(G=G, n_alleles=n_alleles, dist_effects=dist_effects, n_effects=10, purely_additive=TRUE, n_networks=0, n_effects_per_network=0, h2=0.99, pheno_reps=1)$Y
     # # y = simquantgen::fn_simulate_phenotypes(G=G, n_alleles=n_alleles, dist_effects=dist_effects, n_effects=10, purely_additive=FALSE, n_networks=2, n_effects_per_network=10, h2=0.99, pheno_reps=1)$Y
     # pop = sample(c("popA", "popB", "popC", "popD"), size=n, replace=TRUE)
-    # COVAR=NULL; models_to_test=c("ridge","lasso","elastic_net","Bayes_A","Bayes_B","Bayes_C"); n_threads=32; mem_mb=64000; prefix_tmp=""
+    # COVAR=NULL; vec_models_to_test=c("ridge","lasso","elastic_net","Bayes_A","Bayes_B","Bayes_C"); n_threads=32; mem_mb=64000; prefix_tmp=""
     # verbose = TRUE
     ### Data dimensions
     expect_equal(rownames(G), rownames(y))
@@ -357,22 +459,22 @@ fn_leave_one_population_out_cross_validation = function(G, y, pop, COVAR=NULL, m
     ### No shuffling needed as cross-validation is not replicated
     mat_idx_shuffle = matrix(1:n, ncol=1)
     ### Prepare matrix of rep x fold x model combinations
-    mat_params = expand.grid(rep=c(1), fold=c(1:k), model=models_to_test)
+    df_params = expand.grid(rep=c(1), fold=c(1:k), model=vec_models_to_test)
     ### Report the folds, replication and models being tested
     if (verbose==TRUE) {
         print("Genomic prediction cross-validation:")
         print("Models being tested:")
-        for (mod in models_to_test) {
+        for (mod in vec_models_to_test) {
             print(paste0("     - ", mod))
         }
     }
     ### Limit the number of forks by the memory available and the size of G and y
     total_memory = mem_mb * 1e3
     data_size = 50 * as.numeric(gsub(" Gb", "", format(utils::object.size(c(G, y)), units="Gb")))
-    n_forks = min(c(n_threads, floor((total_memory-10) / data_size), length(models_to_test)))
+    n_forks = min(c(n_threads, floor((total_memory-10) / data_size), length(vec_models_to_test)))
     ### Multi-threaded cross-fold validation (Note: y-predictions are standard normalised)
     time_ini = Sys.time()
-    list_perf = parallel::mclapply(c(1:nrow(mat_params)), FUN=fn_kfold_cross_validation, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, mat_params=mat_params, G=G, y=y, COVAR=COVAR, prefix_tmp=prefix_tmp, mem_mb=(floor(total_memory/n_forks)*1e3), mc.cores=n_forks)
+    list_perf = parallel::mclapply(c(1:nrow(df_params)), FUN=fn_cv_1, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, df_params=df_params, G=G, y=y, COVAR=COVAR, prefix_tmp=prefix_tmp, mem_mb=(floor(total_memory/n_forks)*1e3), mc.cores=n_forks)
     duration_mins = difftime(Sys.time(), time_ini, units="min") # 2.8 hours!
     print(paste0("Multi-threaded leave-one-population-out cross-fold validation finished after ", duration_mins, " minutes."))
     ### Collect the output
@@ -381,7 +483,7 @@ fn_leave_one_population_out_cross_validation = function(G, y, pop, COVAR=NULL, m
         colnames(perf$df_y_pred) = c("rep", "entry", "model", "y_pred")
         tmp_df_metrics = perf$df_metrics
         tmp_df_y_pred = perf$df_y_pred
-        tmp_df_y_pred$pop = uniq_pop[mat_params$fold[i]]
+        tmp_df_y_pred$pop = uniq_pop[df_params$fold[i]]
         tmp_fnames_metrics = perf$fname_metrics_out
         tmp_fnames_y_pred = perf$fname_y_pred_out
         if (i==1) {
@@ -493,7 +595,7 @@ fn_within_across_perse_genomic_prediction = function(G, idx_col_y, args, dir_tmp
         list_out = fn_cross_validation(G=G[idx, , drop=FALSE],
                                     y=y[ idx, , drop=FALSE],
                                     COVAR=COVAR[idx, , drop=FALSE],
-                                    models_to_test=args$models_to_test,
+                                    vec_models_to_test=args$vec_models_to_test,
                                     k_folds=args$k_folds,
                                     n_reps=args$n_reps,
                                     n_threads=args$n_threads,
@@ -542,7 +644,7 @@ fn_within_across_perse_genomic_prediction = function(G, idx_col_y, args, dir_tmp
                                                                 y=y,
                                                                 pop=pop,
                                                                 COVAR=COVAR,
-                                                                models_to_test=args$models_to_test,
+                                                                vec_models_to_test=args$vec_models_to_test,
                                                                 n_threads=args$n_threads,
                                                                 mem_mb=args$mem_mb,
                                                                 prefix_tmp=paste0(prefix, "-LOPO"),
@@ -587,7 +689,7 @@ fn_within_across_perse_genomic_prediction = function(G, idx_col_y, args, dir_tmp
                                                         y_training=y[ idx_1, , drop=FALSE],
                                                         y_validation=y[ idx_2, , drop=FALSE],
                                                         COVAR=COVAR[idx, , drop=FALSE],
-                                                        models_to_test=args$models_to_test,
+                                                        vec_models_to_test=args$vec_models_to_test,
                                                         n_threads=args$n_threads,
                                                         mem_mb=args$mem_mb,
                                                         prefix_tmp=paste0(prefix, "-PAIRWISE-pop1_", pop_id_1, "-pop2_", pop_id_2),
@@ -747,29 +849,29 @@ tests_cross_validation = function() {
     set.seed(123)
     G = fn_simulate_genotypes(n=100, l=1e3, ploidy=2, n_alleles=2, min_allele_freq=0.05, n_chr=7, max_pos=1e6, dist_bp_at_50perc_r2=1e4, n_threads=2)
     y = fn_simulate_phenotypes(G=G, n_alleles=2, dist_effects="norm", n_effects=5, purely_additive=TRUE, h2=0.75, pheno_reps=1)$Y
-    COVAR=NULL; models_to_test=c("ridge","lasso","elastic_net","Bayes_A","Bayes_B","Bayes_C","gBLUP"); n_threads=2; mem_mb=34000
+    COVAR=NULL; vec_models_to_test=c("ridge","lasso","elastic_net","Bayes_A","Bayes_B","Bayes_C","gBLUP"); n_threads=2; mem_mb=34000
     test_that(
-        "fn_kfold_cross_validation", {
+        "fn_cv_1", {
             n_reps = 3
             k_folds = 10
             n = length(y)
             vec_set_partition_groupings = rep(1:k_folds, each=round(n / k_folds))
             mat_idx_shuffle = matrix(sample(1:n, size=n, replace=FALSE), ncol=1)
-            mat_params = expand.grid(rep=c(1:n_reps), fold=c(1:k_folds), model=models_to_test)
-            idx_ridge = which(mat_params$model == "ridge")[1]
-            idx_lasso = which(mat_params$model == "lasso")[1]
-            idx_elastic_net = which(mat_params$model == "elastic_net")[1]
-            idx_Bayes_A = which(mat_params$model == "Bayes_A")[1]
-            idx_Bayes_B = which(mat_params$model == "Bayes_B")[1]
-            idx_Bayes_C = which(mat_params$model == "Bayes_C")[1]
-            idx_gBLUP = which(mat_params$model == "gBLUP")[1]
-            out_ridge = fn_kfold_cross_validation(i=idx_ridge, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, mat_params=mat_params, G=G, y=y, COVAR=COVAR, mem_mb=mem_mb)
-            out_lasso = fn_kfold_cross_validation(i=idx_lasso, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, mat_params=mat_params, G=G, y=y, COVAR=COVAR, mem_mb=mem_mb)
-            out_elastic_net = fn_kfold_cross_validation(i=idx_elastic_net, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, mat_params=mat_params, G=G, y=y, COVAR=COVAR, mem_mb=mem_mb)
-            out_Bayes_A = fn_kfold_cross_validation(i=idx_Bayes_A, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, mat_params=mat_params, G=G, y=y, COVAR=COVAR, mem_mb=mem_mb)
-            out_Bayes_B = fn_kfold_cross_validation(i=idx_Bayes_B, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, mat_params=mat_params, G=G, y=y, COVAR=COVAR, mem_mb=mem_mb)
-            out_Bayes_C = fn_kfold_cross_validation(i=idx_Bayes_C, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, mat_params=mat_params, G=G, y=y, COVAR=COVAR, mem_mb=mem_mb)
-            out_gBLUP = fn_kfold_cross_validation(i=idx_gBLUP, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, mat_params=mat_params, G=G, y=y, COVAR=COVAR, mem_mb=mem_mb)
+            df_params = expand.grid(rep=c(1:n_reps), fold=c(1:k_folds), model=vec_models_to_test)
+            idx_ridge = which(df_params$model == "ridge")[1]
+            idx_lasso = which(df_params$model == "lasso")[1]
+            idx_elastic_net = which(df_params$model == "elastic_net")[1]
+            idx_Bayes_A = which(df_params$model == "Bayes_A")[1]
+            idx_Bayes_B = which(df_params$model == "Bayes_B")[1]
+            idx_Bayes_C = which(df_params$model == "Bayes_C")[1]
+            idx_gBLUP = which(df_params$model == "gBLUP")[1]
+            out_ridge = fn_cv_1(i=idx_ridge, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, df_params=df_params, G=G, y=y, COVAR=COVAR, mem_mb=mem_mb)
+            out_lasso = fn_cv_1(i=idx_lasso, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, df_params=df_params, G=G, y=y, COVAR=COVAR, mem_mb=mem_mb)
+            out_elastic_net = fn_cv_1(i=idx_elastic_net, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, df_params=df_params, G=G, y=y, COVAR=COVAR, mem_mb=mem_mb)
+            out_Bayes_A = fn_cv_1(i=idx_Bayes_A, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, df_params=df_params, G=G, y=y, COVAR=COVAR, mem_mb=mem_mb)
+            out_Bayes_B = fn_cv_1(i=idx_Bayes_B, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, df_params=df_params, G=G, y=y, COVAR=COVAR, mem_mb=mem_mb)
+            out_Bayes_C = fn_cv_1(i=idx_Bayes_C, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, df_params=df_params, G=G, y=y, COVAR=COVAR, mem_mb=mem_mb)
+            out_gBLUP = fn_cv_1(i=idx_gBLUP, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, df_params=df_params, G=G, y=y, COVAR=COVAR, mem_mb=mem_mb)
             expect_equal(out_ridge$df_metrics$corr < out_lasso$df_metrics$corr, TRUE)
             expect_equal(out_ridge$df_metrics$corr < out_elastic_net$df_metrics$corr, TRUE)
             expect_equal(out_ridge$df_metrics$corr < out_Bayes_A$df_metrics$corr, TRUE)
@@ -794,7 +896,7 @@ tests_cross_validation = function() {
             print("fn_cross_validation:")
             k_folds=10
             n_reps=3
-            out_kfold_cv = fn_cross_validation(G=G, y=y, COVAR=COVAR, models_to_test=models_to_test, k_folds=k_folds, n_reps=n_reps, n_threads=n_threads, mem_mb=mem_mb, verbose=TRUE)
+            out_kfold_cv = fn_cross_validation(G=G, y=y, COVAR=COVAR, vec_models_to_test=vec_models_to_test, k_folds=k_folds, n_reps=n_reps, n_threads=n_threads, mem_mb=mem_mb, verbose=TRUE)
             agg_kfold_cv = stats::aggregate(corr ~ model, FUN=mean, data=out_kfold_cv$df_metrics)
             expect_equal(agg_kfold_cv$corr[agg_kfold_cv$model=="lasso"] > agg_kfold_cv$corr[agg_kfold_cv$model=="ridge"], TRUE)
             expect_equal(agg_kfold_cv$corr[agg_kfold_cv$model=="lasso"] > agg_kfold_cv$corr[agg_kfold_cv$model=="gBLUP"], TRUE)
@@ -825,13 +927,13 @@ tests_cross_validation = function() {
                                                  G_validation=G_a_null,
                                                  y_training=y_a,
                                                  y_validation=y_a_null,
-                                                 COVAR=COVAR, models_to_test=models_to_test, n_threads=n_threads, mem_mb=mem_mb)
+                                                 COVAR=COVAR, vec_models_to_test=vec_models_to_test, n_threads=n_threads, mem_mb=mem_mb)
             agg_pairwise_cv_null = stats::aggregate(corr ~ model, FUN=mean, data=out_pairwise_cv_null$df_metrics)
             out_pairwise_cv_a_vs_b = fn_pairwise_cross_validation(G_training=G_a,
                                                  G_validation=G_b,
                                                  y_training=y_a,
                                                  y_validation=y_b,
-                                                 COVAR=COVAR, models_to_test=models_to_test, n_threads=n_threads, mem_mb=mem_mb)
+                                                 COVAR=COVAR, vec_models_to_test=vec_models_to_test, n_threads=n_threads, mem_mb=mem_mb)
             agg_pairwise_cv_a_vs_b = stats::aggregate(corr ~ model, FUN=mean, data=out_pairwise_cv_a_vs_b$df_metrics)
             expect_equal(agg_pairwise_cv_a_vs_b$corr[agg_pairwise_cv_a_vs_b$model=="lasso"] > agg_pairwise_cv_a_vs_b$corr[agg_pairwise_cv_a_vs_b$model=="ridge"], TRUE)
             expect_equal(agg_pairwise_cv_a_vs_b$corr[agg_pairwise_cv_a_vs_b$model=="lasso"] > agg_pairwise_cv_a_vs_b$corr[agg_pairwise_cv_a_vs_b$model=="gBLUP"], TRUE)
@@ -849,7 +951,7 @@ tests_cross_validation = function() {
             out_lopo_cv = fn_leave_one_population_out_cross_validation(G=G,
                                                                  y=y,
                                                                  pop=clusters,
-                                                                 COVAR=COVAR, models_to_test=models_to_test, n_threads=n_threads, mem_mb=mem_mb)
+                                                                 COVAR=COVAR, vec_models_to_test=vec_models_to_test, n_threads=n_threads, mem_mb=mem_mb)
             agg_lopo_cv = stats::aggregate(corr~model, FUN=mean, data=out_lopo_cv$df_metrics)
             expect_equal(agg_lopo_cv$corr[agg_lopo_cv$model=="lasso"] > agg_lopo_cv$corr[agg_lopo_cv$model=="ridge"], TRUE)
             expect_equal(agg_lopo_cv$corr[agg_lopo_cv$model=="lasso"] > agg_lopo_cv$corr[agg_lopo_cv$model=="gBLUP"], TRUE)
