@@ -1240,6 +1240,10 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
         (vec_freqs <= (1-maf)) &
         (vec_sdevs >= sdev_min))
     if (length(vec_idx) < ncol(G)) {
+        if (verbose) {
+            print(paste0("Filtering by minimum allele frequency (", maf, ") and allele frequency standard deviation (", sdev_min, "):"))
+            print(paste0("Retaining ", length(vec_idx), " loci, i.e. ", length(vec_idx), "/", ncol(G), "(", round(length(vec_idx)*100/ncol(G)), "%)"))
+        }
         G = G[, vec_idx, drop=FALSE]
     } else {
         if (verbose) {print("All loci passed the minimum allele frequency and standard deviation thresholds.")}
