@@ -747,6 +747,8 @@ fn_classify_allele_frequencies = function(G, ploidy=2, verbose=FALSE) {
 #' @param min_depth minimum depth per locus (Default=5)
 #' @param max_depth maximum depth per locus (Default=5000)
 #' @param n_pop number of randomly assigned population groupings (Default=1)
+#' @param n_effects number of additive QTL effects to simulate (Default=10)
+#' @param h2 narrow-sense heritability to simulate (Default=0.5)
 #' @param seed randomisation seed for replicability (Default=12345)
 #' @param save_pheno_tsv save the phenotype data as a tab-delimited file? (Default=TRUE)
 #' @param save_geno_vcf save the genotype data as a vcf file? (Default=TRUE)
@@ -765,7 +767,8 @@ fn_classify_allele_frequencies = function(G, ploidy=2, verbose=FALSE) {
 #' list_sim = fn_simulate_data(verbose=TRUE, 
 #'  save_geno_vcf=TRUE, save_geno_tsv=TRUE, save_geno_rds=TRUE, save_pheno_tsv=TRUE)
 #' @export
-fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, max_depth=1000, n_pop=1, seed=12345, 
+fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, max_depth=1000, n_pop=1, 
+    n_effects=10, h2=0.5, seed=12345, 
     save_pheno_tsv=TRUE, save_geno_vcf=TRUE, save_geno_tsv=FALSE, save_geno_rds=FALSE, non_numeric_Rds=FALSE, verbose=FALSE) {
     ###################################################
     ### TEST
@@ -776,6 +779,8 @@ fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, m
     # min_depth = 5
     # max_depth = 1000
     # pheno_reps = 1
+    # n_effects = 10
+    # h2 = 0.5
     # seed = 12345
     # save_pheno_tsv = TRUE
     # save_geno_vcf = TRUE
@@ -789,7 +794,7 @@ fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, m
     ### Simulate genotype matrix
     G = simquantgen::fn_simulate_genotypes(n=n, l=l, ploidy=ploidy, n_alleles=n_alleles, verbose=verbose)
     ### Simulate phenotype data frame
-    list_Y_b_E_b_epi = simquantgen::fn_simulate_phenotypes(G=G, n_alleles=n_alleles, dist_effects="norm", n_effects=10, h2=0.5, pheno_reps=1, verbose=FALSE)
+    list_Y_b_E_b_epi = simquantgen::fn_simulate_phenotypes(G=G, n_alleles=n_alleles, dist_effects="norm", n_effects=n_effects, h2=h2, pheno_reps=1, verbose=FALSE)
     y = list_Y_b_E_b_epi$Y[,1]
     df = data.frame(id=names(y), pop=sample(paste0("pop_", 1:n_pop), size=length(y), replace=TRUE), trait=y); rownames(df) = NULL
     ### Report distribution of simulation data
@@ -1444,7 +1449,7 @@ fn_load_phenotype = function(fname_pheno, sep="\t", header=TRUE,
     names(y) = entry
     if (verbose) {
         print("Distribution of phenotype data:")
-        txtplot::txtdensity(y)
+        txtplot::txtdensity(y[!is.na(y)])
     }
     if (header) {
         trait_name = colnames(df)[idx_col_y]

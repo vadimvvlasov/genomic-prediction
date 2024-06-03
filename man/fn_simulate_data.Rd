@@ -13,6 +13,8 @@ fn_simulate_data(
   min_depth = 5,
   max_depth = 1000,
   n_pop = 1,
+  n_effects = 10,
+  h2 = 0.5,
   seed = 12345,
   save_pheno_tsv = TRUE,
   save_geno_vcf = TRUE,
@@ -37,6 +39,10 @@ fn_simulate_data(
 
 \item{n_pop}{number of randomly assigned population groupings (Default=1)}
 
+\item{n_effects}{number of additive QTL effects to simulate (Default=10)}
+
+\item{h2}{narrow-sense heritability to simulate (Default=0.5)}
+
 \item{seed}{randomisation seed for replicability (Default=12345)}
 
 \item{save_pheno_tsv}{save the phenotype data as a tab-delimited file? (Default=TRUE)}
@@ -52,10 +58,12 @@ fn_simulate_data(
 \item{verbose}{show genotype and phenotype data simulation messages? (Default=FALSE)}
 }
 \value{
+Ok:
 $fname_geno_vcf: filename of the simulated genotype data as a vcf file
 $fname_geno_tsv: filename of the simulated genotype data as a tab-delimited allele frequency table file
 $fname_geno_rds: filename of the simulated named genotype matrix as an Rds file
 $fname_pheno_tsv: filename of the simulated phenotype data as a tab-delimited file
+Err: gpError
 }
 \description{
 Simple wrapper of simquantgen simulation of 10 standard normally distributed QTL additive effects
