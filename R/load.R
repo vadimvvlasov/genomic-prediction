@@ -517,6 +517,7 @@ fn_G_to_vcf = function(G, min_depth=100, max_depth=1000, verbose=FALSE) {
 #' @param vcf biallelic genotype data as a vcfR object with GT and/or AD and DP fields (where AD takes precedence over GT)
 #' @param min_depth minimum depth per locus beyond which will be set to missing data (Default=0)
 #' @param max_depth maximum depth per locus beyond which will be set to missing data (Default=Inf)
+#' @param remove_multi_row_loci remove loci with multiple rows, i.e. multi-allelic loci divided into multiple rows (Default=TRUE)
 #' @param retain_minus_one_alleles_per_locus omit the alternative or trailing allele per locus? (Default=TRUE)
 #' @param verbose show vcf to allele frequency genotype matrix conversion messages? (Default=FALSE)
 #' @returns
@@ -531,13 +532,14 @@ fn_G_to_vcf = function(G, min_depth=100, max_depth=1000, verbose=FALSE) {
 #' vcf = fn_G_to_vcf(G=G, verbose=TRUE)
 #' G_back = fn_vcf_to_G(vcf=vcf, verbose=TRUE)
 #' @export
-fn_vcf_to_G = function(vcf, min_depth=0, max_depth=Inf, retain_minus_one_alleles_per_locus=TRUE, verbose=FALSE) {
+fn_vcf_to_G = function(vcf, min_depth=0, max_depth=Inf, remove_multi_row_loci=TRUE, retain_minus_one_alleles_per_locus=TRUE, verbose=FALSE) {
     ###################################################
     ### TEST
     # G = simquantgen::fn_simulate_genotypes(verbose=TRUE)
     # vcf = fn_G_to_vcf(G=G, verbose=TRUE)
     # min_depth = 10
     # max_depth = 500
+    # remove_multi_row_loci = TRUE
     # retain_minus_one_alleles_per_locus = TRUE
     # verbose = TRUE
     ###################################################
@@ -547,6 +549,14 @@ fn_vcf_to_G = function(vcf, min_depth=0, max_depth=Inf, retain_minus_one_alleles
             code=000,
             message="Error in load::fn_vcf_to_G(vcf): vcf is not a vcfR object.")
         return(error)
+    }
+    ### Remove loci with multiple rows, i.e. multiple alleles are divided into multiple rows
+    if (remove_multi_row_loci) {
+        if (verbose) {print("Removing duplicate loci rows (multiple alleles per locus which were divided into multiple rows)")}
+        vec_loci_names = paste(vcfR::getCHROM(vcf), vcfR::getPOS(vcf), sep="\t")
+        vec_idx_remove_duplicates = which(!duplicated(vec_loci_names))
+        vcf = vcf[vec_idx_remove_duplicates, , ]
+        if (verbose) {print(vcf)}
     }
     ### Extract loci and pool/sample names
     vec_loci_ref_names = paste(vcfR::getCHROM(vcf), vcfR::getPOS(vcf), vcfR::getREF(vcf), sep="\t")
@@ -601,11 +611,6 @@ fn_vcf_to_G = function(vcf, min_depth=0, max_depth=Inf, retain_minus_one_alleles
             txtplot::txtdensity(mat_depth[!is.na(mat_depth)])
         }
     }
-    
-    #################################################
-    ### TODO: handle multi-row multi-allelic loci ###
-    #################################################
-
     ### Extract genotype data where the AD field takes precedence over the GT field
     if (sum(grepl("AD", vec_elements)) == length(vec_elements)) {
         mat_allele_counts = vcfR::extract.gt(vcf, element="AD")
@@ -944,6 +949,7 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, retain_minus_one_alleles_pe
     # min_depth = 10
     # max_depth = 100
     # verbose = TRUE
+    # fname_geno = "/group/pasture/forages/Ryegrass/STR/NUE_WUE_2022-23/NUE_WUE_halfsibs/genotype/normalised-STR_halfsibs_SNPCall.vcf"
     ###################################################
     ### Load the genotype matrix (n x p)
     ### TryCatch Rds, vcf, then tsv
@@ -972,7 +978,7 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, retain_minus_one_alleles_pe
             ################
             ### VCF file ###
             ################
-            vcf = vcfR::read.vcfR(fname_geno, verbose=TRUE)
+            vcf = vcfR::read.vcfR(fname_geno, verbose=verbose)
             G = fn_vcf_to_G(vcf, retain_minus_one_alleles_per_locus=retain_minus_one_alleles_per_locus, min_depth=min_depth, max_depth=max_depth, verbose=verbose)
             if (methods::is(G, "gpError")) {
                 error = chain(G, methods::new("gpError",
