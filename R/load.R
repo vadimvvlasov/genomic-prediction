@@ -986,7 +986,10 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, retain_minus_one_alleles_pe
             ### TSV: allele frequency table file ###
             ########################################
             df = utils::read.delim(fname_geno, sep="\t", header=TRUE)
-            if (sum(colnames(df)[1:3] == c("chr", "pos", "allele"), na.rm=TRUE) < 3) {
+            if (!((grepl("chr", colnames(df)[1], ignore.case=TRUE)) &
+                  (grepl("pos", colnames(df)[2], ignore.case=TRUE)) &
+                  (grepl("allele", colnames(df)[3], ignore.case=TRUE)))
+               ) {
                 error = methods::new("gpError", 
                     code=000,
                     message=paste0(
