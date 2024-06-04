@@ -1,4 +1,4 @@
-# source("R/load.R")
+# source("R/io.R")
 
 #' Genomic prediction metrics
 #' NOTES:

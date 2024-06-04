@@ -1,5 +1,5 @@
 # library(testthat)
-# source("R/load.R")
+# source("R/io.R")
 # source("R/metrics.R")
 
 test_that("fn_prediction_performance_metrics", {

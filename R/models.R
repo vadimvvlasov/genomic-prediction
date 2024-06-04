@@ -1,4 +1,4 @@
-# source("R/load.R")
+# source("R/io.R")
 # source("R/metrics.R")
 suppressWarnings(suppressPackageStartupMessages(library(glmnet)))
 suppressWarnings(suppressPackageStartupMessages(library(BGLR)))
@@ -43,8 +43,11 @@ suppressWarnings(suppressPackageStartupMessages(library(sommer)))
 #'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
 #'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
 #'          $h2: narrow-sense heritability estimate
-#'      $df_y_validation: data frame of the validation set with names of the samples/entries/pools, 
-#'          population, observed and predicted phenotypic values
+#'      $df_y_validation:
+#'          $id: names of the samples/entries/pools, 
+#'          $pop: population from which the sample/entry/pool belongs to
+#'          $y_true: observed phenotype values
+#'          $y_pred: predicted phenotype values
 #'      $vec_effects: named numeric vector of estimated effects, where the names correspond to the
 #'          SNP/allele identity including chromosome/scaffold, position and optionally allele.
 #'      $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
@@ -211,8 +214,11 @@ fn_ols = function(list_merged, vec_idx_training, vec_idx_validation, other_param
 #'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
 #'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
 #'          $h2: narrow-sense heritability estimate
-#'      $df_y_validation: data frame of the validation set with names of the samples/entries/pools, 
-#'          population, observed and predicted phenotypic values
+#'      $df_y_validation:
+#'          $id: names of the samples/entries/pools, 
+#'          $pop: population from which the sample/entry/pool belongs to
+#'          $y_true: observed phenotype values
+#'          $y_pred: predicted phenotype values
 #'      $vec_effects: named numeric vector of estimated effects, where the names correspond to the
 #'          SNP/allele identity including chromosome/scaffold, position and optionally allele.
 #'      $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
@@ -349,8 +355,11 @@ fn_ridge = function(list_merged, vec_idx_training, vec_idx_validation, other_par
 #'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
 #'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
 #'          $h2: narrow-sense heritability estimate
-#'      $df_y_validation: data frame of the validation set with names of the samples/entries/pools, 
-#'          population, observed and predicted phenotypic values
+#'      $df_y_validation:
+#'          $id: names of the samples/entries/pools, 
+#'          $pop: population from which the sample/entry/pool belongs to
+#'          $y_true: observed phenotype values
+#'          $y_pred: predicted phenotype values
 #'      $vec_effects: named numeric vector of estimated effects, where the names correspond to the
 #'          SNP/allele identity including chromosome/scaffold, position and optionally allele.
 #'      $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
@@ -487,8 +496,11 @@ fn_lasso = function(list_merged, vec_idx_training, vec_idx_validation, other_par
 #'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
 #'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
 #'          $h2: narrow-sense heritability estimate
-#'      $df_y_validation: data frame of the validation set with names of the samples/entries/pools, 
-#'          population, observed and predicted phenotypic values
+#'      $df_y_validation:
+#'          $id: names of the samples/entries/pools, 
+#'          $pop: population from which the sample/entry/pool belongs to
+#'          $y_true: observed phenotype values
+#'          $y_pred: predicted phenotype values
 #'      $vec_effects: named numeric vector of estimated effects, where the names correspond to the
 #'          SNP/allele identity including chromosome/scaffold, position and optionally allele.
 #'      $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
@@ -627,8 +639,11 @@ fn_elastic_net = function(list_merged, vec_idx_training, vec_idx_validation, oth
 #'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
 #'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
 #'          $h2: narrow-sense heritability estimate
-#'      $df_y_validation: data frame of the validation set with names of the samples/entries/pools, 
-#'          population, observed and predicted phenotypic values
+#'      $df_y_validation:
+#'          $id: names of the samples/entries/pools, 
+#'          $pop: population from which the sample/entry/pool belongs to
+#'          $y_true: observed phenotype values
+#'          $y_pred: predicted phenotype values
 #'      $vec_effects: named numeric vector of estimated effects, where the names correspond to the
 #'          SNP/allele identity including chromosome/scaffold, position and optionally allele.
 #'      $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
@@ -766,8 +781,11 @@ fn_Bayes_A = function(list_merged, vec_idx_training, vec_idx_validation,
 #'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
 #'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
 #'          $h2: narrow-sense heritability estimate
-#'      $df_y_validation: data frame of the validation set with names of the samples/entries/pools, 
-#'          population, observed and predicted phenotypic values
+#'      $df_y_validation:
+#'          $id: names of the samples/entries/pools, 
+#'          $pop: population from which the sample/entry/pool belongs to
+#'          $y_true: observed phenotype values
+#'          $y_pred: predicted phenotype values
 #'      $vec_effects: named numeric vector of estimated effects, where the names correspond to the
 #'          SNP/allele identity including chromosome/scaffold, position and optionally allele.
 #'      $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
@@ -905,8 +923,11 @@ fn_Bayes_B = function(list_merged, vec_idx_training, vec_idx_validation,
 #'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
 #'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
 #'          $h2: narrow-sense heritability estimate
-#'      $df_y_validation: data frame of the validation set with names of the samples/entries/pools, 
-#'          population, observed and predicted phenotypic values
+#'      $df_y_validation:
+#'          $id: names of the samples/entries/pools, 
+#'          $pop: population from which the sample/entry/pool belongs to
+#'          $y_true: observed phenotype values
+#'          $y_pred: predicted phenotype values
 #'      $vec_effects: named numeric vector of estimated effects, where the names correspond to the
 #'          SNP/allele identity including chromosome/scaffold, position and optionally allele.
 #'      $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
@@ -1042,8 +1063,11 @@ fn_Bayes_C = function(list_merged, vec_idx_training, vec_idx_validation,
 #'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
 #'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
 #'          $h2: narrow-sense heritability estimate
-#'      $df_y_validation: data frame of the validation set with names of the samples/entries/pools, 
-#'          population, observed and predicted phenotypic values
+#'      $df_y_validation:
+#'          $id: names of the samples/entries/pools, 
+#'          $pop: population from which the sample/entry/pool belongs to
+#'          $y_true: observed phenotype values
+#'          $y_pred: predicted phenotype values
 #'      $vec_effects: named numeric vector of estimated effects, where the names correspond to the
 #'          SNP/allele identity including chromosome/scaffold, position and optionally allele.
 #'      $n_non_zero: number of non-zero estimated fixed (intercept and covariate/s) and random (genotype values)
