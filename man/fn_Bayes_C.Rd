@@ -3,8 +3,8 @@
 \name{fn_Bayes_C}
 \alias{fn_Bayes_C}
 \title{Bayes C regression model
-(normally distributed effects ($N(0, \sigma^2_{\beta})$) with probability $\pi$; and zero effects
-with probability $1-\pi$, where $\pi \sim \beta(\theta_1, \theta_2)$)}
+(normally distributed effects (\eqn{N(0, \sigma^2_{\beta})}) with probability \eqn{\pi}; and zero effects
+with probability \eqn{1-\pi}, where \eqn{\pi \sim \beta(\theta_1, \theta_2)})}
 \usage{
 fn_Bayes_C(
   list_merged,
@@ -51,8 +51,11 @@ $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
 $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
 $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
 $h2: narrow-sense heritability estimate
-$df_y_validation: data frame of the validation set with names of the samples/entries/pools,
-population, observed and predicted phenotypic values
+$df_y_validation:
+$id: names of the samples/entries/pools,
+$pop: population from which the sample/entry/pool belongs to
+$y_true: observed phenotype values
+$y_pred: predicted phenotype values
 $vec_effects: named numeric vector of estimated effects, where the names correspond to the
 SNP/allele identity including chromosome/scaffold, position and optionally allele.
 $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
@@ -60,8 +63,8 @@ Err: gpError
 }
 \description{
 Bayes C regression model
-(normally distributed effects ($N(0, \sigma^2_{\beta})$) with probability $\pi$; and zero effects
-with probability $1-\pi$, where $\pi \sim \beta(\theta_1, \theta_2)$)
+(normally distributed effects (\eqn{N(0, \sigma^2_{\beta})}) with probability \eqn{\pi}; and zero effects
+with probability \eqn{1-\pi}, where \eqn{\pi \sim \beta(\theta_1, \theta_2)})
 }
 \examples{
 list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)

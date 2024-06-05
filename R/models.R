@@ -104,6 +104,8 @@ fn_ols = function(list_merged, vec_idx_training, vec_idx_validation, other_param
     }
     X_training = list_merged$G[vec_idx_training, ]
     y_training = list_merged$list_pheno$y[vec_idx_training]
+    X_training = X_training[!is.na(y_training), ] ### Remove missing phenotype data from the training set
+    y_training = y_training[!is.na(y_training)] ### Remove missing phenotype data from the training set
     X_validation = list_merged$G[vec_idx_validation, ]
     y_validation = list_merged$list_pheno$y[vec_idx_validation]
     ### Adding covariate to explanatory matrix
@@ -275,6 +277,8 @@ fn_ridge = function(list_merged, vec_idx_training, vec_idx_validation, other_par
     }
     X_training = list_merged$G[vec_idx_training, ]
     y_training = list_merged$list_pheno$y[vec_idx_training]
+    X_training = X_training[!is.na(y_training), ] ### Remove missing phenotype data from the training set
+    y_training = y_training[!is.na(y_training)] ### Remove missing phenotype data from the training set
     X_validation = list_merged$G[vec_idx_validation, ]
     y_validation = list_merged$list_pheno$y[vec_idx_validation]
     ### Adding covariate to explanatory matrix
@@ -416,6 +420,8 @@ fn_lasso = function(list_merged, vec_idx_training, vec_idx_validation, other_par
     }
     X_training = list_merged$G[vec_idx_training, ]
     y_training = list_merged$list_pheno$y[vec_idx_training]
+    X_training = X_training[!is.na(y_training), ] ### Remove missing phenotype data from the training set
+    y_training = y_training[!is.na(y_training)] ### Remove missing phenotype data from the training set
     X_validation = list_merged$G[vec_idx_validation, ]
     y_validation = list_merged$list_pheno$y[vec_idx_validation]
     ### Adding covariate to explanatory matrix
@@ -557,6 +563,8 @@ fn_elastic_net = function(list_merged, vec_idx_training, vec_idx_validation, oth
     }
     X_training = list_merged$G[vec_idx_training, ]
     y_training = list_merged$list_pheno$y[vec_idx_training]
+    X_training = X_training[!is.na(y_training), ] ### Remove missing phenotype data from the training set
+    y_training = y_training[!is.na(y_training)] ### Remove missing phenotype data from the training set
     X_validation = list_merged$G[vec_idx_validation, ]
     y_validation = list_merged$list_pheno$y[vec_idx_validation]
     ### Adding covariate to explanatory matrix
@@ -747,8 +755,8 @@ fn_Bayes_A = function(list_merged, vec_idx_training, vec_idx_validation,
 }
 
 #' Bayes B regression model 
-#'  (scaled t-distributed effects with probability $\pi$; and zero effects with probability $1-\pi$, 
-#'  where $\pi \sim \beta(\theta_1, \theta_2)$)
+#'  (scaled t-distributed effects with probability \eqn{\pi}; and zero effects with probability \eqn{1-\pi}, 
+#'  where \eqn{\pi \sim \beta(\theta_1, \theta_2)})
 #'
 #' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
 #'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
@@ -889,8 +897,8 @@ fn_Bayes_B = function(list_merged, vec_idx_training, vec_idx_validation,
 }
 
 #' Bayes C regression model
-#'  (normally distributed effects ($N(0, \sigma^2_{\beta})$) with probability $\pi$; and zero effects 
-#'  with probability $1-\pi$, where $\pi \sim \beta(\theta_1, \theta_2)$)
+#'  (normally distributed effects (\eqn{N(0, \sigma^2_{\beta})}) with probability \eqn{\pi}; and zero effects 
+#'  with probability \eqn{1-\pi}, where \eqn{\pi \sim \beta(\theta_1, \theta_2)})
 #'
 #' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
 #'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.

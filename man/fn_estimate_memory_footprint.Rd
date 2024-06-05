@@ -15,9 +15,11 @@ fn_estimate_memory_footprint(
 )
 }
 \arguments{
-\item{X}{numeric matrix resulting from the merging of the genotype matrix, phenotype vector and covariate matrix}
+\item{X}{any R object but the main intended object is a list containing the
+genotype matrix, phenotype list and covariate matrix for genomic prediction}
 
-\item{n_models}{number of genomic prediction models to fit. Note that Bayesian and gBLUP models are more memory-intensive than penalised regression ones. (Default=7)}
+\item{n_models}{number of genomic prediction models to fit. Note that Bayesian and
+gBLUP models are more memory-intensive than penalised regression ones. (Default=7)}
 
 \item{n_folds}{number of cross-validation folds (Default=10)}
 
@@ -31,11 +33,14 @@ fn_estimate_memory_footprint(
 }
 \value{
 Ok:
-$size_X: memory used for a single merge genotype-phenotype-covariate dataset
+$size_X: memory used for a single genomic prediction instance
 $size_total: total memory required for parallel computations across models, folds and replications
 $n_threads: recommended and estimated maximum number of threads to use to prevent out-of-memory (OOM) error
 Err: gpError
 }
 \description{
 Estimate memory usage for parallel replicated k-fold cross validation of multiple genomic prediction models
+}
+\examples{
+list_mem = fn_estimate_memory_footprint(X=rnorm(10000), verbose=TRUE)
 }

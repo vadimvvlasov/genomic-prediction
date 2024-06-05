@@ -5,8 +5,8 @@
 \title{Cross-validate on a single fold, replicate, and model}
 \usage{
 fn_cv_1(
-  list_merged,
   i,
+  list_merged,
   df_params,
   mat_idx_shuffle,
   vec_set_partition_groupings,
@@ -15,6 +15,9 @@ fn_cv_1(
 )
 }
 \arguments{
+\item{i}{index referring to the row in df_params (below) from which
+the replicate id, fold number and model will be sourced from}
+
 \item{list_merged}{list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
 $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 Row names can be any string of characters which identify the sample or entry or pool names.
@@ -27,11 +30,10 @@ $pop: population or groupings corresponding to each element of y
 $trait_name: name of the trait
 $COVAR: numeric n samples x k covariates matrix with non-null row and column names.}
 
-\item{i}{index referring to the row in df_params (below) from which
-the replicate id, fold number and model will be sourced from}
-
-\item{df_params}{data frame containing all possible or just a defined non-exhaustive set of
-combinations of replication, fold and model to be used in cross-validation}
+\item{df_params}{data frame containing all possible or just a defined non-exhaustive combinations of:
+$rep: replication number
+$fold: fold number
+$model: model name}
 
 \item{mat_idx_shuffle}{numeric n sample x r replications matrix of sample/entry/pool index shuffling where
 each column refer to a random shuffling of samples/entry/pool from which the identities of the
@@ -47,7 +49,14 @@ i.e. prefix (which can include an existing directory) of Bayesian (BGLR) model t
 }
 \value{
 Ok:
-$list_perf:
+$df_metrics:
+$rep: replication number
+$fold: fold number
+$model: genomic prediction model name
+$pop_training: population/s used in the training set (separated by commas if more than 1)
+$pop_validation: population/s used in the validation set (separated by commas if more than 1)
+$duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
+$n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
 $mbe: mean bias error
 $mae: mean absolute error
 $rmse: root mean squared error
@@ -58,11 +67,17 @@ $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
 $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
 $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
 $h2: narrow-sense heritability estimate
-$df_y_validation: data frame of the validation set with names of the samples/entries/pools,
-population, observed and predicted phenotypic values
-$vec_effects: named numeric vector of estimated effects, where the names correspond to the
-SNP/allele identity including chromosome/scaffold, position and optionally allele.
-$n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+$df_y_validation:
+$rep: replication number
+$fold: fold number
+$model: genomic prediction model name
+$pop_training: population/s used in the training set (separated by commas if more than 1)
+$id: names of the samples/entries/pools,
+$pop_validation: population from which the sample/entry/pool belongs to
+$y_true: observed phenotype values
+$y_pred: predicted phenotype values
+$fname_metrics_out: filename of df_metrics saved as a the tab-delimited file with 2 rows
+$fname_y_validation_out: filename of df_y_validation saved as a the tab-delimited file
 Err: gpError
 }
 \description{
@@ -72,9 +87,33 @@ Cross-validate on a single fold, replicate, and model
 list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
 G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
 list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
-list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, verbose=TRUE)
-n = nrow(list_merged$G)
-vec_idx_training = sample(c(1:n), floor(n/2))
-vec_idx_validation = c(1:n)[!(c(1:n) \%in\% vec_idx_training)]
-list_ols = fn_ols(list_merged, vec_idx_training, vec_idx_validation, verbose=TRUE)
+COVAR = G \%*\% t(G)
+n = nrow(G)
+n_reps = 3
+n_folds = 5
+set_size = floor(n / n_folds)
+vec_models_to_test = c("ridge", "lasso", "elastic_net", "Bayes_A", "Bayes_B", "Bayes_C", "gBLUP")
+list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, COVAR=COVAR, verbose=TRUE)
+df_params = expand.grid(rep=c(1:n_reps), fold=c(1:n_folds), model=vec_models_to_test)
+mat_idx_shuffle = matrix(sample(1:n, size=n, replace=FALSE), ncol=1)
+if (n_reps > 1) {
+    for (r in 2:n_reps) {
+        mat_idx_shuffle = cbind(mat_idx_shuffle, sample(1:n, size=n, replace=FALSE))
+    }
+}
+vec_set_partition_groupings = rep(1:n_folds, each=set_size)
+if (length(vec_set_partition_groupings) < n) {
+    vec_set_partition_groupings = c(
+         vec_set_partition_groupings, 
+         rep(n_folds, times=(n-length(vec_set_partition_groupings)))
+     )
+}
+list_cv_1 = fn_cv_1(
+    i=2, 
+    list_merged=list_merged, 
+    df_params=df_params, 
+    mat_idx_shuffle=mat_idx_shuffle, 
+    vec_set_partition_groupings=vec_set_partition_groupings,
+    prefix_tmp=tempfile(),
+    verbose=TRUE)
 }

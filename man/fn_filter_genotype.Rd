@@ -41,7 +41,7 @@ subsequent elements are optional which may refer to the allele identifier and ot
 This is a tab-delimited file with 3 columns: '#CHROM', 'POS', 'REF,ALT', corresponding to (Default=NULL)
 chromosome names (e.g. 'chr1' & 'chrom_1'),
 numeric positions (e.g. 12345 & 100001), and
-reference-alternative allele strings separated by a comma (e.g. 'A,T' & 'allele_1,allele_alt') (Default=NULL)}
+reference-alternative allele strings separated by a comma (e.g. 'A,T' & 'C,G') (Default=NULL)}
 
 \item{max_n_alleles}{maximum number of alleles per locus. Note that at max_n_alleles=1, we are assuming
 retain_minus_one_alleles_per_locus=TRUE in fn_load_genotype(...), and not that we want fixed - one allele per locus sites. (Default=NULL)}

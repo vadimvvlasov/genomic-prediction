@@ -274,6 +274,23 @@ test_that("fn_merge_genotype_and_phenotype", {
     unlink(list_sim$fname_pheno_tsv)
 })
 
+test_that("fn_subset_merged_genotype_and_phenotype", {
+    list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
+    list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
+    COVAR = matrix(stats::rnorm(n=(10*nrow(G))), nrow=nrow(G))
+    rownames(COVAR) = rownames(G); colnames(COVAR) = paste0("covariate_", 1:ncol(COVAR))
+    list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, COVAR=COVAR, verbose=TRUE)
+    vec_idx = which(list_merged$list_pheno$pop == list_merged$list_pheno$pop[1])
+    list_merged_subset = fn_subset_merged_genotype_and_phenotype(list_merged=list_merged, vec_idx=vec_idx, verbose=TRUE)
+    expect_equal(nrow(list_merged_subset$G), length(vec_idx))
+    expect_equal(length(list_merged_subset$list_pheno$y), length(vec_idx))
+    expect_equal(nrow(list_merged_subset$COVAR), length(vec_idx))
+    expect_equal(unique(list_merged_subset$list_pheno$pop), list_merged$list_pheno$pop[1])
+    unlink(list_sim$fname_geno_vcf)
+    unlink(list_sim$fname_pheno_tsv)
+})
+
 test_that("fn_estimate_memory_footprint", {
     X = matrix(0.0, nrow=500, ncol=500e3)
     list_mem = fn_estimate_memory_footprint(X=X, verbose=TRUE)

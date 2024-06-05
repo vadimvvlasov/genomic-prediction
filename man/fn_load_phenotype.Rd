@@ -18,7 +18,7 @@ fn_load_phenotype(
 \arguments{
 \item{fname_pheno}{filname of the text-delimited phenotype data}
 
-\item{sep}{column-delimiter in the phenotype file (Default="\t")}
+\item{sep}{column-delimiter in the phenotype file (Default="\\t")}
 
 \item{header}{does the phenotype file have a header line? (Default=TRUE)}
 

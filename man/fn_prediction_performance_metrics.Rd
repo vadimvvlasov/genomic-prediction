@@ -16,6 +16,8 @@ fn_prediction_performance_metrics(y_true, y_pred, verbose = FALSE)
 \item{y_true}{numeric vector observed phenotype values}
 
 \item{y_pred}{numeric vector predicted phenotype values}
+
+\item{verbose}{show genomic prediction performance metric calculation messages? (Default=FALSE)}
 }
 \value{
 Ok:

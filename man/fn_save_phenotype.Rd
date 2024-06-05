@@ -15,7 +15,7 @@ fn_save_phenotype(list_pheno, fname, sep = "\\t", verbose = FALSE)
 
 \item{fname}{file name of the output file}
 
-\item{sep}{delimited of the output file (Default="\t")}
+\item{sep}{delimited of the output file (Default="\\t")}
 
 \item{verbose}{show phenotype filtering messages? (Default=FALSE)}
 }

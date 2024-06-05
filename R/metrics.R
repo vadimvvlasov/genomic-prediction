@@ -8,6 +8,7 @@
 #'
 #' @param y_true numeric vector observed phenotype values
 #' @param y_pred numeric vector predicted phenotype values
+#' @param verbose show genomic prediction performance metric calculation messages? (Default=FALSE)
 #' @returns
 #' Ok:
 #'  $mbe: mean bias error
@@ -69,7 +70,7 @@ fn_prediction_performance_metrics = function(y_true, y_pred, verbose=FALSE) {
     } else {
         r2 = 1 - (sum(error^2, na.rm=TRUE) / sum((y_true-mean(y_true, na.rm=TRUE))^2, na.rm=TRUE))
     }
-    corr = suppressWarnings(stats::cor(y_true, y_pred, method="pearson"))
+    corr = suppressWarnings(stats::cor(y_true, y_pred, method="pearson", use="na.or.complete"))
     ### Power to select true top and bottom 10%
     n_top_or_bottom_10 = max(c(1, round(0.1*n)))
     top10_dec_true = order(y_true, decreasing=TRUE)[1:n_top_or_bottom_10]

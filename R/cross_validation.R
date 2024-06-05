@@ -4,6 +4,8 @@
 
 #' Cross-validate on a single fold, replicate, and model
 #'
+#' @param i index referring to the row in df_params (below) from which 
+#'  the replicate id, fold number and model will be sourced from
 #' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
 #'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 #'      Row names can be any string of characters which identify the sample or entry or pool names.
@@ -15,10 +17,10 @@
 #'      $pop: population or groupings corresponding to each element of y
 #'      $trait_name: name of the trait
 #'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
-#' @param i index referring to the row in df_params (below) from which 
-#'  the replicate id, fold number and model will be sourced from
-#' @param df_params data frame containing all possible or just a defined non-exhaustive set of 
-#'  combinations of replication, fold and model to be used in cross-validation
+#' @param df_params data frame containing all possible or just a defined non-exhaustive combinations of:
+#'  $rep: replication number
+#'  $fold: fold number
+#'  $model: model name
 #' @param mat_idx_shuffle numeric n sample x r replications matrix of sample/entry/pool index shuffling where
 #'  each column refer to a random shuffling of samples/entry/pool from which the identities of the
 #'  training and validation sets will be sourced from
@@ -66,33 +68,34 @@
 #' COVAR = G %*% t(G)
 #' n = nrow(G)
 #' n_reps = 3
-#' k_folds = 5
-#' set_size = floor(n / k_folds)
+#' n_folds = 5
+#' set_size = floor(n / n_folds)
 #' vec_models_to_test = c("ridge", "lasso", "elastic_net", "Bayes_A", "Bayes_B", "Bayes_C", "gBLUP")
 #' list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, COVAR=COVAR, verbose=TRUE)
-#' df_params = expand.grid(rep=c(1:n_reps), fold=c(1:k_folds), model=vec_models_to_test)
+#' df_params = expand.grid(rep=c(1:n_reps), fold=c(1:n_folds), model=vec_models_to_test)
 #' mat_idx_shuffle = matrix(sample(1:n, size=n, replace=FALSE), ncol=1)
 #' if (n_reps > 1) {
 #'     for (r in 2:n_reps) {
 #'         mat_idx_shuffle = cbind(mat_idx_shuffle, sample(1:n, size=n, replace=FALSE))
 #'     }
 #' }
-#' vec_set_partition_groupings = rep(1:k_folds, each=set_size)
+#' vec_set_partition_groupings = rep(1:n_folds, each=set_size)
 #' if (length(vec_set_partition_groupings) < n) {
-#'     vec_set_partition_groupings = c(vec_set_partition_groupings, rep(k_folds, times=(n-length(vec_set_partition_groupings))))
+#'     vec_set_partition_groupings = c(
+#'          vec_set_partition_groupings, 
+#'          rep(n_folds, times=(n-length(vec_set_partition_groupings)))
+#'      )
 #' }
 #' list_cv_1 = fn_cv_1(
-#'     list_merged=list_merged, 
 #'     i=2, 
+#'     list_merged=list_merged, 
 #'     df_params=df_params, 
 #'     mat_idx_shuffle=mat_idx_shuffle, 
 #'     vec_set_partition_groupings=vec_set_partition_groupings,
-#'     prefix_tmp="gsTmp",
+#'     prefix_tmp=tempfile(),
 #'     verbose=TRUE)
 #' @export
-fn_cv_1 = function(list_merged, 
-    i, df_params, mat_idx_shuffle, vec_set_partition_groupings, 
-    prefix_tmp="gsTmp", verbose=FALSE){
+fn_cv_1 = function(i, list_merged, df_params, mat_idx_shuffle, vec_set_partition_groupings, prefix_tmp="gsTmp", verbose=FALSE) {
     ###################################################
     ### TEST
     # list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
@@ -101,21 +104,21 @@ fn_cv_1 = function(list_merged,
     # COVAR = G %*% t(G)
     # n = nrow(G)
     # n_reps = 3
-    # k_folds = 5
-    # set_size = floor(n / k_folds)
+    # n_folds = 5
+    # set_size = floor(n / n_folds)
     # vec_models_to_test = c("ridge", "lasso", "elastic_net", "Bayes_A", "Bayes_B", "Bayes_C", "gBLUP")
     # list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, COVAR=COVAR, verbose=TRUE)
     # i = 1
-    # df_params = expand.grid(rep=c(1:n_reps), fold=c(1:k_folds), model=vec_models_to_test)
+    # df_params = expand.grid(rep=c(1:n_reps), fold=c(1:n_folds), model=vec_models_to_test)
     # mat_idx_shuffle = matrix(sample(1:n, size=n, replace=FALSE), ncol=1)
     # if (n_reps > 1) {
     #     for (r in 2:n_reps) {
     #         mat_idx_shuffle = cbind(mat_idx_shuffle, sample(1:n, size=n, replace=FALSE))
     #     }
     # }
-    # vec_set_partition_groupings = rep(1:k_folds, each=set_size)
+    # vec_set_partition_groupings = rep(1:n_folds, each=set_size)
     # if (length(vec_set_partition_groupings) < n) {
-    #     vec_set_partition_groupings = c(vec_set_partition_groupings, rep(k_folds, times=(n-length(vec_set_partition_groupings))))
+    #     vec_set_partition_groupings = c(vec_set_partition_groupings, rep(n_folds, times=(n-length(vec_set_partition_groupings))))
     # }
     # prefix_tmp="gsTmp"
     # verbose = TRUE
@@ -271,642 +274,1599 @@ fn_cv_1 = function(list_merged,
     ))
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-### K-fold cross validation across GP models with parallelisation across folds, replications and models
-### Generates csv files with one row each for each fold x rep x model iteration. Clean these up if you like. These were just made to make sure we have output in case the entire function fails and we still have output to look at.
-### Outputs a list containing a data frame of prediction accuracy metrics and a data frame of predicted phenotypes
-fn_cross_validation = function(G, y, COVAR=NULL, vec_models_to_test=c("ridge","lasso","elastic_net","Bayes_A","Bayes_B","Bayes_C","gBLUP"), k_folds=10, n_reps=3, n_threads=32, mem_mb=64000, prefix_tmp="", verbose=FALSE) {
-    ### Input data dimensions
-    n = nrow(G)
-    l = ncol(G)
-    ### Standard normalise the phenotypes
-    y_names = rownames(y)
-    if (is.null(y_names)) {
-        y_names = names(y)
-    }
-    y = scale(y, center=TRUE, scale=TRUE)
-    rownames(y) = y_names
-    ### Set partitioning
-    set_size = floor(n / k_folds)
-    if (set_size < 2) {
-        print("Error: set size too small (less than 2 per fold). Please consider reducing the number of folds.")
-        return(list(df_metrics=NA, df_y_pred=NA, fnames_metrics=NA, fnames_y_pred=NA))
-    }
-    vec_set_partition_groupings = rep(1:k_folds, each=set_size)
-    if (length(vec_set_partition_groupings) < n) {
-        vec_set_partition_groupings = c(vec_set_partition_groupings, rep(k_folds, times=(n-length(vec_set_partition_groupings))))
-    }
-    ### Prepare shuffling across replications
-    mat_idx_shuffle = matrix(sample(1:n, size=n, replace=FALSE), ncol=1)
-    if (n_reps > 1) {
-        for (r in 2:n_reps) {
-            mat_idx_shuffle = cbind(mat_idx_shuffle, sample(1:n, size=n, replace=FALSE))
-        }
-    }
-    ### Prepare matrix of rep x fold x model combinations and sort by fold so that we can start comparing as soon as results become available
-    df_params = expand.grid(rep=c(1:n_reps), fold=c(1:k_folds), model=vec_models_to_test)
-    df_params = df_params[order(df_params$rep), ]
-    df_params = df_params[order(df_params$fold), ]
-    ### Limit the number of forks by the memory available and the size of G and y
-    total_memory = mem_mb / 1e3 ### in gigabytes
-    data_size = 2 * max(1, c(round(as.numeric(gsub(" Gb", "", format(utils::object.size(G), units="Gb"))) + as.numeric(gsub(" Gb", "", format(utils::object.size(y), units="Gb"))))))
-    n_forks = max(c(1, min(c(nrow(df_params), n_threads, floor((total_memory-data_size) / data_size))))) ### force the minimum number of threads to 1
-    ### Report the folds, replication, models being tested, memory allocation and number of parallel threads
-    if (verbose==TRUE) {
-        print("Genomic prediction cross-validation:")
-        print(paste0("     - ", k_folds, " folds x ", n_reps, " replications with ", set_size, " entries per set."))
-        print(paste0("     - ", n, " entries x ", l, " loci x (n_alleles - 1)."))
-        print("Models being tested:")
-        for (mod in vec_models_to_test) {
-            print(paste0("     - ", mod))
-        }
-        print(paste0("Total memory: ", total_memory, " Gb"))
-        print(paste0("Memory allocated per thread: ", data_size, " Gb"))
-        print(paste0("Maximum number of threads to be used: ", n_forks))
-    }
-    ### Multi-threaded cross-fold validation
-    time_ini = Sys.time()
-    list_perf = tryCatch(
-        parallel::mclapply(c(1:nrow(df_params)), 
-            FUN=fn_cv_1, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, df_params=df_params, G=G, y=y, COVAR=COVAR, prefix_tmp=prefix_tmp, mem_mb=(floor(total_memory/n_forks)*1e3), 
-            mc.cores=n_forks, mc.preschedule=FALSE, mc.set.seed=TRUE, mc.silent=FALSE, mc.cleanup=TRUE),
-        error = function(e){c()}
-    )
-    # ### Recover from out-of-memory (OOM) errors when too many threads are being used.
-    # ### Note that this will not work if we get a segmentation error, in which case simply reduce the number of CPUs (threads or cores, see`--cpus-per-task` in [`01_gs_slurm_job.sh`](./01_gs_slurm_job.sh).
-    # while ((length(list_perf)==0) | (n_forks>1)) {
-    #     n_forks = max(c(1, round(n_forks / 2)))
-    #     print(paste0("Reducing the maximum number of threads to be used: ", n_forks))
-    #     print(gc())
-    #     list_perf = tryCatch(
-    #         parallel::mclapply(c(1:nrow(df_params)), 
-    #             FUN=fn_cv_1, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, df_params=df_params, G=G, y=y, COVAR=COVAR, prefix_tmp=prefix_tmp, mem_mb=(floor(total_memory/n_forks)*1e3), 
-    #             mc.cores=n_forks, mc.preschedule=FALSE, mc.set.seed=TRUE, mc.silent=FALSE, mc.cleanup=TRUE),
-    #         error = function(e){c()}
-    #     )
-    # }
-    # list_perf = list()
-    # for (i in c(1:nrow(df_params))) {
-    #     print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-    #     print(i)
-    #     print(df_params[i, ])
-    #     print(dim(COVAR))
-    #     list_perf = c(list_perf, fn_cv_1(
-    #         i=i,
-    #         vec_set_partition_groupings=vec_set_partition_groupings,
-    #         mat_idx_shuffle=mat_idx_shuffle,
-    #         df_params=df_params,
-    #         G=G,
-    #         y=y,
-    #         COVAR=COVAR,
-    #         prefix_tmp=prefix_tmp,
-    #         mem_mb=(floor(total_memory/n_forks)*1e3)
-    #     ))
-    # }
-    duration_mins = difftime(Sys.time(), time_ini, units="min")
-    print(paste0("Multi-threaded ", k_folds, "-fold cross-fold validation finished after ", duration_mins, " minutes."))
-    ### Collect the output
-    for (i in 1:length(list_perf)) {
-        perf = list_perf[[i]]
-        colnames(perf$df_y_pred) = c("rep", "entry", "model", "y_pred")
-        if (i==1) {
-            df_metrics = perf$df_metrics
-            df_y_pred = perf$df_y_pred
-            fnames_metrics = perf$fname_metrics_out
-            fnames_y_pred = perf$fname_y_pred_out
-        } else {
-            df_metrics = rbind(df_metrics, perf$df_metrics)
-            df_y_pred = rbind(df_y_pred, perf$df_y_pred)
-            fnames_metrics = c(fnames_metrics, perf$fname_metrics_out)
-            fnames_y_pred = c(fnames_y_pred, perf$fname_y_pred_out)
-        }
-    }
-    df_y_true = data.frame(entry=rownames(y), y_true=y); colnames(df_y_true) = c("entry", "y_true"); rownames(df_y_true) = NULL
-    df_y_pred = merge(df_y_pred, df_y_true, by="entry")
-    ### Scatterplot of the observed and predicted phenotype data
-    if (verbose==TRUE) {
-        for (model in unique(df_y_pred$model)) {
-            # model = unique(df_y_pred$model)[1]
-            print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-            print(paste0(prefix_tmp, " - ", model))
-            idx = which(df_y_pred$model == model)
-            txtplot::txtplot(x=df_y_pred$y_true[idx], y=df_y_pred$y_pred[idx], xlab="Observed", ylab="Predicted")
-        }
-    }
-    ### Output
-    return(list(df_metrics=df_metrics, df_y_pred=df_y_pred, fnames_metrics=fnames_metrics, fnames_y_pred=fnames_y_pred))
-}
-
-### Pairwise population cross-validation, i.e. 1 population for training and the other for validation
-### Generates csv files with one row each for each fold x rep x model iteration. Clean these up if you like. These were just made to make sure we have output in case the entire function fails and we still have output to look at.
-### Outputs a list containing a data frame of prediction accuracy metrics and a data frame of predicted phenotypes
-fn_pairwise_cross_validation = function(G_training, G_validation, y_training, y_validation, COVAR=NULL, vec_models_to_test=c("ridge","lasso","elastic_net","Bayes_A","Bayes_B","Bayes_C"), n_threads=32, mem_mb=64000, prefix_tmp="", verbose=FALSE) {
-    ### Data dimensions
-    for (suffix in c("training", "validation")) {
-        eval(parse(text=paste0("n_", suffix, " = nrow(G_", suffix, ")")))
-        eval(parse(text=paste0("l_", suffix, " = ncol(G_", suffix, ")")))
-    }
-    ### Standard normalise the phenotypes
-    for (suffix in c("training", "validation")) {
-        # suffix = "training"
-        eval(parse(text=paste0("y_names_", suffix, " = rownames(y_", suffix, ")")))
-        eval(parse(text=paste0("if (is.null(y_names_", suffix, ")){ y_names_", suffix, " = names(y_", suffix, ") }")))
-        eval(parse(text=paste0("y_", suffix, " = scale(y_", suffix, ", center=TRUE, scale=TRUE)")))
-        eval(parse(text=paste0("rownames(y_", suffix, ") = y_names_", suffix)))
-    }
-    ### Merge the training and validation sets, where the validation set is group 1
-    G = rbind(G_validation, G_training)
-    y = rbind(y_validation, y_training)
-    ### Set partitioning where group 1 is the validation set, i.e. pop 1 and group 2 is the training set, i.e. pop 2
-    vec_set_partition_groupings = c(rep(1, each=n_validation), rep(2, each=n_training))
-    ### No shuffling needed as cross-validation is not replicated
-    mat_idx_shuffle = matrix(1:(n_training+n_validation), ncol=1)
-    ### Prepare matrix of rep x fold x model combinations
-    df_params = expand.grid(rep=c(1), fold=c(1), model=vec_models_to_test)
-    ### Report the folds, replication and models being tested
-    if (verbose==TRUE) {
-        print("Genomic prediction cross-validation:")
-        print("Models being tested:")
-        for (mod in vec_models_to_test) {
-            print(paste0("     - ", mod))
-        }
-    }
-    ### Limit the number of forks by the memory available and the size of G and y
-    total_memory = mem_mb / 1e3 ### in gigabytes
-    data_size = 50 * as.numeric(gsub(" Gb", "", format(utils::object.size(c(G, y)), units="Gb")))
-    n_forks = min(c(n_threads, floor((total_memory-10) / data_size)))
-    ### Multi-threaded cross-fold validation
-    time_ini = Sys.time()
-    list_perf = parallel::mclapply(c(1:nrow(df_params)), FUN=fn_cv_1, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, df_params=df_params, G=G, y=y, COVAR=COVAR, prefix_tmp=prefix_tmp, mem_mb=(floor(total_memory/n_forks)*1e3), mc.cores=n_forks)
-    for (i in 1:nrow(df_params)) {
-        i = 7
-        x = fn_cv_1(i=i, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, df_params=df_params, G=G, y=y, COVAR=COVAR, prefix_tmp=prefix_tmp, mem_mb=(floor(total_memory/n_forks)*1e3))
-    }
-    duration_mins = difftime(Sys.time(), time_ini, units="min")
-    print(paste0("Multi-threaded pairwise cross-fold validation finished after ", duration_mins, " minutes."))
-    ### Collect the output
-    for (i in 1:length(list_perf)) {
-        perf = list_perf[[i]]
-        colnames(perf$df_y_pred) = c("rep", "entry", "model", "y_pred")
-        if (i==1) {
-            df_metrics = perf$df_metrics
-            df_y_pred = perf$df_y_pred
-            fnames_metrics = perf$fname_metrics_out
-            fnames_y_pred = perf$fname_y_pred_out
-        } else {
-            df_metrics = rbind(df_metrics, perf$df_metrics)
-            df_y_pred = rbind(df_y_pred, perf$df_y_pred)
-            fnames_metrics = c(fnames_metrics, perf$fname_metrics_out)
-            fnames_y_pred = c(fnames_y_pred, perf$fname_y_pred_out)
-        }
-    }
-    df_y_true = data.frame(entry=rownames(y), y_true=y); colnames(df_y_true) = c("entry", "y_true"); rownames(df_y_true) = NULL
-    df_y_pred = merge(df_y_pred, df_y_true, by="entry")
-    ### Scatterplot of the observed and predicted phenotype data
-    if (verbose==TRUE) {
-        for (model in unique(df_y_pred$model)) {
-            # model = unique(df_y_pred$model)[1]
-            print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-            print(paste0(prefix_tmp, " - ", model))
-            idx = which(df_y_pred$model == model)
-            txtplot::txtplot(x=df_y_pred$y_true[idx], y=df_y_pred$y_pred[idx], xlab="Observed", ylab="Predicted")
-        }
-    }
-    ### Output
-    return(list(df_metrics=df_metrics, df_y_pred=df_y_pred, fnames_metrics=fnames_metrics, fnames_y_pred=fnames_y_pred))
-}
-
-## Leave-one-population-out, i.e., using 1 population as the validation set and the rest as the training set
-### Generates csv files with one row each for each fold x rep x model iteration. Clean these up if you like. These were just made to make sure we have output in case the entire function fails and we still have output to look at.
-### Outputs a list containing a data frame of prediction accuracy metrics (which includes the validation population field corresponding to each fold-validation) and a data frame of predicted phenotypes
-fn_leave_one_population_out_cross_validation = function(G, y, pop, COVAR=NULL, vec_models_to_test=c("ridge","lasso","elastic_net","Bayes_A","Bayes_B","Bayes_C"), n_threads=32, mem_mb=64000, prefix_tmp="", verbose=FALSE) {
-    # n=100; l=1000; ploidy=100; n_alleles=2; min_allele_freq=0.01; n_chr=7; max_pos=1e6; dist_bp_at_50perc_r2=1e3; n_threads=8
-    # G = simquantgen::fn_simulate_genotypes(n=n, l=l, ploidy=ploidy, n_alleles=n_alleles, min_allele_freq=min_allele_freq, n_chr=n_chr, max_pos=max_pos, dist_bp_at_50perc_r2=dist_bp_at_50perc_r2, n_threads=n_threads)
-    # dist_effects=c("norm", "chi2")[1]; n_effects=100; purely_additive=FALSE; n_networks=10; n_effects_per_network=50; h2=0.5; pheno_reps=1
-    # y = simquantgen::fn_simulate_phenotypes(G=G, n_alleles=n_alleles, dist_effects=dist_effects, n_effects=n_effects, purely_additive=purely_additive, n_networks=n_networks, n_effects_per_network=n_effects_per_network, h2=h2, pheno_reps=pheno_reps)$Y
-    # # y = simquantgen::fn_simulate_phenotypes(G=G, n_alleles=n_alleles, dist_effects=dist_effects, n_effects=10, purely_additive=TRUE, n_networks=0, n_effects_per_network=0, h2=0.99, pheno_reps=1)$Y
-    # # y = simquantgen::fn_simulate_phenotypes(G=G, n_alleles=n_alleles, dist_effects=dist_effects, n_effects=10, purely_additive=FALSE, n_networks=2, n_effects_per_network=10, h2=0.99, pheno_reps=1)$Y
-    # pop = sample(c("popA", "popB", "popC", "popD"), size=n, replace=TRUE)
-    # COVAR=NULL; vec_models_to_test=c("ridge","lasso","elastic_net","Bayes_A","Bayes_B","Bayes_C"); n_threads=32; mem_mb=64000; prefix_tmp=""
+#' Define the type of cross-validation scheme including the models, partitioning, and shuffling,
+#'  as well as estimate the maximum number of threads which can be used in parallel without memory errors.
+#'
+#' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
+#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'      Row names can be any string of characters which identify the sample or entry or pool names.
+#'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
+#'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
+#'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
+#'  $list_pheno:
+#'      $y: named vector of numeric phenotype data
+#'      $pop: population or groupings corresponding to each element of y
+#'      $trait_name: name of the trait
+#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#' @param cv_type (Default=1)
+#'  - 1: k-fold cross-validation across all samples/entries/pools regardless of their groupings
+#'  - 2: pairwise-population cross-validation, e.g. training on population A and validation on population B
+#'  - 3: leave-one-population-out cross-validation, e.g. training on populations 1 to 9 and validation on population 10
+#' @param n_folds if cv_type=1, i.e. k-fold cross-validation is desired, then this defines the number of partitions or folds.
+#'  However, if the resulting size per fold is less than 2, then this return an error.
+#'  Additionally, this parameter is ignored is cv_type=2 or cv_type=3 (Default=10).
+#' @param n_reps if cv_type=1, i.e. k-fold cross-validation is desired, then this defines the number of random shuffling
+#'  for repeated k-fold cross-validation.
+#'  Similar to n_folds, this parameter is ignored is cv_type=2 or cv_type=3 (Default=10).
+#' @param vec_models_to_test genomic prediction models to use (uses all the models below by default). Please choose one or more from:
+#'  - "ridge": \eqn{Cost_{ridge} = \Sigma(y - X\beta)^2 + \lambda\Sigma\beta^2$, where $\hat{\beta} = {(X^TX + \lambda I)^{-1} X^Ty}}
+#'      https://en.wikipedia.org/wiki/Ridge_regression
+#'  - "lasso": \eqn{Cost_{lasso} = \Sigma(y - X\beta)^2 + \lambda\Sigma|\beta|}
+#'      https://en.wikipedia.org/wiki/Lasso_(statistics)
+#'  - "elastic_net": \eqn{Cost_{ridge} = \Sigma(y - X\beta)^2 + (1-\alpha)\lambda\Sigma\beta^2 + \alpha\lambda\Sigma|\beta|}
+#'      https://en.wikipedia.org/wiki/Elastic_net_regularization
+#'  - "Bayes_A": scaled t-distributed effects
+#'      https://cran.r-hub.io/web/packages/BGLR/vignettes/BGLR-extdoc.pdf
+#'  - "Bayes_B": scaled t-distributed effects with probability \eqn{\pi}; and zero effects with probability \eqn{1-\pi}, 
+#'      where \eqn{\pi \sim \beta(\theta_1, \theta_2)}.
+#'      https://cran.r-hub.io/web/packages/BGLR/vignettes/BGLR-extdoc.pdf
+#'  - "Bayes_C": normally distributed effects (\eqn{N(0, \sigma^2_{\beta})}) with probability \eqn{\pi}; 
+#'      and zero effects with probability \eqn{1-\pi}, where \eqn{\pi \sim \beta(\theta_1, \theta_2)}.
+#'      https://cran.r-hub.io/web/packages/BGLR/vignettes/BGLR-extdoc.pdf
+#'  - "gBLUP": genotype best linear unbiased prediction (gBLUP) using genomic relationship matrix to predict missing breeding values
+#'      via Direct-Inversion Newton-Raphson or Average Information 
+#'      using the sommer R package (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4894563/).
+#'      https://link.springer.com/protocol/10.1007/978-1-62703-447-0_13
+#' @param max_mem_Gb maximum memory in gigabytes available for computation (Default=15)
+#' @param verbose show cross-validation parameter preparation messages? (Default=FALSE)
+#' @returns
+#' Ok:
+#'  $df_params: data frame containing all possible or just a defined non-exhaustive combinations of:
+#'      $rep: replication number
+#'      $fold: fold number
+#'      $model: model name
+#'  $mat_idx_shuffle numeric: n sample x r replications matrix of sample/entry/pool index shuffling where
+#'      each column refer to a random shuffling of samples/entry/pool from which the identities of the
+#'      training and validation sets will be sourced from
+#'  $vec_set_partition_groupings vector of numeric partitioning indexes where each index refer to the
+#'      fold which will serve as the validation population
+#' Err: gpError
+#' @examples
+#' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+#' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
+#' list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
+#' COVAR = G %*% t(G)
+#' list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, COVAR=COVAR, verbose=TRUE)
+#' list_cv_params = fn_cross_validation_preparation(list_merged, cv_type=1)
+#' list_cv_params = fn_cross_validation_preparation(list_merged, cv_type=3)
+#' list_cv_params = fn_cross_validation_preparation(list_merged, cv_type=2)
+#' list_merged$list_pheno$pop = rep(c("popA", "popB"), times=length(list_merged$list_pheno$pop)/2)
+#' list_cv_params = fn_cross_validation_preparation(list_merged, cv_type=2)
+#' @export
+fn_cross_validation_preparation = function(list_merged, cv_type=1, n_folds=10, n_reps=10, 
+    vec_models_to_test=c("ridge","lasso","elastic_net","Bayes_A","Bayes_B","Bayes_C","gBLUP"),
+    max_mem_Gb=15, verbose=FALSE)
+{
+    ###################################################
+    ### TEST
+    # list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    # G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
+    # list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
+    # COVAR = G %*% t(G)
+    # list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, COVAR=COVAR, verbose=TRUE)
+    # cv_type=1
+    # n_folds = 10
+    # n_reps = 10
+    # vec_models_to_test = c("ridge", "lasso", "elastic_net", "Bayes_A", "Bayes_B", "Bayes_C", "gBLUP")
+    # max_mem_Gb = 15
     # verbose = TRUE
-    ### Data dimensions
-    expect_equal(rownames(G), rownames(y))
-    n = nrow(G)
-    p = ncol(G)
-    # ### Estimate kinship matrix which will be used as covariate
-    # K = stats::cor(t(G))
-    # ### Sort the samples by population
-    # idx = order(pop)
-    # G = G[idx, , drop=FALSE]
-    # y = y[idx, , drop=FALSE]
-    # expect_equal(rownames(G), rownames(y))
-    # pop = pop[idx]
-    ### Define the cross-validation partitioning where 1 population is set as validation set
-    uniq_pop = sort(unique(pop))
-    k = length(uniq_pop)
-    vec_set_partition_groupings = rep(NA, n)
-    for (i in 1:k) {
-        idx = pop==uniq_pop[i]
-        vec_set_partition_groupings[idx] = i
+    ###################################################
+    ### Input sanity check
+    if (methods::is(list_merged, "gpError")) {
+        error = chain(list_merged, 
+            methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in cross_validation::fn_cross_validation_preparation(...). ",
+                    "Input data (list_merged) is an error type."
+                )))
+        return(error)
     }
-    ### No shuffling needed as cross-validation is not replicated
-    mat_idx_shuffle = matrix(1:n, ncol=1)
-    ### Prepare matrix of rep x fold x model combinations
-    df_params = expand.grid(rep=c(1), fold=c(1:k), model=vec_models_to_test)
-    ### Report the folds, replication and models being tested
-    if (verbose==TRUE) {
-        print("Genomic prediction cross-validation:")
-        print("Models being tested:")
-        for (mod in vec_models_to_test) {
-            print(paste0("     - ", mod))
+    if (cv_type == 1) {
+        ###############################
+        ### k-fold cross-validation ###
+        ###############################
+        n = nrow(list_merged$G)
+        ### Adjust the number of folds so that we have at least 2 samples/entries/pools in the validation set
+        set_size = floor(n / n_folds)
+        while ((set_size < 2) & (n_folds > 1)) {
+            if (verbose) {print(paste0("Reducing the number of folds from ", n_folds, " to ", n_folds-1, "."))}
+            n_folds = n_folds - 1
         }
-    }
-    ### Limit the number of forks by the memory available and the size of G and y
-    total_memory = mem_mb * 1e3
-    data_size = 50 * as.numeric(gsub(" Gb", "", format(utils::object.size(c(G, y)), units="Gb")))
-    n_forks = min(c(n_threads, floor((total_memory-10) / data_size), length(vec_models_to_test)))
-    ### Multi-threaded cross-fold validation (Note: y-predictions are standard normalised)
-    time_ini = Sys.time()
-    list_perf = parallel::mclapply(c(1:nrow(df_params)), FUN=fn_cv_1, vec_set_partition_groupings=vec_set_partition_groupings, mat_idx_shuffle=mat_idx_shuffle, df_params=df_params, G=G, y=y, COVAR=COVAR, prefix_tmp=prefix_tmp, mem_mb=(floor(total_memory/n_forks)*1e3), mc.cores=n_forks)
-    duration_mins = difftime(Sys.time(), time_ini, units="min") # 2.8 hours!
-    print(paste0("Multi-threaded leave-one-population-out cross-fold validation finished after ", duration_mins, " minutes."))
-    ### Collect the output
-    for (i in 1:length(list_perf)) {
-        perf = list_perf[[i]]
-        colnames(perf$df_y_pred) = c("rep", "entry", "model", "y_pred")
-        tmp_df_metrics = perf$df_metrics
-        tmp_df_y_pred = perf$df_y_pred
-        tmp_df_y_pred$pop = uniq_pop[df_params$fold[i]]
-        tmp_fnames_metrics = perf$fname_metrics_out
-        tmp_fnames_y_pred = perf$fname_y_pred_out
-        if (i==1) {
-            df_metrics = tmp_df_metrics
-            df_y_pred = tmp_df_y_pred
-            fnames_metrics = tmp_fnames_metrics
-            fnames_y_pred = tmp_fnames_y_pred
-        } else {
-            df_metrics = rbind(df_metrics, tmp_df_metrics)
-            df_y_pred = rbind(df_y_pred, tmp_df_y_pred)
-            fnames_metrics = c(fnames_metrics, tmp_fnames_metrics)
-            fnames_y_pred = c(fnames_y_pred, tmp_fnames_y_pred)
+        if (set_size < 2) {
+            error = methods::new("gpError",
+                code=000,
+                messages=paste0(
+                    "Error in cross_validation::fn_cross_validation_preparation(...). ",
+                    "The size of the data set is too small, n= ", n, "."
+                ))
+            return(error)
         }
-    }
-    df_y_true = data.frame(entry=rownames(y), y_true=y); colnames(df_y_true) = c("entry", "y_true"); rownames(df_y_true) = NULL
-    df_y_pred = merge(df_y_pred, df_y_true, by="entry")
-    ### Scatterplot of the observed and predicted phenotype data
-    if (verbose==TRUE) {
-        for (model in unique(df_y_pred$model)) {
-            # model = unique(df_y_pred$model)[1]
-            print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-            print(paste0(prefix_tmp, " - ", model))
-            idx = which(df_y_pred$model == model)
-            txtplot::txtplot(x=df_y_pred$y_true[idx], y=df_y_pred$y_pred[idx], xlab="Observed", ylab="Predicted")
+        vec_set_partition_groupings = rep(1:n_folds, each=set_size)
+        if (length(vec_set_partition_groupings) < n) {
+            vec_set_partition_groupings = c(vec_set_partition_groupings, rep(n_folds, times=(n-length(vec_set_partition_groupings))))
         }
-    }
-    ### Output
-    df_metrics$validation_pop = uniq_pop[df_metrics$k]
-    return(list(df_metrics=df_metrics, df_y_pred=df_y_pred, fnames_metrics=fnames_metrics, fnames_y_pred=fnames_y_pred))
-}
-
-### Within population, across populations, and per se genomic predictions
-fn_within_across_perse_genomic_prediction = function(G, idx_col_y, args, dir_tmp) {
-    # G=X; idx_col_y=vec_idx_col_y[1]; args=args
-    ### Load phenotype data
-    print("##################################################")
-    print("Load phenotype & exclude outliers")
-    list_y_pop = fn_load_phenotype(fname_csv_txt=args$fname_pheno,
-                                sep=args$sep,
-                                header=args$header,
-                                idx_col_id=args$idx_col_id,
-                                idx_col_pop=args$idx_col_pop,
-                                idx_col_y=idx_col_y,
-                                na.strings=args$na_strings)
-    print(list_y_pop$trait_name)
-    ### Remove phenotype outlier/s
-    list_y_pop = fn_filter_outlying_phenotypes(list_y_pop=list_y_pop,
-                                            verbose=args$verbose)
-    ### Load covariate
-    if (is.null(args$fname_covar_rds) == TRUE) {
-        COVAR = NULL
-    } else {
-        print("##################################################")
-        print("Load covariate and standard normalise per column")
-        COVAR = readRDS(args$fname_covar_rds)
-        COVAR = scale(COVAR, scale=TRUE, center=TRUE)
-    }
-    ### Merge genotype, phenotype, and covariate matrices, where they all need to be matrices with overlapping rownames i.e., sample names (requirement of fn_cross_validation(...))
-    print("##################################################")
-    print("Merge data")
-    list_G_list_y_pop_COVAR = fn_merge_genotype_and_phenotype(G=G,
-                                                            list_y_pop=list_y_pop,
-                                                            COVAR=COVAR,
-                                                            verbose=args$verbose)
-    idx_no_missing = which(!is.na(list_G_list_y_pop_COVAR$list_y_pop$y))
-    y = matrix(list_G_list_y_pop_COVAR$list_y_pop$y[idx_no_missing], ncol=1)
-    G = list_G_list_y_pop_COVAR$G[idx_no_missing, ]
-    rownames(y) = names(list_G_list_y_pop_COVAR$list_y_pop$y[idx_no_missing])
-    pop = list_G_list_y_pop_COVAR$list_y_pop$pop[idx_no_missing]
-    COVAR = list_G_list_y_pop_COVAR$COVAR[idx_no_missing, ]
-    vec_pop = sort(unique(pop))
-    if (args$vec_pop != "all") {
-        vec_pop_requested = unlist(strsplit(args$vec_pop, ","))
-        vec_pop = intersect(vec_pop, vec_pop_requested)
-        if (length(vec_pop) == 0) {
-            print("Requested populations does not exist in the input data: ")
-            print(args$vec_pop)
-            print("The data has the following populations: ")
-            print(paste(sort(unique(pop)), collapse=","))
-            quit()
-        }
-        print("The following populations will be included in the analysis: ")
-        print(paste(vec_pop, collapse=","))
-    }
-    idx_entries_for_genomic_prediction = which(is.na(list_G_list_y_pop_COVAR$list_y_pop$y) & (list_G_list_y_pop_COVAR$list_y_pop$pop %in% vec_pop))
-    print(paste0("Total number of samples: ", nrow(G) + length(idx_entries_for_genomic_prediction)))
-    print(paste0("Number of samples with phenotype data: ", nrow(G)))
-    print(paste0("Number of samples whose phenotypes will be predicted: ", length(idx_entries_for_genomic_prediction)))
-    print(paste0("Total number of markers: ", ncol(G)))
-    print(paste0("Number of populations: ", length(vec_pop)))
-    if (is.null(COVAR)) {
-        print("Number of covariates: 0")
-    } else {
-        print(paste0("Number of covariates: ", ncol(COVAR)))
-    }
-    ##################################################
-    ### WITHIN POPULATION: k-fold cross-validation ###
-    ##################################################
-    print("##################################################")
-    print("Within population cross-validation:")
-    vec_fnames_metrics = c()
-    vec_fnames_y_pred = c()
-    for (pop_id in vec_pop) {
-        # pop_id = vec_pop[1]
-        print("-----------------------------------")
-        idx = which(pop == pop_id)
-        print(paste0("Population: ", pop_id, " (n=", length(idx), " x p=", ncol(G), ")"))
-        prefix = file.path(dir_tmp, gsub(".vcf.gz$", "", ignore.case=TRUE, gsub(".vcf$", "", ignore.case=TRUE, gsub(".rds$", "", ignore.case=TRUE, basename(args$fname_rds_or_vcf)))))
-        list_out = fn_cross_validation(G=G[idx, , drop=FALSE],
-                                    y=y[ idx, , drop=FALSE],
-                                    COVAR=COVAR[idx, , drop=FALSE],
-                                    vec_models_to_test=args$vec_models_to_test,
-                                    k_folds=args$k_folds,
-                                    n_reps=args$n_reps,
-                                    n_threads=args$n_threads,
-                                    mem_mb=args$mem_mb,
-                                    prefix_tmp=paste0(prefix, "-pop_", pop_id),
-                                    verbose=args$verbose)
-        if (length(list_out$df_metrics) == 1) {
-            ### Quit, if cross-validation failed because the number size of each set is less than 2.
-            ### The error message from fn_cross_validation(...) will recommend decreasing k_folds.
-            if (is.na(list_out$df_metrics)) {
-                quit()
+        ### Prepare shuffling across replications
+        mat_idx_shuffle = matrix(sample(1:n, size=n, replace=FALSE), ncol=1)
+        if (n_reps > 1) {
+            for (r in 2:n_reps) {
+                mat_idx_shuffle = cbind(mat_idx_shuffle, sample(1:n, size=n, replace=FALSE))
             }
         }
-        list_out$df_metrics$pop = pop_id
-        vec_fnames_metrics = c(vec_fnames_metrics, list_out$fnames_metrics)
-        vec_fnames_y_pred = c(vec_fnames_y_pred, list_out$fnames_y_pred)
-    }
-    METRICS_WITHIN_POP = list_out$df_metrics
-    YPRED_WITHIN_POP = list_out$df_y_pred
-    ### Cleanup
-    for (i in 1:length(vec_fnames_metrics)) {
-        unlink(vec_fnames_metrics[i])
-        unlink(vec_fnames_y_pred[i])
-    }
-    #####################################################################
-    ### ACROSS POPULATIONS: leave-one-population-out cross-validation ###
-    #####################################################################
-    if ((args$skip_lopo_cv==TRUE) | (length(unique(pop))==1)) {
-        args$skip_lopo_cv = TRUE
-        METRICS_ACROSS_POP_LOPO = NULL
-        YPRED_ACROSS_POP_LOPO = NULL
-        print("Skipping leave-one-population-out cross-validation as only one population was supplied.")
+        ### Prepare matrix of rep x fold x model combinations and sort by fold so that we can start comparing as soon as results become available
+        df_params = expand.grid(rep=c(1:n_reps), fold=c(1:n_folds), model=vec_models_to_test)
+        df_params = df_params[order(df_params$rep), ]
+        df_params = df_params[order(df_params$fold), ]
+        ### Estimate the maximum number of threads which can be used without running out of memory
+        list_mem = fn_estimate_memory_footprint(
+            X=list_merged,
+            n_models=length(vec_models_to_test),
+            n_folds=n_folds,
+            n_reps=n_reps, 
+            memory_requested_Gb=max_mem_Gb,
+            memory_multiplier=40,
+            verbose=verbose)
+    } else if (cv_type == 2) {
+        ############################################
+        ### Pairwise-population cross-validation ###
+        ############################################
+        n = nrow(list_merged$G)
+        ### Define the partitioning as the population grouping
+        vec_set_partition_groupings = as.numeric(as.factor(list_merged$list_pheno$pop))
+        n_folds = length(unique(list_merged$list_pheno$pop))
+        if (n_folds != 2) {
+            error = methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in cross_validation::fn_cross_validation_preparation(...). ",
+                    "Cannot perform pairwise-population cross-validation (cv_type=2) ",
+                    "because the number of populations (", n_folds, " populations) in the data set is not equal to 2."
+                ))
+            return(error)
+        }
+        ### No shuffling needed as cross-validation is not replicated
+        mat_idx_shuffle = matrix(1:n, ncol=1)
+        ### Prepare matrix of rep x fold x model combinations
+        df_params = expand.grid(rep=c(1), fold=c(1:n_folds), model=vec_models_to_test)
+        ### Estimate the maximum number of threads which can be used without running out of memory
+        list_mem = fn_estimate_memory_footprint(
+            X=list_merged,
+            n_models=length(vec_models_to_test),
+            n_folds=n_folds,
+            n_reps=1, 
+            memory_requested_Gb=max_mem_Gb,
+            memory_multiplier=40,
+            verbose=verbose)
+    } else if (cv_type == 3) {
+        #################################################
+        ### Leave-one-population-out cross-validation ###
+        #################################################
+        n = nrow(list_merged$G)
+        ### Define the partitioning as the population grouping
+        vec_set_partition_groupings = as.numeric(as.factor(list_merged$list_pheno$pop))
+        n_folds = length(unique(list_merged$list_pheno$pop))
+        if (n_folds == 1) {
+            error = methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in cross_validation::fn_cross_validation_preparation(...). ",
+                    "Cannot perform leave-one-population-out cross-validation (cv_type=3) ",
+                    "because there is only one population in the data set."
+                ))
+            return(error)
+        }
+        ### No shuffling needed as cross-validation is not replicated
+        mat_idx_shuffle = matrix(1:n, ncol=1)
+        ### Prepare matrix of rep x fold x model combinations
+        df_params = expand.grid(rep=c(1), fold=c(1:n_folds), model=vec_models_to_test)
+        ### Estimate the maximum number of threads which can be used without running out of memory
+        list_mem = fn_estimate_memory_footprint(
+            X=list_merged,
+            n_models=length(vec_models_to_test),
+            n_folds=n_folds,
+            n_reps=1, 
+            memory_requested_Gb=max_mem_Gb,
+            memory_multiplier=40,
+            verbose=verbose)
     } else {
-        print("##################################################")
-        print("Across population cross-validation:")
-        print("(Leave-one-population-out CV)")
+        error = methods::new("gpError",
+            code=000,
+            messages=paste0(
+                "Error in cross_validation::fn_cross_validation_preparation(...). ",
+                "The cross-validation type, cv_type=", cv_type, " is invalid. ",
+                "Please choose: ",
+                "  --> '1' for k-fold cross-validation across all samples/entries/pools regardless of their groupings. ",
+                "  --> '2' for pairwise-population cross-validation, e.g. training on population A and validation on population B. ",
+                "  --> '3' for leave-one-population-out cross-validation, e.g. training on populations 1 to 9 and validation on population 10."
+            ))
+        return(error)
+    }
+    ### Memory allocation error handling
+    if (methods::is(list_mem, "gpError")) {
+        error = chain(list_mem, methods::new("gpError",
+            code=000,
+            message=paste0(
+                "Error in cross_validation::fn_cross_validation_preparation(...). ",
+                "Failed to estimate memory allocation requirements for parallel computations ",
+                "and the maximum number of threads which can be used to avoid out-of-memory (OOM) error."
+            )))
+        return(error)
+    }
+    ### Output
+    return(list(
+        df_params=df_params,
+        mat_idx_shuffle=mat_idx_shuffle,
+        vec_set_partition_groupings=vec_set_partition_groupings,
+        list_mem=list_mem
+    ))
+}
 
-
-
-        ### REDUCE NUMBER OF THREADS HERE ARE DATA SIZE differs from WITHIN POP CV!
-        ### USE MAXIMUM NUMBER OF THREADS ESTIMATION
-
-
-
-        list_out = fn_leave_one_population_out_cross_validation(G=G, 
-                                                                y=y,
-                                                                pop=pop,
-                                                                COVAR=COVAR,
-                                                                vec_models_to_test=args$vec_models_to_test,
-                                                                n_threads=args$n_threads,
-                                                                mem_mb=args$mem_mb,
-                                                                prefix_tmp=paste0(prefix, "-LOPO"),
-                                                                verbose=args$verbose)
-        METRICS_ACROSS_POP_LOPO = list_out$df_metrics
-        YPRED_ACROSS_POP_LOPO = list_out$df_y_pred
-        ### Cleanup
-        for (i in 1:length(list_out$fnames_metrics)) {
-            unlink(list_out$fnames_metrics[i])
-            unlink(list_out$fnames_y_pred[i])
+#' K-fold cross-validation per population
+#'
+#' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
+#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'      Row names can be any string of characters which identify the sample or entry or pool names.
+#'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
+#'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
+#'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
+#'  $list_pheno:
+#'      $y: named vector of numeric phenotype data
+#'      $pop: population or groupings corresponding to each element of y
+#'      $trait_name: name of the trait
+#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#' @param n_folds if cv_type=1, i.e. k-fold cross-validation is desired, then this defines the number of partitions or folds.
+#'  However, if the resulting size per fold is less than 2, then this return an error.
+#'  Additionally, this parameter is ignored is cv_type=2 or cv_type=3 (Default=10).
+#' @param n_reps if cv_type=1, i.e. k-fold cross-validation is desired, then this defines the number of random shuffling
+#'  for repeated k-fold cross-validation.
+#'  Similar to n_folds, this parameter is ignored is cv_type=2 or cv_type=3 (Default=10).
+#' @param vec_models_to_test genomic prediction models to use (uses all the models below by default). Please choose one or more from:
+#'  - "ridge": \eqn{Cost_{ridge} = \Sigma(y - X\beta)^2 + \lambda\Sigma\beta^2$, where $\hat{\beta} = {(X^TX + \lambda I)^{-1} X^Ty}}
+#'      https://en.wikipedia.org/wiki/Ridge_regression
+#'  - "lasso": \eqn{Cost_{lasso} = \Sigma(y - X\beta)^2 + \lambda\Sigma|\beta|}
+#'      https://en.wikipedia.org/wiki/Lasso_(statistics)
+#'  - "elastic_net": \eqn{Cost_{ridge} = \Sigma(y - X\beta)^2 + (1-\alpha)\lambda\Sigma\beta^2 + \alpha\lambda\Sigma|\beta|}
+#'      https://en.wikipedia.org/wiki/Elastic_net_regularization
+#'  - "Bayes_A": scaled t-distributed effects
+#'      https://cran.r-hub.io/web/packages/BGLR/vignettes/BGLR-extdoc.pdf
+#'  - "Bayes_B": scaled t-distributed effects with probability \eqn{\pi}; and zero effects with probability \eqn{1-\pi}, 
+#'      where \eqn{\pi \sim \beta(\theta_1, \theta_2)}.
+#'      https://cran.r-hub.io/web/packages/BGLR/vignettes/BGLR-extdoc.pdf
+#'  - "Bayes_C": normally distributed effects (\eqn{N(0, \sigma^2_{\beta})}) with probability \eqn{\pi}; 
+#'      and zero effects with probability \eqn{1-\pi}, where \eqn{\pi \sim \beta(\theta_1, \theta_2)}.
+#'      https://cran.r-hub.io/web/packages/BGLR/vignettes/BGLR-extdoc.pdf
+#'  - "gBLUP": genotype best linear unbiased prediction (gBLUP) using genomic relationship matrix to predict missing breeding values
+#'      via Direct-Inversion Newton-Raphson or Average Information 
+#'      using the sommer R package (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4894563/).
+#'      https://link.springer.com/protocol/10.1007/978-1-62703-447-0_13
+#' @param bool_parallel perform multi-threaded cross-validation (Default=TRUE)
+#' @param max_mem_Gb maximum memory in gigabytes available for computation (Default=15)
+#' @param n_threads total number of computing threads available (Default=2)
+#' @param dir_output output directory where temporary text and Rds files will be saved into (Default=NULL)
+#' @param verbose show within population cross-validation messages? (Default=FALSE)
+#' @returns
+#' Ok: filename of temporary Rds file containing a 2-element list:
+#'      $METRICS_WITHIN_POP (row-binded df_metrics across populations, reps, folds, and models):
+#'          $rep: replication number
+#'          $fold: fold number
+#'          $model: genomic prediction model name
+#'          $pop_training: population/s used in the training set (separated by commas if more than 1)
+#'          $pop_validation: population/s used in the validation set (separated by commas if more than 1)
+#'          $duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
+#'          $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+#'          $mbe: mean bias error
+#'          $mae: mean absolute error
+#'          $rmse: root mean squared error
+#'          $r2: coefficient of determination
+#'          $corr: Pearson's product moment correlation
+#'          $power_t10: fraction of observed top 10 phenotype values correctly predicted
+#'          $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+#'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          $h2: narrow-sense heritability estimate
+#'      $YPRED_WITHIN_POP (row-binded df_y_validation across populations, reps, folds, and models):
+#'          $rep: replication number
+#'          $fold: fold number
+#'          $model: genomic prediction model name
+#'          $pop_training: population/s used in the training set (separated by commas if more than 1)
+#'          $id: names of the samples/entries/pools, 
+#'          $pop_validation: population from which the sample/entry/pool belongs to
+#'          $y_true: observed phenotype values
+#'          $y_pred: predicted phenotype values
+#' Err: gpError
+#' @examples
+#' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+#' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
+#' list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
+#' COVAR = G %*% t(G)
+#' list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, COVAR=COVAR, verbose=TRUE)
+#' fname_within_Rds = fn_cross_validation_within_population(list_merged, n_folds=2, n_reps=1, 
+#'  vec_models_to_test=c("ridge","lasso"), verbose=TRUE)
+#' list_within = readRDS(fname_within_Rds)
+#' head(list_within$METRICS_WITHIN_POP)
+#' head(list_within$YPRED_WITHIN_POP)
+#' @export
+fn_cross_validation_within_population = function(list_merged, n_folds=10, n_reps=10, 
+    vec_models_to_test=c("ridge","lasso","elastic_net","Bayes_A","Bayes_B","Bayes_C","gBLUP"),
+    bool_parallel=TRUE, max_mem_Gb=15, n_threads=2, dir_output=NULL, verbose=FALSE)
+{
+    ###################################################
+    ### TEST
+    # list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    # G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
+    # list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
+    # COVAR = G %*% t(G)
+    # list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, COVAR=COVAR, verbose=TRUE)
+    # n_folds = 2
+    # n_reps = 1
+    # vec_models_to_test = c("ridge", "lasso")
+    # max_mem_Gb = 15
+    # n_threads = 2
+    # dir_output = NULL
+    # bool_parallel = TRUE
+    # verbose = TRUE
+    ###################################################
+    ### Input sanity check
+    if (methods::is(list_merged, "gpError")) {
+        error = chain(list_merged, 
+            methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in cross_validation::fn_cross_validation_within_population(...). ",
+                    "Input data (list_merged) is an error type."
+                )))
+        return(error)
+    }
+    ### Define the output directory
+    if (!is.null(dir_output)) {
+        if (!dir.exists(dir_output)) {
+            dir.create(dir_output, showWarnings=FALSE)
+        }
+        
+    } else {
+        dir_output = tempfile()
+        dir.create(dir_output, showWarnings=FALSE)
+    }
+    if (!dir.exists(dir_output)) {
+        error = methods::new("gpError",
+            code=000,
+            message=paste0(
+                "Error in cross_validation::fn_cross_validation_within_population(...). ",
+                "Unable to create the output directory: ", dir_output, ". ",
+                "Please check your permissions to write into that directory."
+            ))
+        return(error)
+    }
+    ### Determine the number of populations
+    vec_populations = sort(unique(list_merged$list_pheno$pop))
+    ### Instantiate the vector of Rds filenames containing the temporary output data per population
+    vec_fname_within_Rds = c()
+    for (population in vec_populations) {
+        # population = vec_populations[1]
+        ### Subset the data per population
+        vec_idx = which(list_merged$list_pheno$pop == population)
+        list_merged_sub = fn_subset_merged_genotype_and_phenotype(list_merged=list_merged, vec_idx=vec_idx, verbose=verbose)
+        if (methods::is(list_merged_sub, "gpError")) {
+            error = chain(list_merged_sub, method::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in cross_validation::fn_cross_validation_within_population(...). ",
+                    "Failed to subset the data set."
+                )))
+            return(error)
+        }
+        ### Define the cross-validation parameters as well as the maximum number of threads we can safely use in parallel
+        list_cv_params = fn_cross_validation_preparation(
+            list_merged=list_merged_sub,
+            cv_type=1,
+            n_folds=n_folds,
+            n_reps=n_reps, 
+            vec_models_to_test=vec_models_to_test,
+            max_mem_Gb=max_mem_Gb,
+            verbose=verbose)
+        ### Cross-validation
+        if (bool_parallel) {
+            ###########################################
+            ### Multi-threaded cross-validation
+            list_list_perf = tryCatch(
+                parallel::mclapply(c(1:nrow(list_cv_params$df_params)), 
+                    FUN=fn_cv_1, 
+                        list_merged=list_merged_sub,
+                        df_params=list_cv_params$df_params,
+                        mat_idx_shuffle=list_cv_params$mat_idx_shuffle,
+                        vec_set_partition_groupings=list_cv_params$vec_set_partition_groupings,
+                        prefix_tmp=file.path(dir_output, "within"),
+                        verbose=verbose, 
+                    mc.cores=min(c(n_threads, list_cv_params$n_threads)), 
+                    mc.preschedule=FALSE, 
+                    mc.set.seed=TRUE, 
+                    mc.silent=FALSE, 
+                    mc.cleanup=TRUE),
+                error = function(e){NA}
+            )
+            if (is.na(list_list_perf[1])) {
+                error = methods::new("gpError",
+                    code=000,
+                    message=paste0(
+                        "Error in cross_validation::fn_cross_validation_within_population(...). ",
+                        "Something went wrong in the execution of multi-threaded within population k-fold cross-validation. ",
+                        "Please check re-run cross_validation::fn_cross_validation_within_population(...) with ",
+                        "bool_parallel=FALSE to identify the error."
+                    ))
+                return(error)
+            }
+        } else {
+            ############################################
+            ### Single-threaded cross-validation
+            list_list_perf = list()
+            for (i in 1:nrow(list_cv_params$df_params)) {
+                list_perf = fn_cv_1(
+                    i=i,
+                    list_merged=list_merged_sub,
+                    df_params=list_cv_params$df_params,
+                    mat_idx_shuffle=list_cv_params$mat_idx_shuffle,
+                    vec_set_partition_groupings=list_cv_params$vec_set_partition_groupings,
+                    prefix_tmp=file.path(dir_output, "within"),
+                    verbose=verbose
+                )
+                if (methods::is(list_perf, "gpError")) {
+                    error = chain(list_perf, methods::new("gpError",
+                        code=000,
+                        message=paste0(
+                            "Error in cross_validation::fn_cross_validation_within_population(...). ",
+                            "Error running cross-validation for population: ", population, " at ",
+                            "rep: ", list_cv_params$df_params$rep[i], ", ",
+                            "fold: ", list_cv_params$df_params$fold[i], ", and ",
+                            "model: ", list_cv_params$df_params$model[i], "."
+                        )))
+                    return(error)
+                }
+                eval(parse(text=paste0("list_list_perf$`", i, "` = list_perf")))
+            }
+        }
+        ### Concatenate performances
+        df_metrics = NULL
+        df_y_validation = NULL
+        for (list_perf in list_list_perf) {
+            # list_perf = list_list_perf[[1]]
+            if (is.null(df_metrics) & is.null(df_y_validation)) {
+                df_metrics = list_perf$df_metrics
+                df_y_validation = list_perf$df_y_validation
+            } else {
+                df_metrics = rbind(df_metrics, list_perf$df_metrics)
+                df_y_validation = rbind(df_y_validation, list_perf$df_y_validation)
+            }
+        }
+        ### Save temporary Rds output per population
+        time_rand_id = paste0(round(as.numeric(Sys.time())), sample.int(1e6, size=1))
+        fname_within_Rds = file.path(dir_output, paste0("within-tempout-", population, "-", time_rand_id, ".Rds"))
+        saveRDS(list(
+            df_metrics=df_metrics,
+            df_y_validation=df_y_validation), 
+            file=fname_within_Rds)
+        ### Take note of the names of these temporary Rds output files
+        vec_fname_within_Rds = c(vec_fname_within_Rds, fname_within_Rds)
+        ### Clean-up temporary files generated by fn_cv_1 in parallel
+        for (list_perf in list_list_perf) {
+            unlink(list_perf$fname_metrics_out)
+            unlink(list_perf$fname_y_validation_out)
+        }
+        ### Clean-up the memory used by subsetting the data set
+        list_merged_sub = NULL 
+        list_list_perf = NULL 
+        list_perf = NULL 
+        gc()
+    }
+    ### Concatenate the temporary output Rds files
+    METRICS_WITHIN_POP = NULL
+    YPRED_WITHIN_POP = NULL
+    for (fname_within_Rds in vec_fname_within_Rds) {
+        # fname_within_Rds = vec_fname_within_Rds[1]
+        list_tmp = readRDS(fname_within_Rds)
+        if (is.null(METRICS_WITHIN_POP) & is.null(YPRED_WITHIN_POP)) {
+            METRICS_WITHIN_POP = list_tmp$df_metrics
+            YPRED_WITHIN_POP = list_tmp$df_y_validation
+        } else {
+            METRICS_WITHIN_POP = rbind(METRICS_WITHIN_POP, list_tmp$df_metrics)
+            YPRED_WITHIN_POP = rbind(YPRED_WITHIN_POP, list_tmp$df_y_validation)
         }
     }
-    ################################################################
-    ### ACROSS POPULATIONS: pairwise population cross-validation ###
-    ################################################################
-    vec_pop = sort(unique(pop))
+    ### Save the concatenated output data frames across populations and clean-up
+    time_rand_id = paste0(round(as.numeric(Sys.time())), sample.int(1e6, size=1))
+    fname_within_Rds = file.path(dir_output, paste0("within-tempout-", time_rand_id, ".Rds"))
+    saveRDS(list(
+        METRICS_WITHIN_POP=METRICS_WITHIN_POP,
+        YPRED_WITHIN_POP=YPRED_WITHIN_POP),
+        file=fname_within_Rds)
+    for (fname in vec_fname_within_Rds) {
+        unlink(fname)
+    }
+    METRICS_WITHIN_POP = NULL
+    YPRED_WITHIN_POP = NULL
+    gc()
+    ### Output
+    return(fname_within_Rds)
+}
+
+#' K-fold cross-validation across populations without accounting for population grouping
+#'
+#' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
+#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'      Row names can be any string of characters which identify the sample or entry or pool names.
+#'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
+#'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
+#'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
+#'  $list_pheno:
+#'      $y: named vector of numeric phenotype data
+#'      $pop: population or groupings corresponding to each element of y
+#'      $trait_name: name of the trait
+#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#' @param n_folds if cv_type=1, i.e. k-fold cross-validation is desired, then this defines the number of partitions or folds.
+#'  However, if the resulting size per fold is less than 2, then this return an error.
+#'  Additionally, this parameter is ignored is cv_type=2 or cv_type=3 (Default=10).
+#' @param n_reps if cv_type=1, i.e. k-fold cross-validation is desired, then this defines the number of random shuffling
+#'  for repeated k-fold cross-validation.
+#'  Similar to n_folds, this parameter is ignored is cv_type=2 or cv_type=3 (Default=10).
+#' @param vec_models_to_test genomic prediction models to use (uses all the models below by default). Please choose one or more from:
+#'  - "ridge": \eqn{Cost_{ridge} = \Sigma(y - X\beta)^2 + \lambda\Sigma\beta^2$, where $\hat{\beta} = {(X^TX + \lambda I)^{-1} X^Ty}}
+#'      https://en.wikipedia.org/wiki/Ridge_regression
+#'  - "lasso": \eqn{Cost_{lasso} = \Sigma(y - X\beta)^2 + \lambda\Sigma|\beta|}
+#'      https://en.wikipedia.org/wiki/Lasso_(statistics)
+#'  - "elastic_net": \eqn{Cost_{ridge} = \Sigma(y - X\beta)^2 + (1-\alpha)\lambda\Sigma\beta^2 + \alpha\lambda\Sigma|\beta|}
+#'      https://en.wikipedia.org/wiki/Elastic_net_regularization
+#'  - "Bayes_A": scaled t-distributed effects
+#'      https://cran.r-hub.io/web/packages/BGLR/vignettes/BGLR-extdoc.pdf
+#'  - "Bayes_B": scaled t-distributed effects with probability \eqn{\pi}; and zero effects with probability \eqn{1-\pi}, 
+#'      where \eqn{\pi \sim \beta(\theta_1, \theta_2)}.
+#'      https://cran.r-hub.io/web/packages/BGLR/vignettes/BGLR-extdoc.pdf
+#'  - "Bayes_C": normally distributed effects (\eqn{N(0, \sigma^2_{\beta})}) with probability \eqn{\pi}; 
+#'      and zero effects with probability \eqn{1-\pi}, where \eqn{\pi \sim \beta(\theta_1, \theta_2)}.
+#'      https://cran.r-hub.io/web/packages/BGLR/vignettes/BGLR-extdoc.pdf
+#'  - "gBLUP": genotype best linear unbiased prediction (gBLUP) using genomic relationship matrix to predict missing breeding values
+#'      via Direct-Inversion Newton-Raphson or Average Information 
+#'      using the sommer R package (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4894563/).
+#'      https://link.springer.com/protocol/10.1007/978-1-62703-447-0_13
+#' @param bool_parallel perform multi-threaded cross-validation (Default=TRUE)
+#' @param max_mem_Gb maximum memory in gigabytes available for computation (Default=15)
+#' @param n_threads total number of computing threads available (Default=2)
+#' @param dir_output output directory where temporary text and Rds files will be saved into (Default=NULL)
+#' @param verbose show bulk across population cross-validation messages? (Default=FALSE)
+#' @returns
+#' Ok: filename of temporary Rds file containing a 2-element list:
+#'      $METRICS_ACROSS_POP_BULK:
+#'          $rep: replication number
+#'          $fold: fold number
+#'          $model: genomic prediction model name
+#'          $pop_training: population/s used in the training set (separated by commas if more than 1)
+#'          $pop_validation: population/s used in the validation set (separated by commas if more than 1)
+#'          $duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
+#'          $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+#'          $mbe: mean bias error
+#'          $mae: mean absolute error
+#'          $rmse: root mean squared error
+#'          $r2: coefficient of determination
+#'          $corr: Pearson's product moment correlation
+#'          $power_t10: fraction of observed top 10 phenotype values correctly predicted
+#'          $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+#'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          $h2: narrow-sense heritability estimate
+#'      $YPRED_ACROSS_POP_BULK:
+#'          $rep: replication number
+#'          $fold: fold number
+#'          $model: genomic prediction model name
+#'          $pop_training: population/s used in the training set (separated by commas if more than 1)
+#'          $id: names of the samples/entries/pools, 
+#'          $pop_validation: population from which the sample/entry/pool belongs to
+#'          $y_true: observed phenotype values
+#'          $y_pred: predicted phenotype values
+#' Err: gpError
+#' @examples
+#' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+#' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
+#' list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
+#' COVAR = G %*% t(G)
+#' list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, COVAR=COVAR, verbose=TRUE)
+#' fname_across_bulk_Rds = fn_cross_validation_across_populations_bulk(list_merged, n_folds=2, 
+#'  n_reps=1, vec_models_to_test=c("ridge","lasso"), verbose=TRUE)
+#' list_across_bulk = readRDS(fname_across_bulk_Rds)
+#' head(list_across_bulk$METRICS_ACROSS_POP_BULK)
+#' head(list_across_bulk$YPRED_ACROSS_POP_BULK)
+#' @export
+fn_cross_validation_across_populations_bulk = function(list_merged, n_folds=10, n_reps=10, 
+    vec_models_to_test=c("ridge","lasso","elastic_net","Bayes_A","Bayes_B","Bayes_C","gBLUP"),
+    bool_parallel=TRUE, max_mem_Gb=15, n_threads=2, dir_output=NULL, verbose=FALSE)
+{
+    ###################################################
+    ### TEST
+    # list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    # G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
+    # list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
+    # COVAR = G %*% t(G)
+    # list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, COVAR=COVAR, verbose=TRUE)
+    # n_folds = 2
+    # n_reps = 1
+    # vec_models_to_test = c("ridge", "lasso")
+    # max_mem_Gb = 15
+    # n_threads = 2
+    # dir_output = NULL
+    # bool_parallel = TRUE
+    # verbose = TRUE
+    ###################################################
+    ### Input sanity check
+    if (methods::is(list_merged, "gpError")) {
+        error = chain(list_merged, 
+            methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in cross_validation::fn_cross_validation_across_populations_bulk(...). ",
+                    "Input data (list_merged) is an error type."
+                )))
+        return(error)
+    }
+    ### Define the output directory
+    if (!is.null(dir_output)) {
+        if (!dir.exists(dir_output)) {
+            dir.create(dir_output, showWarnings=FALSE)
+        }
+        
+    } else {
+        dir_output = tempfile()
+        dir.create(dir_output, showWarnings=FALSE)
+    }
+    if (!dir.exists(dir_output)) {
+        error = methods::new("gpError",
+            code=000,
+            message=paste0(
+                "Error in cross_validation::fn_cross_validation_across_populations_bulk(...). ",
+                "Unable to create the output directory: ", dir_output, ". ",
+                "Please check your permissions to write into that directory."
+            ))
+        return(error)
+    }
+    ### Check if we have more than 1 population
+    vec_populations = sort(unique(list_merged$list_pheno$pop))
+    if (length(vec_populations) == 1) {
+        error = methods::new("gpError",
+            code=000,
+            message=paste0(
+                "Error in cross_validation::fn_cross_validation_across_populations_bulk(...). ",
+                "Cannot perform bulked across populations cross-validation ",
+                "because there is only 1 population in the data set."
+            ))
+        return(error)
+    }
+    ### Define the cross-validation parameters as well as the maximum number of threads we can safely use in parallel
+    list_cv_params = fn_cross_validation_preparation(
+        list_merged=list_merged,
+        cv_type=1,
+        n_folds=n_folds,
+        n_reps=n_reps, 
+        vec_models_to_test=vec_models_to_test,
+        max_mem_Gb=max_mem_Gb,
+        verbose=verbose)
+    ### Cross-validation
+    if (bool_parallel) {
+        ###########################################
+        ### Multi-threaded cross-validation
+        list_list_perf = tryCatch(
+            parallel::mclapply(c(1:nrow(list_cv_params$df_params)), 
+                FUN=fn_cv_1, 
+                    list_merged=list_merged,
+                    df_params=list_cv_params$df_params,
+                    mat_idx_shuffle=list_cv_params$mat_idx_shuffle,
+                    vec_set_partition_groupings=list_cv_params$vec_set_partition_groupings,
+                    prefix_tmp=file.path(dir_output, "across_bulk"),
+                    verbose=verbose, 
+                mc.cores=min(c(n_threads, list_cv_params$n_threads)), 
+                mc.preschedule=FALSE, 
+                mc.set.seed=TRUE, 
+                mc.silent=FALSE, 
+                mc.cleanup=TRUE),
+            error = function(e){NA}
+        )
+        if (is.na(list_list_perf[1])) {
+            error = methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in cross_validation::fn_cross_validation_across_populations_bulk(...). ",
+                    "Something went wrong in the execution of multi-threaded across population cross-validation, ",
+                    "without regard for population groupings. ",
+                    "Please check re-run cross_validation::fn_cross_validation_across_populations_bulk(...) with ",
+                    "bool_parallel=FALSE to identify the error."
+                ))
+            return(error)
+        }
+    } else {
+        ############################################
+        ### Single-threaded cross-validation
+        list_list_perf = list()
+        for (i in 1:nrow(list_cv_params$df_params)) {
+            list_perf = fn_cv_1(
+                i=i,
+                list_merged=list_merged,
+                df_params=list_cv_params$df_params,
+                mat_idx_shuffle=list_cv_params$mat_idx_shuffle,
+                vec_set_partition_groupings=list_cv_params$vec_set_partition_groupings,
+                prefix_tmp=file.path(dir_output, "across_bulk"),
+                verbose=verbose
+            )
+            if (methods::is(list_perf, "gpError")) {
+                error = chain(list_perf, methods::new("gpError",
+                    code=000,
+                    message=paste0(
+                        "Error in cross_validation::fn_cross_validation_across_populations_bulk(...). ",
+                        "Error running cross-validation for population: ", population, " at ",
+                        "rep: ", list_cv_params$df_params$rep[i], ", ",
+                        "fold: ", list_cv_params$df_params$fold[i], ", and ",
+                        "model: ", list_cv_params$df_params$model[i], "."
+                    )))
+                return(error)
+            }
+            eval(parse(text=paste0("list_list_perf$`", i, "` = list_perf")))
+        }
+    }
+    ### Concatenate performances
+    METRICS_ACROSS_POP_BULK = NULL
+    YPRED_ACROSS_POP_BULK = NULL
+    for (list_perf in list_list_perf) {
+        # list_perf = list_list_perf[[1]]
+        if (is.null(METRICS_ACROSS_POP_BULK) & is.null(YPRED_ACROSS_POP_BULK)) {
+            METRICS_ACROSS_POP_BULK = list_perf$df_metrics
+            YPRED_ACROSS_POP_BULK = list_perf$df_y_validation
+        } else {
+            METRICS_ACROSS_POP_BULK = rbind(METRICS_ACROSS_POP_BULK, list_perf$df_metrics)
+            YPRED_ACROSS_POP_BULK = rbind(YPRED_ACROSS_POP_BULK, list_perf$df_y_validation)
+        }
+    }
+    ### Save the concatenated output data frames across populations and clean-up
+    time_rand_id = paste0(round(as.numeric(Sys.time())), sample.int(1e6, size=1))
+    fname_across_bulk_Rds = file.path(dir_output, paste0("across_bulk-tempout-", time_rand_id, ".Rds"))
+    saveRDS(list(
+        METRICS_ACROSS_POP_BULK=METRICS_ACROSS_POP_BULK,
+        YPRED_ACROSS_POP_BULK=YPRED_ACROSS_POP_BULK),
+        file=fname_across_bulk_Rds)
+    ### Clean-up temporary files generated by fn_cv_1 in parallel
+    for (list_perf in list_list_perf) {
+        unlink(list_perf$fname_metrics_out)
+        unlink(list_perf$fname_y_validation_out)
+    }
+    ### Clean-up the memory used by subsetting the data set
+    list_list_perf = NULL 
+    list_perf = NULL 
+    METRICS_ACROSS_POP_BULK = NULL
+    YPRED_ACROSS_POP_BULK = NULL
+    gc()
+    ### Output
+    return(fname_across_bulk_Rds)
+}
+
+#' Pairwise-population cross-validation
+#'
+#' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
+#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'      Row names can be any string of characters which identify the sample or entry or pool names.
+#'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
+#'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
+#'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
+#'  $list_pheno:
+#'      $y: named vector of numeric phenotype data
+#'      $pop: population or groupings corresponding to each element of y
+#'      $trait_name: name of the trait
+#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#' @param vec_models_to_test genomic prediction models to use (uses all the models below by default). Please choose one or more from:
+#'  - "ridge": \eqn{Cost_{ridge} = \Sigma(y - X\beta)^2 + \lambda\Sigma\beta^2$, where $\hat{\beta} = {(X^TX + \lambda I)^{-1} X^Ty}}
+#'      https://en.wikipedia.org/wiki/Ridge_regression
+#'  - "lasso": \eqn{Cost_{lasso} = \Sigma(y - X\beta)^2 + \lambda\Sigma|\beta|}
+#'      https://en.wikipedia.org/wiki/Lasso_(statistics)
+#'  - "elastic_net": \eqn{Cost_{ridge} = \Sigma(y - X\beta)^2 + (1-\alpha)\lambda\Sigma\beta^2 + \alpha\lambda\Sigma|\beta|}
+#'      https://en.wikipedia.org/wiki/Elastic_net_regularization
+#'  - "Bayes_A": scaled t-distributed effects
+#'      https://cran.r-hub.io/web/packages/BGLR/vignettes/BGLR-extdoc.pdf
+#'  - "Bayes_B": scaled t-distributed effects with probability \eqn{\pi}; and zero effects with probability \eqn{1-\pi}, 
+#'      where \eqn{\pi \sim \beta(\theta_1, \theta_2)}.
+#'      https://cran.r-hub.io/web/packages/BGLR/vignettes/BGLR-extdoc.pdf
+#'  - "Bayes_C": normally distributed effects (\eqn{N(0, \sigma^2_{\beta})}) with probability \eqn{\pi}; 
+#'      and zero effects with probability \eqn{1-\pi}, where \eqn{\pi \sim \beta(\theta_1, \theta_2)}.
+#'      https://cran.r-hub.io/web/packages/BGLR/vignettes/BGLR-extdoc.pdf
+#'  - "gBLUP": genotype best linear unbiased prediction (gBLUP) using genomic relationship matrix to predict missing breeding values
+#'      via Direct-Inversion Newton-Raphson or Average Information 
+#'      using the sommer R package (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4894563/).
+#'      https://link.springer.com/protocol/10.1007/978-1-62703-447-0_13
+#' @param bool_parallel perform multi-threaded cross-validation (Default=TRUE)
+#' @param max_mem_Gb maximum memory in gigabytes available for computation (Default=15)
+#' @param n_threads total number of computing threads available (Default=2)
+#' @param dir_output output directory where temporary text and Rds files will be saved into (Default=NULL)
+#' @param verbose show bulk across population cross-validation messages? (Default=FALSE)
+#' @returns
+#' Ok: filename of temporary Rds file containing a 2-element list:
+#'      $METRICS_ACROSS_POP_PAIRWISE:
+#'          $rep: replication number
+#'          $fold: fold number
+#'          $model: genomic prediction model name
+#'          $pop_training: population/s used in the training set (separated by commas if more than 1)
+#'          $pop_validation: population/s used in the validation set (separated by commas if more than 1)
+#'          $duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
+#'          $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+#'          $mbe: mean bias error
+#'          $mae: mean absolute error
+#'          $rmse: root mean squared error
+#'          $r2: coefficient of determination
+#'          $corr: Pearson's product moment correlation
+#'          $power_t10: fraction of observed top 10 phenotype values correctly predicted
+#'          $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+#'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          $h2: narrow-sense heritability estimate
+#'      $YPRED_ACROSS_POP_PAIRWISE:
+#'          $rep: replication number
+#'          $fold: fold number
+#'          $model: genomic prediction model name
+#'          $pop_training: population/s used in the training set (separated by commas if more than 1)
+#'          $id: names of the samples/entries/pools, 
+#'          $pop_validation: population from which the sample/entry/pool belongs to
+#'          $y_true: observed phenotype values
+#'          $y_pred: predicted phenotype values
+#' Err: gpError
+#' @examples
+#' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+#' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
+#' list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
+#' COVAR = G %*% t(G)
+#' list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, COVAR=COVAR, verbose=TRUE)
+#' fname_across_pairwise_Rds = fn_cross_validation_across_populations_pairwise(list_merged, 
+#'  vec_models_to_test=c("ridge","lasso"), verbose=TRUE)
+#' list_across_pairwise = readRDS(fname_across_pairwise_Rds)
+#' head(list_across_pairwise$METRICS_ACROSS_POP_PAIRWISE)
+#' head(list_across_pairwise$YPRED_ACROSS_POP_PAIRWISE)
+#' @export
+fn_cross_validation_across_populations_pairwise = function(list_merged, 
+    vec_models_to_test=c("ridge","lasso","elastic_net","Bayes_A","Bayes_B","Bayes_C","gBLUP"),
+    bool_parallel=TRUE, max_mem_Gb=15, n_threads=2, dir_output=NULL, verbose=FALSE) 
+{
+    ###################################################
+    ### TEST
+    # list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    # G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
+    # list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
+    # COVAR = G %*% t(G)
+    # list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, COVAR=COVAR, verbose=TRUE)
+    # vec_models_to_test = c("ridge", "lasso")
+    # max_mem_Gb = 15
+    # n_threads = 2
+    # dir_output = NULL
+    # bool_parallel = TRUE
+    # verbose = TRUE
+    ###################################################
+    ### Input sanity check
+    if (methods::is(list_merged, "gpError")) {
+        error = chain(list_merged, 
+            methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in cross_validation::fn_cross_validation_across_populations_pairwise(...). ",
+                    "Input data (list_merged) is an error type."
+                )))
+        return(error)
+    }
+    ### Define the output directory
+    if (!is.null(dir_output)) {
+        if (!dir.exists(dir_output)) {
+            dir.create(dir_output, showWarnings=FALSE)
+        }
+        
+    } else {
+        dir_output = tempfile()
+        dir.create(dir_output, showWarnings=FALSE)
+    }
+    if (!dir.exists(dir_output)) {
+        error = methods::new("gpError",
+            code=000,
+            message=paste0(
+                "Error in cross_validation::fn_cross_validation_across_populations_pairwise(...). ",
+                "Unable to create the output directory: ", dir_output, ". ",
+                "Please check your permissions to write into that directory."
+            ))
+        return(error)
+    }
+    ### Determine the number of populations
+    vec_populations = sort(unique(list_merged$list_pheno$pop))
+    if (length(vec_populations) == 1) {
+        error = methods::new("gpError",
+            code=000,
+            message=paste0(
+                "Error in cross_validation::fn_cross_validation_across_populations_pairwise(...). ",
+                "Cannot perform pairwise-population cross-validation ",
+                "because there is only 1 population in the data set."
+            ))
+        return(error)
+    }
+    ### Instantiate the vector of Rds filenames containing the temporary output data per population
+    vec_fname_across_pairwise_Rds = c()
+    for (idx_pop1 in 1:(length(vec_populations)-1)) {
+        for (idx_pop2 in (idx_pop1+1):length(vec_populations)) {
+            # idx_pop1 = 1; idx_pop2 = 2
+            population1 = vec_populations[idx_pop1]
+            population2 = vec_populations[idx_pop2]
+            ### Skip if both populations are the same which should not happen given the iterators above
+            if (population1 == population2) {
+                next
+            }
+            ### Subset the data per population
+            vec_idx = which((list_merged$list_pheno$pop == population1) | (list_merged$list_pheno$pop == population2))
+            list_merged_sub = fn_subset_merged_genotype_and_phenotype(list_merged=list_merged, vec_idx=vec_idx, verbose=verbose)
+            if (methods::is(list_merged_sub, "gpError")) {
+                error = chain(list_merged_sub, method::new("gpError",
+                    code=000,
+                    message=paste0(
+                        "Error in cross_validation::fn_cross_validation_across_populations_pairwise(...). ",
+                        "Failed to subset the data set."
+                    )))
+                return(error)
+            }
+            ### Define the cross-validation parameters as well as the maximum number of threads we can safely use in parallel
+            list_cv_params = fn_cross_validation_preparation(
+                list_merged=list_merged_sub,
+                cv_type=2,
+                n_folds=n_folds,
+                n_reps=n_reps, 
+                vec_models_to_test=vec_models_to_test,
+                max_mem_Gb=max_mem_Gb,
+                verbose=verbose)
+            ### Cross-validation
+            if (bool_parallel) {
+                ###########################################
+                ### Multi-threaded cross-validation
+                list_list_perf = tryCatch(
+                    parallel::mclapply(c(1:nrow(list_cv_params$df_params)), 
+                        FUN=fn_cv_1, 
+                            list_merged=list_merged_sub,
+                            df_params=list_cv_params$df_params,
+                            mat_idx_shuffle=list_cv_params$mat_idx_shuffle,
+                            vec_set_partition_groupings=list_cv_params$vec_set_partition_groupings,
+                            prefix_tmp=file.path(dir_output, "across_pairwise"),
+                            verbose=verbose, 
+                        mc.cores=min(c(n_threads, list_cv_params$n_threads)), 
+                        mc.preschedule=FALSE, 
+                        mc.set.seed=TRUE, 
+                        mc.silent=FALSE, 
+                        mc.cleanup=TRUE),
+                    error = function(e){NA}
+                )
+                if (is.na(list_list_perf[1])) {
+                    error = methods::new("gpError",
+                        code=000,
+                        message=paste0(
+                            "Error in cross_validation::fn_cross_validation_across_populations_pairwise(...). ",
+                            "Something went wrong in the execution of multi-threaded pairwise-population cross-validation. ",
+                            "Please check re-run cross_validation::fn_cross_validation_across_populations_pairwise(...) with ",
+                            "bool_parallel=FALSE to identify the error."
+                        ))
+                    return(error)
+                }
+            } else {
+                ############################################
+                ### Single-threaded cross-validation
+                list_list_perf = list()
+                for (i in 1:nrow(list_cv_params$df_params)) {
+                    list_perf = fn_cv_1(
+                        i=i,
+                        list_merged=list_merged_sub,
+                        df_params=list_cv_params$df_params,
+                        mat_idx_shuffle=list_cv_params$mat_idx_shuffle,
+                        vec_set_partition_groupings=list_cv_params$vec_set_partition_groupings,
+                        prefix_tmp=file.path(dir_output, "across_pairwise"),
+                        verbose=verbose
+                    )
+                    if (methods::is(list_perf, "gpError")) {
+                        error = chain(list_perf, methods::new("gpError",
+                            code=000,
+                            message=paste0(
+                                "Error in cross_validation::fn_cross_validation_across_populations_pairwise(...). ",
+                                "Error running cross-validation for population: ", population, " at ",
+                                "rep: ", list_cv_params$df_params$rep[i], ", ",
+                                "fold: ", list_cv_params$df_params$fold[i], ", and ",
+                                "model: ", list_cv_params$df_params$model[i], "."
+                            )))
+                        return(error)
+                    }
+                    eval(parse(text=paste0("list_list_perf$`", i, "` = list_perf")))
+                }
+            }
+            ### Concatenate performances
+            df_metrics = NULL
+            df_y_validation = NULL
+            for (list_perf in list_list_perf) {
+                # list_perf = list_list_perf[[1]]
+                if (is.null(df_metrics) & is.null(df_y_validation)) {
+                    df_metrics = list_perf$df_metrics
+                    df_y_validation = list_perf$df_y_validation
+                } else {
+                    df_metrics = rbind(df_metrics, list_perf$df_metrics)
+                    df_y_validation = rbind(df_y_validation, list_perf$df_y_validation)
+                }
+            }
+            ### Save temporary Rds output per population
+            time_rand_id = paste0(round(as.numeric(Sys.time())), sample.int(1e6, size=1))
+            fname_across_pairwise_Rds = file.path(dir_output, paste0("across_pairwise-tempout-", population1, "_x_", population2, "-", time_rand_id, ".Rds"))
+            saveRDS(list(
+                df_metrics=df_metrics,
+                df_y_validation=df_y_validation), 
+                file=fname_across_pairwise_Rds)
+            ### Take note of the names of these temporary Rds output files
+            vec_fname_across_pairwise_Rds = c(vec_fname_across_pairwise_Rds, fname_across_pairwise_Rds)
+            ### Clean-up temporary files generated by fn_cv_1 in parallel
+            for (list_perf in list_list_perf) {
+                unlink(list_perf$fname_metrics_out)
+                unlink(list_perf$fname_y_validation_out)
+            }
+            ### Clean-up the memory used by subsetting the data set
+            list_merged_sub = NULL 
+            list_list_perf = NULL 
+            list_perf = NULL 
+            gc()
+        }
+    }
+    ### Concatenate the temporary output Rds files
     METRICS_ACROSS_POP_PAIRWISE = NULL
     YPRED_ACROSS_POP_PAIRWISE = NULL
-    if ((args$skip_pairwise_cv==TRUE) | (length(unique(pop))==1)) {
-        args$skip_pairwise_cv = TRUE
-        print("Skipping leave-one-population-out cross-validation as only one population was supplied.")
-    } else {
-        print("##################################################")
-        print("Across population cross-validation:")
-        print("(Pairwise population CV)")
-        vec_fnames_metrics = c()
-        vec_fnames_y_pred = c()
-        for (pop_id_1 in vec_pop) {
-            for (pop_id_2 in vec_pop) {
-                # pop_id_1 = vec_pop[1]; pop_id_2 = vec_pop[2]
-                idx_1 = which(pop == pop_id_1)
-                idx_2 = which(pop == pop_id_2)
-                if (pop_id_1==pop_id_2) {
-                    next
-                }
-                print("-----------------------------------")
-                print(paste0("Training population: ", pop_id_1, " (n=", length(idx_1), " x p=", ncol(G), ")"))
-                print(paste0("Validation population: ", pop_id_2, " (n=", length(idx_2), " x p=", ncol(G), ")"))
-                prefix = file.path(dir_tmp, gsub(".vcf.gz$", "", ignore.case=TRUE, gsub(".vcf$", "", ignore.case=TRUE, gsub(".rds$", "", ignore.case=TRUE, basename(args$fname_rds_or_vcf)))))
-                list_out = fn_pairwise_cross_validation(G_training=G[idx_1, , drop=FALSE], 
-                                                        G_validation=G[idx_2, , drop=FALSE],
-                                                        y_training=y[ idx_1, , drop=FALSE],
-                                                        y_validation=y[ idx_2, , drop=FALSE],
-                                                        COVAR=COVAR[idx, , drop=FALSE],
-                                                        vec_models_to_test=args$vec_models_to_test,
-                                                        n_threads=args$n_threads,
-                                                        mem_mb=args$mem_mb,
-                                                        prefix_tmp=paste0(prefix, "-PAIRWISE-pop1_", pop_id_1, "-pop2_", pop_id_2),
-                                                        verbose=args$verbose)
-                if (length(list_out$df_metrics) == 1) {
-                    ### Quit, if cross-validation failed because the number size of each set is less than 2.
-                    ### The error message from fn_cross_validation(...) will recommend decreasing k_folds.
-                    if (is.na(list_out$df_metrics)) {
-                        quit()
-                    }
-                }
-                list_out$df_metrics$training_pop = pop_id_1
-                list_out$df_metrics$validation_pop = pop_id_2
-                list_out$df_y_pred$training_pop = pop_id_1
-                list_out$df_y_pred$validation_pop = pop_id_2
-                if (is.null(METRICS_ACROSS_POP_PAIRWISE) & is.null(YPRED_ACROSS_POP_PAIRWISE)) {
-                    METRICS_ACROSS_POP_PAIRWISE = list_out$df_metrics
-                    YPRED_ACROSS_POP_PAIRWISE = list_out$df_y_pred
-                } else {
-                    METRICS_ACROSS_POP_PAIRWISE = rbind(METRICS_ACROSS_POP_PAIRWISE, list_out$df_metrics)
-                    YPRED_ACROSS_POP_PAIRWISE = rbind(YPRED_ACROSS_POP_PAIRWISE, list_out$df_y_pred)
-                }
-                vec_fnames_metrics = c(vec_fnames_metrics, list_out$fnames_metrics)
-                vec_fnames_y_pred = c(vec_fnames_y_pred, list_out$fnames_y_pred)
-            }
-        }
-        ### Cleanup
-        for (i in 1:length(vec_fnames_metrics)) {
-            unlink(vec_fnames_metrics[i])
-            unlink(vec_fnames_y_pred[i])
+    for (fname_across_pairwise_Rds in vec_fname_across_pairwise_Rds) {
+        # fname_across_pairwise_Rds = vec_fname_across_pairwise_Rds[1]
+        list_tmp = readRDS(fname_across_pairwise_Rds)
+        if (is.null(METRICS_ACROSS_POP_PAIRWISE) & is.null(YPRED_ACROSS_POP_PAIRWISE)) {
+            METRICS_ACROSS_POP_PAIRWISE = list_tmp$df_metrics
+            YPRED_ACROSS_POP_PAIRWISE = list_tmp$df_y_validation
+        } else {
+            METRICS_ACROSS_POP_PAIRWISE = rbind(METRICS_ACROSS_POP_PAIRWISE, list_tmp$df_metrics)
+            YPRED_ACROSS_POP_PAIRWISE = rbind(YPRED_ACROSS_POP_PAIRWISE, list_tmp$df_y_validation)
         }
     }
-    ######################################################################
-    ### PER SE GENOMIC PREDICTION: using the best model per population ###
-    ######################################################################
-    ### Best models per population
-    print("##################################################")
-    print("Identifying the best models per population")
-    print("(using Pearson's correlation)")
-    ### Only considering within population k-fold cross-validation to identify the best model per population
-    ### Using Pearson's correlation as the genomic prediction accuracy metric
-    agg_corr = stats::aggregate(corr ~ model + pop, FUN=mean, data=METRICS_WITHIN_POP)
-    agg_corr_sd = stats::aggregate(corr ~ model + pop, FUN=stats::sd, data=METRICS_WITHIN_POP)
-    agg_corr = merge(agg_corr, agg_corr_sd, by=c("model", "pop"))
-    colnames(agg_corr) = c("model", "pop", "corr", "corr_sd")
-    vec_popns = c()
-    vec_model = c()
-    vec_corr = c()
-    vec_corr_sd = c()
-    for (pop in unique(agg_corr$pop)) {
-        agg_sub = agg_corr[agg_corr$pop==pop, ]
-        idx = which(agg_sub$corr == max(agg_sub$corr, na.rm=TRUE))[1]
-        model = as.character(agg_sub$model[idx])
-        corr = agg_sub$corr[idx]
-        corr_sd = agg_sub$corr_sd[idx]
-        vec_popns = c(vec_popns, pop)
-        vec_model = c(vec_model, model)
-        vec_corr = c(vec_corr, corr)
-        vec_corr_sd = c(vec_corr_sd, corr_sd)
+    ### Save the concatenated output data frames across populations and clean-up
+    time_rand_id = paste0(round(as.numeric(Sys.time())), sample.int(1e6, size=1))
+    fname_across_pairwise_Rds = file.path(dir_output, paste0("across_pairwise-tempout-", time_rand_id, ".Rds"))
+    saveRDS(list(
+        METRICS_ACROSS_POP_PAIRWISE=METRICS_ACROSS_POP_PAIRWISE,
+        YPRED_ACROSS_POP_PAIRWISE=YPRED_ACROSS_POP_PAIRWISE),
+        file=fname_across_pairwise_Rds)
+    for (fname in vec_fname_across_pairwise_Rds) {
+        unlink(fname)
     }
-    ### Append overall best model across all populations
-    agg_overall_mean = stats::aggregate(corr ~ model, FUN=mean, data=METRICS_WITHIN_POP)
-    agg_overall_sdev = stats::aggregate(corr ~ model, FUN=stats::sd, data=METRICS_WITHIN_POP)
-    agg_overall = merge(agg_overall_mean, agg_overall_sdev, by="model")
-    colnames(agg_overall) = c("model", "corr", "corr_sd")
-    agg_overall = agg_overall[which(agg_overall[,2]==max(agg_overall[,2], na.rm=TRUE))[1], ]
-    vec_popns = c(vec_popns, "overall")
-    vec_model = c(vec_model, as.character(agg_overall$model))
-    vec_corr = c(vec_corr, agg_overall$corr)
-    vec_corr_sd = c(vec_corr_sd, agg_overall$corr_sd)
-    SUMMARY = data.frame(pop=vec_popns, model=vec_model, corr=vec_corr, corr_sd=vec_corr_sd)
-    print(SUMMARY)
-    ### Genomic prediction per se
-    if (length(idx_entries_for_genomic_prediction) == 0) {
-        GENOMIC_PREDICTIONS = NULL
-        print("No entries with missing phenotype and known genotypes detected in the input dataset.")
-        print("Entries with missing phenotype do not belong to the included populations.")
-    } else {
-        print("##################################################")
-        print("Genomic prediction per se using the best models")
-        print("(predict missing phenotypes using known genotypes)")
-        print(paste0("For each entry belonging to a population assessed via within population ", args$k_folds, "-fold cross-validation,"))
-        print("the best model in terms of Person's correlation will be used to predict their unknown phenotypes.")
-        vec_popns = c()
-        vec_entry = c()
-        vec_y_pred = c()
-        vec_model = c()
-        vec_corr = c()
-        vec_corr_sd = c()
-        vec_corr_pop = c()
-        vec_pop_for_prediction_per_se = vec_pop[vec_pop %in% unique(list_G_list_y_pop_COVAR$list_y_pop$pop[idx_entries_for_genomic_prediction])]
-        for (pop in vec_pop_for_prediction_per_se) {
-            # pop = vec_pop_for_prediction_per_se[1]
-            idx = which(list_G_list_y_pop_COVAR$list_y_pop$pop==pop)
-            G = list_G_list_y_pop_COVAR$G[idx, ]
-            y = matrix(list_G_list_y_pop_COVAR$list_y_pop$y[idx], ncol=1)
-            rownames(y) = names(list_G_list_y_pop_COVAR$list_y_pop$y[idx])
-            if (is.null(list_G_list_y_pop_COVAR$COVAR) == TRUE) {
-                COVAR = NULL
-            } else {
-                COVAR = list_G_list_y_pop_COVAR$COVAR[idx, ]
-            }
-            idx_training = which(!is.na(y[,1]))
-            idx_validation = which(is.na(y[,1]))
-            idx_top_model = which(SUMMARY$pop == pop)[1]
-            if (length(idx_top_model)==0) {
-                ### Use the overall top model if the entries do not belong to any other populations
-                idx_top_model = which(SUMMARY$pop == "overall")[1]
-            }
-            model = SUMMARY$model[idx_top_model]
-            corr = SUMMARY$corr[idx_top_model]
-            corr_sd = SUMMARY$corr_sd[idx_top_model]
-            corr_pop = SUMMARY$pop[idx_top_model]
+    METRICS_ACROSS_POP_PAIRWISE = NULL
+    YPRED_ACROSS_POP_PAIRWISE = NULL
+    gc()
+    ### Output
+    return(fname_across_pairwise_Rds)
+}
 
-            if (grepl("Bayes", model)==TRUE) {
-                other_params = list(nIter=12e3, burnIn=2e3, h2=0.5, out_prefix=paste0("bglr_", model, "-"), covariate=COVAR)
-            } else {
-                other_params = list(covariate=COVAR)
-            }
-            gp = eval(parse(text=paste0("fn_", model, "(G=G, y=y, idx_training=idx_training, idx_validation=idx_validation, other_params=other_params)")))
-            print(gp)
-            vec_popns = c(vec_popns, rep(pop, length(gp$y_pred)))
-            if (is.null(names(gp$y_pred))) {
-                vec_entry = c(vec_entry, rownames(gp$y_pred))
-            } else {
-                vec_entry = c(vec_entry, names(gp$y_pred))
-            }
-            vec_y_pred = c(vec_y_pred, gp$y_pred)
-            vec_model = c(vec_model, rep(model, length(gp$y_pred)))
-            vec_corr = c(vec_corr, rep(corr, length(gp$y_pred)))
-            vec_corr_sd = c(vec_corr_sd, rep(corr_sd, length(gp$y_pred)))
-            vec_corr_pop = c(vec_corr_pop, rep(corr_pop, length(gp$y_pred)))
-        }
-        GENOMIC_PREDICTIONS = data.frame(pop=vec_popns, entry=vec_entry, y_pred=vec_y_pred, top_model=vec_model, corr_from_kfoldcv=paste0(round(vec_corr, 2), "(±", round(vec_corr_sd, 2), "|", vec_corr_pop, ")"))
+#' Leave-one-population-out (LOPO) cross-validation
+#'
+#' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
+#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'      Row names can be any string of characters which identify the sample or entry or pool names.
+#'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
+#'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
+#'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
+#'  $list_pheno:
+#'      $y: named vector of numeric phenotype data
+#'      $pop: population or groupings corresponding to each element of y
+#'      $trait_name: name of the trait
+#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#' @param vec_models_to_test genomic prediction models to use (uses all the models below by default). Please choose one or more from:
+#'  - "ridge": \eqn{Cost_{ridge} = \Sigma(y - X\beta)^2 + \lambda\Sigma\beta^2$, where $\hat{\beta} = {(X^TX + \lambda I)^{-1} X^Ty}}
+#'      https://en.wikipedia.org/wiki/Ridge_regression
+#'  - "lasso": \eqn{Cost_{lasso} = \Sigma(y - X\beta)^2 + \lambda\Sigma|\beta|}
+#'      https://en.wikipedia.org/wiki/Lasso_(statistics)
+#'  - "elastic_net": \eqn{Cost_{ridge} = \Sigma(y - X\beta)^2 + (1-\alpha)\lambda\Sigma\beta^2 + \alpha\lambda\Sigma|\beta|}
+#'      https://en.wikipedia.org/wiki/Elastic_net_regularization
+#'  - "Bayes_A": scaled t-distributed effects
+#'      https://cran.r-hub.io/web/packages/BGLR/vignettes/BGLR-extdoc.pdf
+#'  - "Bayes_B": scaled t-distributed effects with probability \eqn{\pi}; and zero effects with probability \eqn{1-\pi}, 
+#'      where \eqn{\pi \sim \beta(\theta_1, \theta_2)}.
+#'      https://cran.r-hub.io/web/packages/BGLR/vignettes/BGLR-extdoc.pdf
+#'  - "Bayes_C": normally distributed effects (\eqn{N(0, \sigma^2_{\beta})}) with probability \eqn{\pi}; 
+#'      and zero effects with probability \eqn{1-\pi}, where \eqn{\pi \sim \beta(\theta_1, \theta_2)}.
+#'      https://cran.r-hub.io/web/packages/BGLR/vignettes/BGLR-extdoc.pdf
+#'  - "gBLUP": genotype best linear unbiased prediction (gBLUP) using genomic relationship matrix to predict missing breeding values
+#'      via Direct-Inversion Newton-Raphson or Average Information 
+#'      using the sommer R package (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4894563/).
+#'      https://link.springer.com/protocol/10.1007/978-1-62703-447-0_13
+#' @param bool_parallel perform multi-threaded cross-validation (Default=TRUE)
+#' @param max_mem_Gb maximum memory in gigabytes available for computation (Default=15)
+#' @param n_threads total number of computing threads available (Default=2)
+#' @param dir_output output directory where temporary text and Rds files will be saved into (Default=NULL)
+#' @param verbose show bulk across population cross-validation messages? (Default=FALSE)
+#' @returns
+#' Ok: filename of temporary Rds file containing a 2-element list:
+#'      $METRICS_ACROSS_POP_LOPO:
+#'          $rep: replication number
+#'          $fold: fold number
+#'          $model: genomic prediction model name
+#'          $pop_training: population/s used in the training set (separated by commas if more than 1)
+#'          $pop_validation: population/s used in the validation set (separated by commas if more than 1)
+#'          $duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
+#'          $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+#'          $mbe: mean bias error
+#'          $mae: mean absolute error
+#'          $rmse: root mean squared error
+#'          $r2: coefficient of determination
+#'          $corr: Pearson's product moment correlation
+#'          $power_t10: fraction of observed top 10 phenotype values correctly predicted
+#'          $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+#'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          $h2: narrow-sense heritability estimate
+#'      $YPRED_ACROSS_POP_LOPO:
+#'          $rep: replication number
+#'          $fold: fold number
+#'          $model: genomic prediction model name
+#'          $pop_training: population/s used in the training set (separated by commas if more than 1)
+#'          $id: names of the samples/entries/pools, 
+#'          $pop_validation: population from which the sample/entry/pool belongs to
+#'          $y_true: observed phenotype values
+#'          $y_pred: predicted phenotype values
+#' Err: gpError
+#' @examples
+#' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+#' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
+#' list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
+#' COVAR = G %*% t(G)
+#' list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, COVAR=COVAR, verbose=TRUE)
+#' fname_across_lopo_Rds = fn_cross_validation_across_populations_lopo(list_merged, 
+#'  vec_models_to_test=c("ridge","lasso"), verbose=TRUE)
+#' list_across_lopo = readRDS(fname_across_lopo_Rds)
+#' head(list_across_lopo$METRICS_ACROSS_POP_LOPO)
+#' head(list_across_lopo$YPRED_ACROSS_POP_LOPO)
+#' @export
+fn_cross_validation_across_populations_lopo = function(list_merged, 
+    vec_models_to_test=c("ridge","lasso","elastic_net","Bayes_A","Bayes_B","Bayes_C","gBLUP"),
+    bool_parallel=TRUE, max_mem_Gb=15, n_threads=2, dir_output=NULL, verbose=FALSE) 
+{
+    ###################################################
+    ### TEST
+    # list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    # G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
+    # list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
+    # COVAR = G %*% t(G)
+    # list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, COVAR=COVAR, verbose=TRUE)
+    # vec_models_to_test = c("ridge", "lasso")
+    # max_mem_Gb = 15
+    # n_threads = 2
+    # dir_output = NULL
+    # bool_parallel = TRUE
+    # verbose = TRUE
+    ###################################################
+    ### Input sanity check
+    if (methods::is(list_merged, "gpError")) {
+        error = chain(list_merged, 
+            methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in cross_validation::fn_cross_validation_across_populations_lopo(...). ",
+                    "Input data (list_merged) is an error type."
+                )))
+        return(error)
     }
-    ### Output    
-    out_per_phenotype = list(
-        TRAIT_NAME                  = list_y_pop$trait_name,
-        SUMMARY                     = SUMMARY,
-        METRICS_WITHIN_POP          = METRICS_WITHIN_POP,
-        YPRED_WITHIN_POP            = YPRED_WITHIN_POP,
-        METRICS_ACROSS_POP_LOPO     = METRICS_ACROSS_POP_LOPO,
-        YPRED_ACROSS_POP_LOPO       = YPRED_ACROSS_POP_LOPO,
-        METRICS_ACROSS_POP_PAIRWISE = METRICS_ACROSS_POP_PAIRWISE,
-        YPRED_ACROSS_POP_PAIRWISE   = YPRED_ACROSS_POP_PAIRWISE,
-        GENOMIC_PREDICTIONS         = GENOMIC_PREDICTIONS
+    ### Define the output directory
+    if (!is.null(dir_output)) {
+        if (!dir.exists(dir_output)) {
+            dir.create(dir_output, showWarnings=FALSE)
+        }
+        
+    } else {
+        dir_output = tempfile()
+        dir.create(dir_output, showWarnings=FALSE)
+    }
+    if (!dir.exists(dir_output)) {
+        error = methods::new("gpError",
+            code=000,
+            message=paste0(
+                "Error in cross_validation::fn_cross_validation_across_populations_lopo(...). ",
+                "Unable to create the output directory: ", dir_output, ". ",
+                "Please check your permissions to write into that directory."
+            ))
+        return(error)
+    }
+    ### Define the cross-validation parameters as well as the maximum number of threads we can safely use in parallel
+    list_cv_params = fn_cross_validation_preparation(
+        list_merged=list_merged,
+        cv_type=3,
+        n_folds=1,
+        n_reps=1, 
+        vec_models_to_test=vec_models_to_test,
+        max_mem_Gb=max_mem_Gb,
+        verbose=verbose)
+    ### Cross-validation
+    if (bool_parallel) {
+        ###########################################
+        ### Multi-threaded cross-validation
+        list_list_perf = tryCatch(
+            parallel::mclapply(c(1:nrow(list_cv_params$df_params)), 
+                FUN=fn_cv_1, 
+                    list_merged=list_merged,
+                    df_params=list_cv_params$df_params,
+                    mat_idx_shuffle=list_cv_params$mat_idx_shuffle,
+                    vec_set_partition_groupings=list_cv_params$vec_set_partition_groupings,
+                    prefix_tmp=file.path(dir_output, "across_lopo"),
+                    verbose=verbose, 
+                mc.cores=min(c(n_threads, list_cv_params$n_threads)), 
+                mc.preschedule=FALSE, 
+                mc.set.seed=TRUE, 
+                mc.silent=FALSE, 
+                mc.cleanup=TRUE),
+            error = function(e){NA}
+        )
+        if (is.na(list_list_perf[1])) {
+            error = methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in cross_validation::fn_cross_validation_across_populations_lopo(...). ",
+                    "Something went wrong in the execution of multi-threaded pairwise-population cross-validation. ",
+                    "Please check re-run cross_validation::fn_cross_validation_across_populations_lopo(...) with ",
+                    "bool_parallel=FALSE to identify the error."
+                ))
+            return(error)
+        }
+    } else {
+        ############################################
+        ### Single-threaded cross-validation
+        list_list_perf = list()
+        for (i in 1:nrow(list_cv_params$df_params)) {
+            list_perf = fn_cv_1(
+                i=i,
+                list_merged=list_merged,
+                df_params=list_cv_params$df_params,
+                mat_idx_shuffle=list_cv_params$mat_idx_shuffle,
+                vec_set_partition_groupings=list_cv_params$vec_set_partition_groupings,
+                prefix_tmp=file.path(dir_output, "across_lopo"),
+                verbose=verbose
+            )
+            if (methods::is(list_perf, "gpError")) {
+                error = chain(list_perf, methods::new("gpError",
+                    code=000,
+                    message=paste0(
+                        "Error in cross_validation::fn_cross_validation_across_populations_lopo(...). ",
+                        "Error running cross-validation for population: ", population, " at ",
+                        "rep: ", list_cv_params$df_params$rep[i], ", ",
+                        "fold: ", list_cv_params$df_params$fold[i], ", and ",
+                        "model: ", list_cv_params$df_params$model[i], "."
+                    )))
+                return(error)
+            }
+            eval(parse(text=paste0("list_list_perf$`", i, "` = list_perf")))
+        }
+    }
+    ### Concatenate performances
+    df_metrics = NULL
+    df_y_validation = NULL
+    for (list_perf in list_list_perf) {
+        # list_perf = list_list_perf[[1]]
+        if (is.null(df_metrics) & is.null(df_y_validation)) {
+            df_metrics = list_perf$df_metrics
+            df_y_validation = list_perf$df_y_validation
+        } else {
+            df_metrics = rbind(df_metrics, list_perf$df_metrics)
+            df_y_validation = rbind(df_y_validation, list_perf$df_y_validation)
+        }
+    }
+    ### Save temporary Rds output per population
+    time_rand_id = paste0(round(as.numeric(Sys.time())), sample.int(1e6, size=1))
+    fname_across_lopo_Rds = file.path(dir_output, paste0("across_lopo-tempout-", time_rand_id, ".Rds"))
+    saveRDS(list(
+        METRICS_ACROSS_POP_LOPO=df_metrics,
+        YPRED_ACROSS_POP_LOPO=df_y_validation), 
+        file=fname_across_lopo_Rds)
+    ### Clean-up temporary files generated by fn_cv_1 in parallel
+    for (list_perf in list_list_perf) {
+        unlink(list_perf$fname_metrics_out)
+        unlink(list_perf$fname_y_validation_out)
+    }
+    ### Clean-up the memory used by subsetting the data set
+    list_list_perf = NULL 
+    list_perf = NULL 
+    METRICS_ACROSS_POP_LOPO = NULL
+    YPRED_ACROSS_POP_LOPO = NULL
+    gc()
+    ### Output
+    return(fname_across_lopo_Rds)
+}
+
+
+fn_main = function(
+    fname_geno, 
+    fname_pheno, 
+    population,
+    geno_ploidy=NULL,
+    geno_force_biallelic=TRUE,
+    geno_retain_minus_one_alleles_per_locus=TRUE,
+    geno_min_depth=0,
+    geno_max_depth=Inf,
+    geno_maf=0.01,
+    geno_sdev_min=0.0001,
+    geno_fname_snp_list=NULL,
+    geno_max_n_alleles=NULL,
+    geno_max_sparsity_per_locus=NULL,
+    geno_frac_topmost_sparse_loci_to_remove=NULL,
+    geno_n_topmost_sparse_loci_to_remove=NULL,
+    geno_max_sparsity_per_sample=NULL,
+    geno_frac_topmost_sparse_samples_to_remove=NULL,
+    geno_n_topmost_sparse_samples_to_remove=NULL, 
+    pheno_sep="\t",
+    pheno_header=TRUE,
+    pheno_idx_col_id=1,
+    pheno_idx_col_pop=2,
+    pheno_idx_col_y=3,
+    pheno_na.strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING"),
+    pheno_remove_NA=FALSE,
+    fname_covar=NULL,
+    bool_within=TRUE,
+    bool_across=FALSE,
+    n_folds=10,
+    n_reps=10,
+    vec_models_to_test=c("ridge","lasso","elastic_net","Bayes_A","Bayes_B","Bayes_C","gBLUP"),
+    bool_parallel=TRUE,
+    max_mem_Gb=15,
+    n_threads=2,
+    dir_output=NULL,
+    verbose=FALSE)
+{
+    ###################################################
+    ### TEST
+    list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    df_pheno = read.delim(list_sim$fname_pheno_tsv, header=TRUE); df_pheno$trait[which(df_pheno$pop=="pop_1")[1:3]] = NA; write.table(df_pheno, file=list_sim$fname_pheno_tsv, row.names=FALSE, col.names=TRUE, quote=FALSE, sep="\t")
+    fname_geno=list_sim$fname_geno_vcf
+    fname_pheno=list_sim$fname_pheno_tsv
+    population="pop_1"
+    geno_ploidy=NULL
+    geno_force_biallelic=TRUE
+    geno_retain_minus_one_alleles_per_locus=TRUE
+    geno_min_depth=0
+    geno_max_depth=Inf
+    geno_maf=0.01
+    geno_sdev_min=0.0001
+    geno_fname_snp_list=NULL
+    geno_max_n_alleles=NULL
+    geno_max_sparsity_per_locus=NULL
+    geno_frac_topmost_sparse_loci_to_remove=NULL
+    geno_n_topmost_sparse_loci_to_remove=NULL
+    geno_max_sparsity_per_sample=NULL
+    geno_frac_topmost_sparse_samples_to_remove=NULL
+    geno_n_topmost_sparse_samples_to_remove=NULL
+    pheno_sep="\t"
+    pheno_header=TRUE
+    pheno_idx_col_id=1
+    pheno_idx_col_pop=2
+    pheno_idx_col_y=3
+    pheno_na.strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING")
+    pheno_remove_NA=FALSE
+    fname_covar=NULL
+    bool_within=TRUE
+    bool_across=TRUE
+    n_folds=2
+    n_reps=2
+    vec_models_to_test=c("ridge","lasso")
+    bool_parallel=TRUE
+    max_mem_Gb=15
+    n_threads=2
+    dir_output=NULL
+    verbose=TRUE
+    ###################################################
+    ### Load, filter and merge genotype and phenotype data (TODO: covariate generation)
+    G = fn_load_genotype(
+        fname_geno,
+        ploidy=geno_ploidy,
+        force_biallelic=geno_force_biallelic,
+        retain_minus_one_alleles_per_locus=geno_retain_minus_one_alleles_per_locus,
+        min_depth=geno_min_depth,
+        max_depth=geno_max_depth,
+        verbose=verbose
     )
-    return(out_per_phenotype)
+    if (methods::is(G, "gpError")) {return(G)}
+    list_pheno = fn_load_phenotype(
+        fname_pheno,
+        sep=pheno_sep,
+        header=pheno_header,
+        idx_col_id=pheno_idx_col_id,
+        idx_col_pop=pheno_idx_col_pop,
+        idx_col_y=pheno_idx_col_y,
+        na.strings=pheno_na.strings,
+        verbose=verbose
+    )
+    if (methods::is(list_pheno, "gpError")) {return(list_pheno)}
+    G = fn_filter_genotype(
+        G,
+        maf=geno_maf,
+        sdev_min=geno_sdev_min,
+        fname_snp_list=geno_fname_snp_list,
+        max_n_alleles=geno_max_n_alleles,
+        max_sparsity_per_locus=geno_max_sparsity_per_locus,
+        frac_topmost_sparse_loci_to_remove=geno_frac_topmost_sparse_loci_to_remove,
+        n_topmost_sparse_loci_to_remove=geno_n_topmost_sparse_loci_to_remove,
+        max_sparsity_per_sample=geno_max_sparsity_per_sample,
+        frac_topmost_sparse_samples_to_remove=geno_frac_topmost_sparse_samples_to_remove,
+        n_topmost_sparse_samples_to_remove=geno_n_topmost_sparse_samples_to_remove,
+        verbose=verbose
+    )
+    if (methods::is(G, "gpError")) {return(G)}
+    list_pheno = fn_filter_phenotype(
+        list_pheno,
+        remove_NA=pheno_remove_NA,
+        verbose=verbose
+    )
+    if (methods::is(list_pheno, "gpError")) {return(list_pheno)}
+    ### TODO: covariate generation
+    list_merged = fn_merge_genotype_and_phenotype(
+        G=G,
+        list_pheno=list_pheno,
+        COVAR=NULL,
+        verbose=verbose
+    )
+    if (methods::is(list_merged, "gpError")) {return(list_merged)}
+    ### Extract the trait name
+    trait_name = list_merged$list_pheno$trait_name
+    ### Subset by a single population
+    if (bool_across) {
+        list_merged_for_across = list_merged
+    }
+    if (bool_within) {
+        list_merged = fn_subset_merged_genotype_and_phenotype(
+            list_merged=list_merged,
+            vec_idx=which(list_merged$list_pheno$pop==population),
+            verbose=FALSE
+        )
+        if (methods::is(list_merged, "gpError")) {return(list_merged)}
+    } else {
+        list_merged = NULL
+    }
+    ### Activate the garbage collector
+    gc()
+    ### Genomic prediction cross-validation
+    if (bool_within) {
+        #########################
+        ### WITHIN POPULATION ###
+        #########################
+        fname_within_Rds = fn_cross_validation_within_population(
+            list_merged=list_merged,
+            n_folds=n_folds,
+            n_reps=n_reps,
+            vec_models_to_test=vec_models_to_test,
+            bool_parallel=bool_parallel,
+            max_mem_Gb=max_mem_Gb,
+            n_threads=n_threads,
+            dir_output=dir_output,
+            verbose=verbose
+        )
+        if (methods::is(fname_within_Rds, "gpError")) {
+            return(fname_within_Rds)
+        } else {
+            list_within = readRDS(fname_within_Rds)
+            METRICS_WITHIN_POP = list_within$METRICS_WITHIN_POP
+            YPRED_WITHIN_POP = list_within$YPRED_WITHIN_POP
+        }
+    } else {
+        METRICS_WITHIN_POP = NA
+        YPRED_WITHIN_POP = NA
+    }
+    if (bool_across) {
+        ################################
+        ### ACROSS POPULATIONS: BULK ###
+        ################################
+        fname_across_bulk_Rds = fn_cross_validation_across_populations_bulk(
+            list_merged=list_merged_for_across,
+            n_folds=n_folds,
+            n_reps=n_reps,
+            vec_models_to_test=vec_models_to_test,
+            bool_parallel=bool_parallel,
+            max_mem_Gb=max_mem_Gb,
+            n_threads=n_threads,
+            dir_output=dir_output,
+            verbose=verbose
+        )
+        if (methods::is(fname_across_bulk_Rds, "gpError")) {
+            return(fname_across_bulk_Rds)
+        } else {
+            list_across_bulk = readRDS(fname_across_bulk_Rds)
+            METRICS_ACROSS_POP_BULK = list_across_bulk$METRICS_ACROSS_POP_BULK
+            YPRED_ACROSS_POP_BULK = list_across_bulk$YPRED_ACROSS_POP_BULK
+        }
+        ########################################
+        ### ACROSS POPULATIONS: PAIRWISE-POP ###
+        ########################################
+        fname_across_pairwise_Rds = fn_cross_validation_across_populations_pairwise(
+            list_merged=list_merged_for_across,
+            vec_models_to_test=vec_models_to_test,
+            bool_parallel=bool_parallel,
+            max_mem_Gb=max_mem_Gb,
+            n_threads=n_threads,
+            dir_output=dir_output,
+            verbose=verbose
+        )
+        if (methods::is(fname_across_pairwise_Rds, "gpError")) {
+            return(fname_across_pairwise_Rds)
+        } else {
+            list_across_pairwise = readRDS(fname_across_pairwise_Rds)
+            METRICS_ACROSS_POP_PAIRWISE = list_across_pairwise$METRICS_ACROSS_POP_PAIRWISE
+            YPRED_ACROSS_POP_PAIRWISE = list_across_pairwise$YPRED_ACROSS_POP_PAIRWISE
+        }
+        #############################################
+        ### ACROSS POPULATIONS: LEAVE-ONE-POP-OUT ###
+        #############################################
+        fname_across_lopo_Rds = fn_cross_validation_across_populations_lopo(
+            list_merged=list_merged_for_across,
+            vec_models_to_test=vec_models_to_test,
+            bool_parallel=bool_parallel,
+            max_mem_Gb=max_mem_Gb,
+            n_threads=n_threads,
+            dir_output=dir_output,
+            verbose=verbose
+        )
+        if (methods::is(fname_across_lopo_Rds, "gpError")) {
+            return(fname_across_lopo_Rds)
+        } else {
+            list_across_lopo = readRDS(fname_across_lopo_Rds)
+            METRICS_ACROSS_POP_LOPO = list_across_lopo$METRICS_ACROSS_POP_LOPO
+            YPRED_ACROSS_POP_LOPO = list_across_lopo$YPRED_ACROSS_POP_LOPO
+        }
+    } else {
+        METRICS_ACROSS_POP_BULK = NA
+        YPRED_ACROSS_POP_BULK = NA
+        METRICS_ACROSS_POP_LOPO = NA
+        YPRED_ACROSS_POP_LOPO = NA
+        METRICS_ACROSS_POP_PAIRWISE = NA
+        YPRED_ACROSS_POP_PAIRWISE = NA
+    }
+    ##################################
+    ### GENOMIC PREDICTIONS PER SE ###
+    ##################################
+    ### Find the best model in the population
+    if (bool_within) {
+        vec_idx_validation = which(is.na(list_merged$list_pheno$y))
+        vec_idx_training = which(!is.na(list_merged$list_pheno$y))
+        if (length(vec_idx_validation)==0) {
+            ADDITIVE_GENETIC_EFFECTS = NA
+            GENOMIC_PREDICTIONS = NA
+        } else {
+            idx = which(METRICS_WITHIN_POP$corr == max(METRICS_WITHIN_POP$corr, na.rm=TRUE))[1]
+            model = METRICS_WITHIN_POP$model[idx]
+            ### Define additional model input/s
+            if (grepl("Bayes", model)==TRUE) {
+                ### Append the input prefix into the temporary file prefix generated by Bayesian models so we don't overwite these when performing parallel computations
+                other_params = list(nIter=12e3, burnIn=2e3, h2=0.5, out_prefix=paste0(dirname(prefix_tmp), "/bglr_", model, "-", basename(prefix_tmp), "-"))
+            } else {
+                other_params = list(n_folds=10)
+            }
+            time_ini = Sys.time()
+            perf = eval(parse(text=paste0("fn_", model, "(list_merged=list_merged, vec_idx_training=vec_idx_training, vec_idx_validation=vec_idx_validation, other_params=other_params, verbose=verbose)")))
+            duration_mins = difftime(Sys.time(), time_ini, units="min")
+            ADDITIVE_GENETIC_EFFECTS = perf$vec_effects
+            GENOMIC_PREDICTIONS = perf$df_y_validation
+        }
+    } else {
+        ADDITIVE_GENETIC_EFFECTS = NA
+        GENOMIC_PREDICTIONS = NA
+    }
+    ### Output
+    return(list(
+        TRAIT_NAME=trait_name,
+        POPULATION=population,
+        METRICS_WITHIN_POP=METRICS_WITHIN_POP,
+        YPRED_WITHIN_POP=YPRED_WITHIN_POP,
+        METRICS_ACROSS_POP_BULK=METRICS_ACROSS_POP_BULK,
+        YPRED_ACROSS_POP_BULK=YPRED_ACROSS_POP_BULK,
+        METRICS_ACROSS_POP_LOPO=METRICS_ACROSS_POP_LOPO,
+        YPRED_ACROSS_POP_LOPO=YPRED_ACROSS_POP_LOPO,
+        METRICS_ACROSS_POP_PAIRWISE=METRICS_ACROSS_POP_PAIRWISE,
+        YPRED_ACROSS_POP_PAIRWISE=YPRED_ACROSS_POP_PAIRWISE,
+        GENOMIC_PREDICTIONS=GENOMIC_PREDICTIONS,
+        ADDITIVE_GENETIC_EFFECTS=ADDITIVE_GENETIC_EFFECTS
+    ))
 }

@@ -49,8 +49,11 @@ $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
 $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
 $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
 $h2: narrow-sense heritability estimate
-$df_y_validation: data frame of the validation set with names of the samples/entries/pools,
-population, observed and predicted phenotypic values
+$df_y_validation:
+$id: names of the samples/entries/pools,
+$pop: population from which the sample/entry/pool belongs to
+$y_true: observed phenotype values
+$y_pred: predicted phenotype values
 $vec_effects: named numeric vector of estimated effects, where the names correspond to the
 SNP/allele identity including chromosome/scaffold, position and optionally allele.
 $n_non_zero: number of non-zero estimated fixed (intercept and covariate/s) and random (genotype values)

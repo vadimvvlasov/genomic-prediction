@@ -621,6 +621,8 @@ fn_vcf_to_G = function(vcf, min_depth=0, max_depth=Inf, force_biallelic=TRUE, re
     vec_pos = vcfR::getPOS(vcf)
     ### Remove additional alleles from multi-allelic sites if we're assuming biallelic loci
     if (force_biallelic) {
+        ### Removes instances of the same locus position except for the first instance,
+        ### i.e. does not remove the multi-allelic loci but rather forces biallelic-ness at all loci
         vec_idx = which(!duplicated(paste(vec_chr, vec_pos, sep="\t")))
         if (length(vec_idx) == 0) {
             error = methods::new("gpError", 
@@ -1036,7 +1038,9 @@ fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, m
 #' G_tsv = fn_load_genotype(fname_geno=list_sim$fname_geno_tsv, verbose=TRUE)
 #' G_rds = fn_load_genotype(fname_geno=list_sim$fname_geno_rds, verbose=TRUE)
 #' @export
-fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retain_minus_one_alleles_per_locus=TRUE, min_depth=0, max_depth=Inf, verbose=FALSE) {
+fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retain_minus_one_alleles_per_locus=TRUE, 
+    min_depth=0, max_depth=Inf, verbose=FALSE) 
+{
     ###################################################
     ### TEST
     # list_sim = fn_simulate_data(ploidy=8, verbose=TRUE, save_geno_vcf=TRUE, save_geno_tsv=TRUE, save_geno_rds=TRUE, save_pheno_tsv=TRUE)
@@ -1109,7 +1113,7 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
                         "The first 3 columns do not correspond to 'chr', 'pos', and 'allele'."))
                 return(error)
             }
-            vec_loci_names = paste(df$chr, df$pos, df$allele, sep="\t")
+            vec_loci_names = paste(df[,1], df[,2], df[,3], sep="\t")
             vec_entries = colnames(df)[c(-1:-3)]
             G = as.matrix(t(df[, c(-1:-3)]))
             rownames(G) = vec_entries
@@ -1185,7 +1189,7 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
 #'  This is a tab-delimited file with 3 columns: '#CHROM', 'POS', 'REF,ALT', corresponding to (Default=NULL)
 #'  chromosome names (e.g. 'chr1' & 'chrom_1'), 
 #'  numeric positions (e.g. 12345 & 100001), and 
-#'  reference-alternative allele strings separated by a comma (e.g. 'A,T' & 'allele_1,allele_alt') (Default=NULL)
+#'  reference-alternative allele strings separated by a comma (e.g. 'A,T' & 'C,G') (Default=NULL)
 #' @param max_n_alleles maximum number of alleles per locus. Note that at max_n_alleles=1, we are assuming 
 #' retain_minus_one_alleles_per_locus=TRUE in fn_load_genotype(...), and not that we want fixed - one allele per locus sites. (Default=NULL)
 #' @param max_sparsity_per_locus maximum mean sparsity per locus, e.g. 0.1 or 0.5 (Default=NULL)
@@ -1230,7 +1234,8 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
     fname_snp_list=NULL, max_n_alleles=NULL,
     max_sparsity_per_locus=NULL, frac_topmost_sparse_loci_to_remove=NULL, n_topmost_sparse_loci_to_remove=NULL, 
     max_sparsity_per_sample=NULL, frac_topmost_sparse_samples_to_remove=NULL, n_topmost_sparse_samples_to_remove=NULL, 
-    verbose=FALSE) {
+    verbose=FALSE)
+{
     ###################################################
     ### TEST
     # # list_sim = fn_simulate_data(verbose=TRUE)
@@ -1502,7 +1507,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
                 ))
             return(error)
         } else if (length(vec_idx) < ncol(G)) {
-            if (verbose) {print(paste0("Removing ", ncol(G)-length(vec_idx), " loci which have more than ", max_n_alleles, " per locus."))}
+            if (verbose) {print(paste0("Removing ", ncol(G)-length(vec_idx), " loci which have more than ", max_n_alleles, " allele/s per locus."))}
             G = G[, vec_idx, drop=FALSE]
         } else {
             if (verbose) {print(paste0("All loci have a maximum number of alleles per locus of ", max_n_alleles, "."))}
@@ -1625,6 +1630,42 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
     } else {
         if (verbose) {print("All samples passed the filtering by mean sparsity per sample.")}
     }
+    ### We need to repeat filtering by minimum allele frequency and minimum allele frequency variance 
+    ### because the mean allele frequencies would have changed significantly after the multiple filtering steps above
+    vec_freqs = colMeans(G, na.rm=TRUE)
+    vec_sdevs = apply(G, MARGIN=2, FUN=stats::sd, na.rm=TRUE)
+    vec_idx = which(
+        (vec_freqs >= maf) &
+        (vec_freqs <= (1-maf)) &
+        (vec_sdevs >= sdev_min))
+    if (length(vec_idx) == 0) {
+        error = methods::new("gpError",
+            code=000,
+            message=paste0(
+                "Error in io::fn_filter_genotype(...). ",
+                "All loci did not pass the minimum allele frequency (", maf, ") and minimum allele frequency standard deviation (", sdev_min, ")."
+            ))
+        return(error)
+    } else if (length(vec_idx) < ncol(G)) {
+        if (verbose) {
+            print(paste0("[Repeat] Filtering by minimum allele frequency (", maf, ") and allele frequency standard deviation (", sdev_min, "):"))
+            print(paste0("[Repeat] Retaining ", length(vec_idx), " loci, i.e. ", length(vec_idx), "/", ncol(G), " (", round(length(vec_idx)*100/ncol(G)), "% retained)"))
+        }
+        G = G[, vec_idx, drop=FALSE]
+    } else {
+        if (verbose) {print("[Repeat] All loci passed the minimum allele frequency and standard deviation thresholds.")}
+    }
+    if (verbose) {
+        print(paste0("After genotype filtering we retain n=", nrow(G), " with p=", ncol(G)))
+        mat_idx_missing = is.na(G)
+        print(paste0("Mean sparsity = ", round(100*mean(mat_idx_missing), 2), "%"))
+        print("Allele frequency distribution: ")
+        vec_freqs_sample = sample(unlist(G[!mat_idx_missing]), size=min(c(sum(!mat_idx_missing), 1e4)))
+        txtplot::txtdensity(c(vec_freqs_sample, 1-vec_freqs_sample))
+        vec_freqs_per_locus = colMeans(G, na.rm=TRUE)
+        vec_freqs_per_locus = vec_freqs_per_locus[!is.na(vec_freqs_per_locus)]
+        print(paste0("Mean allele frequencies per locus range from ", min(vec_freqs_per_locus), " to ", max(vec_freqs_per_locus)))
+    }
     ### Return filtered allele frequency matrix
     return(G)
 }
@@ -1704,7 +1745,7 @@ fn_save_genotype = function(G, fname, file_type=c("RDS", "TSV")[1], verbose=FALS
         if (verbose) {print(paste0("Saving the genotype matrix as tab-delimited allele frequency table (TSV): ", fname))}
         df_allele_freq = data.frame(chr=list_ids_chr_pos_all$vec_chr, pos=list_ids_chr_pos_all$vec_pos, allele=list_ids_chr_pos_all$vec_all, t(G))
         colnames(df_allele_freq) = c("chr", "pos", "allele", rownames(G))
-        write.table(df_allele_freq, file=fname, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
+        utils::write.table(df_allele_freq, file=fname, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
     } else {
         error = methods::new("gpError",
             code=000,
@@ -1721,7 +1762,7 @@ fn_save_genotype = function(G, fname, file_type=c("RDS", "TSV")[1], verbose=FALS
 #' Load phenotype data from a text-delimited file
 #'
 #' @param fname_pheno filname of the text-delimited phenotype data
-#' @param sep column-delimiter in the phenotype file (Default="\t")
+#' @param sep column-delimiter in the phenotype file (Default="\\t")
 #' @param header does the phenotype file have a header line? (Default=TRUE)
 #' @param idx_col_id which column correspond to the sample/entry/pool/genotype names? (Default=1)
 #' @param idx_col_pop which column correspond to the population groupings? (Default=2)
@@ -1740,7 +1781,8 @@ fn_save_genotype = function(G, fname, file_type=c("RDS", "TSV")[1], verbose=FALS
 #' @export
 fn_load_phenotype = function(fname_pheno, sep="\t", header=TRUE, 
     idx_col_id=1, idx_col_pop=2, idx_col_y=3, 
-    na.strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING"), verbose=FALSE) {
+    na.strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING"), verbose=FALSE)
+{
     ###################################################
     ### TEST
     # list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
@@ -1901,7 +1943,7 @@ fn_filter_phenotype = function(list_pheno, remove_NA=FALSE, verbose=FALSE) {
 #'  (2) $pop: population or groupings corresponding to each element of y, and
 #'  (3) $trait_name: name of the trait.
 #' @param fname file name of the output file
-#' @param sep delimited of the output file (Default="\t")
+#' @param sep delimited of the output file (Default="\\t")
 #' @param verbose show phenotype filtering messages? (Default=FALSE)
 #' @returns
 #' Ok: file name of the output file
@@ -1947,7 +1989,7 @@ fn_save_phenotype = function(list_pheno, fname, sep="\t", verbose=FALSE) {
     }
     ### Save
     df = data.frame(id=names(list_pheno$y), pop=list_pheno$pop, trait=list_pheno$y)
-    write.table(df, file=fname, sep=sep, row.names=FALSE, col.names=TRUE, quote=FALSE)
+    utils::write.table(df, file=fname, sep=sep, row.names=FALSE, col.names=TRUE, quote=FALSE)
     if (verbose) {print(paste0("Phenotype data saved into: ", fname))}
     ### Return output file name
     return(fname)
@@ -2079,10 +2121,105 @@ fn_merge_genotype_and_phenotype = function(G, list_pheno, COVAR=NULL, verbose=FA
     return(list(G=G, list_pheno=list(y=y, pop=pop, trait_name=trait_name), COVAR=COVAR))
 }
 
+#' Subset the list of merged genotype and phenotype data using a vector of sample/entry/pool indexes.
+#'
+#' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
+#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'      Row names can be any string of characters which identify the sample or entry or pool names.
+#'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
+#'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
+#'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
+#'  $list_pheno:
+#'      $y: named vector of numeric phenotype data
+#'      $pop: population or groupings corresponding to each element of y
+#'      $trait_name: name of the trait
+#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#' @param vec_idx numeric vector of sample/entry/pool indexes to extract from list_merged
+#' @param verbose show genotype, phenotype, and covariate subsetting messages? (Default=FALSE)
+#' @returns
+#' Ok:
+#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'      Row names can be any string of characters which identify the sample or entry or pool names.
+#'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
+#'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
+#'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
+#'  $list_pheno:
+#'      $y: named vector of numeric phenotype data
+#'      $pop: population or groupings corresponding to each element of y
+#'      $trait_name: name of the trait
+#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#' Err: gpError
+#' @examples
+#' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+#' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
+#' rownames(G)[1] = "entry_exclude_me"
+#' rownames(G)[2] = "entry_exclude_me_too"
+#' list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
+#' COVAR = matrix(stats::rnorm(n=(10*nrow(G))), nrow=nrow(G))
+#' rownames(COVAR) = rownames(G); colnames(COVAR) = paste0("covariate_", 1:ncol(COVAR))
+#' list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, COVAR=COVAR, verbose=TRUE)
+#' vec_idx = which(list_merged$list_pheno$pop == list_merged$list_pheno$pop[1])
+#' list_merged_subset = fn_subset_merged_genotype_and_phenotype(list_merged=list_merged,
+#'  vec_idx=vec_idx, verbose=TRUE)
+#' @export
+fn_subset_merged_genotype_and_phenotype = function(list_merged, vec_idx, verbose=FALSE) {
+    ###################################################
+    ### TEST
+    # list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    # G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
+    # list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
+    # COVAR = G %*% t(G)
+    # list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, COVAR=COVAR, verbose=TRUE)
+    # vec_idx = which(list_merged$list_pheno$pop == list_merged$list_pheno$pop[1])
+    # verbose = TRUE
+    ###################################################
+    ### Input sanity check
+    if (methods::is(list_merged, "gpError")) {
+        error = chain(list_merged, 
+            methods::new("gpError",
+                code=000,
+                message=paste0(
+                    "Error in cross_validation::fn_subset_merged_genotype_and_phenotype(...). ",
+                    "Input data (list_merged) is an error type."
+                )))
+        return(error)
+    }
+    if (sum(c(1:nrow(list_merged$G)) %in% vec_idx) != length(vec_idx)) {
+        error = methods::new("gpError",
+            code=000,
+            message=paste0(
+                "Error in cross_validation::fn_subset_merged_genotype_and_phenotype(...). ",
+                "The indexes of samples/entries/pools do not match the indexes in the data set. ",
+                "The indexes asked for ranges from ", min(vec_idx), " to ", max(vec_idx), " while ",
+                "the indexes in the data set ranges from 1 to ", nrow(list_merged$G), "."
+            ))
+        return(error)
+    }
+    ## Subset
+    G = list_merged$G[vec_idx, , drop=FALSE]
+    list_pheno = list(
+        y=list_merged$list_pheno$y[vec_idx],
+        pop=list_merged$list_pheno$pop[vec_idx],
+        trait_name=list_merged$list_pheno$trait_name
+    )
+    if (!is.null(list_merged$COVAR)) {
+        COVAR = list_merged$COVAR[vec_idx, , drop=FALSE]
+    } else {
+        COVAR = NULL
+    }
+    return(list(
+        G=G,
+        list_pheno=list_pheno,
+        COVAR=COVAR
+    ))
+}
+
 #' Estimate memory usage for parallel replicated k-fold cross validation of multiple genomic prediction models
 #'
-#' @param X numeric matrix resulting from the merging of the genotype matrix, phenotype vector and covariate matrix
-#' @param n_models number of genomic prediction models to fit. Note that Bayesian and gBLUP models are more memory-intensive than penalised regression ones. (Default=7)
+#' @param X any R object but the main intended object is a list containing the 
+#'  genotype matrix, phenotype list and covariate matrix for genomic prediction
+#' @param n_models number of genomic prediction models to fit. Note that Bayesian and 
+#'  gBLUP models are more memory-intensive than penalised regression ones. (Default=7)
 #' @param n_folds number of cross-validation folds (Default=10)
 #' @param n_reps number of cross-validation replication (Default=10)
 #' @param memory_requested_Gb memory requested or available for use (Default=400)
@@ -2090,10 +2227,13 @@ fn_merge_genotype_and_phenotype = function(G, list_pheno, COVAR=NULL, verbose=FA
 #' @param verbose show memory usage estimation messages? (Default=FALSE)
 #' @returns
 #' Ok:
-#'  $size_X: memory used for a single merge genotype-phenotype-covariate dataset
+#'  $size_X: memory used for a single genomic prediction instance
 #'  $size_total: total memory required for parallel computations across models, folds and replications
 #'  $n_threads: recommended and estimated maximum number of threads to use to prevent out-of-memory (OOM) error
 #' Err: gpError
+#' @examples
+#' list_mem = fn_estimate_memory_footprint(X=rnorm(10000), verbose=TRUE)
+#' @export
 fn_estimate_memory_footprint = function(X, n_models=7, n_folds=10, n_reps=10, 
     memory_requested_Gb=400, memory_multiplier=40, verbose=FALSE) {
     ###################################################
@@ -2106,14 +2246,14 @@ fn_estimate_memory_footprint = function(X, n_models=7, n_folds=10, n_reps=10,
     # memory_multiplier = 40
     # verbose = TRUE
     ###################################################
-    if ((prod(dim(X)) == 0) | (n_models <= 0) | (n_folds <= 0) | (n_reps <= 0) | (memory_requested_Gb <= 0) | (memory_multiplier <= 0)) {
+    if ((as.numeric(utils::object.size(X)) == 0) | (n_models <= 0) | (n_folds <= 0) | (n_reps <= 0) | (memory_requested_Gb <= 0) | (memory_multiplier <= 0)) {
         error = methods::new("gpError",
             code=000,
             message=paste0(
                 "Error in io::fn_estimate_memory_footprint(...). ",
-                "The dimensions of the input matrix, number of models, folds and replications, ",
+                "The size of the input data, number of models, folds and replications, ",
                 "as well as the memory requested or available and memory usage multiplier cannot be zero. ",
-                "X (n=", nrow(X), ", p=", ncol(X), "); ", 
+                "X (size=", utils::object.size(X), " bytes); ", 
                 "n_models=", n_models, "; n_folds=", n_folds, "; n_reps=", n_reps, 
                 "; memory_requested_Gb=", memory_requested_Gb, " Gb; ",
                 "memory_multiplier=", memory_multiplier))
@@ -2124,7 +2264,7 @@ fn_estimate_memory_footprint = function(X, n_models=7, n_folds=10, n_reps=10,
     size_total = size_X * n_models * n_folds * n_reps * memory_multiplier
     n_threads = floor(as.numeric(gsub(" bytes", "",  size_RAM / (size_X * memory_multiplier))))
     if (verbose) {
-        print(paste0("X dimensions: nrows = ", nrow(X), "; ncols = ", ncol(X)))
+        print(paste0("Size of X: = ", format(size_X, units="b")))
         print(paste0("n_models = ", n_models, "; n_folds = ", n_folds, "; n_reps = ", n_reps))
         print(paste0("Total memory requested = ", 
             format(size_RAM, units="Gb"), " (", 
