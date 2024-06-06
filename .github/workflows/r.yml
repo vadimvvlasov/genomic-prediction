@@ -28,14 +28,5 @@ jobs:
         shell: Rscript {0}
       - name: Test
         run: |
-          library(testthat)
-          library(vcfR)
-          library(glmnet)
-          library(BGLR)
-          library(sommer)
-          library(txtplot)
-          library(simquantgen)
-          devtools::load_all()
-          devtools::document()
-          devtools::test()
+          devtools::check()
         shell: Rscript {0}

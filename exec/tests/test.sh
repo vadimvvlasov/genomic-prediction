@@ -33,7 +33,7 @@ do
         --fname-pheno $fname_pheno \
         --population pop_1 \
         --dir-output outdir \
-        --pheno-idx-col-y 3 \
+        --pheno-idx-col-y $idx_pheno \
         --bool-within TRUE \
         --bool-across FALSE \
         --n-folds 5 \
@@ -43,6 +43,9 @@ do
         --n-threads 32 \
         --verbose TRUE >> logfile
 done
+tail logfile
+grep -A1 "ERROR:" logfile
+ls -lhtr outdir/*.Rds
 
 # Rscript ../gp.R \
 # --fname-geno= \

@@ -1,2 +1,0 @@
-rep	fold	model	pop_training	pop_validation	n_training	n_validation	duration_mins	n_non_zero_effects	mbe	mae	rmse	r2	corr	power_t10	power_b10	var_pred	var_true	h2
-1	2	ridge	pop_1	pop_1	86	22	0.382762293020884	36438	4.53842106019838	18.30023646922	24.05703775986	0.0396705529502982	0.274513714516722	0.5	0	35.0633350860408	631.346009447519	0.2023120431
