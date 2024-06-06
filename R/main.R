@@ -348,12 +348,83 @@ gp = function(args) {
         verbose=args$verbose
     )
     if (methods::is(list_merged, "gpError")) {return(list_merged)}
+    ### Clean-up
+    G = NULL
+    list_pheno = NULL
+    gc()
     ### Extract the trait name
     trait_name = list_merged$list_pheno$trait_name
-    ### Subset by a single args$population
+    ### Start with across population cross-validation using the full dataset
     if (args$bool_across) {
-        list_merged_for_across = list_merged
+        ################################
+        ### ACROSS POPULATIONS: BULK ###
+        ################################
+        fname_across_bulk_Rds = fn_cross_validation_across_populations_bulk(
+            list_merged=list_merged,
+            n_folds=args$n_folds,
+            n_reps=args$n_reps,
+            vec_models_to_test=args$vec_models_to_test,
+            bool_parallel=args$bool_parallel,
+            max_mem_Gb=args$max_mem_Gb,
+            n_threads=args$n_threads,
+            dir_output=args$dir_output,
+            verbose=args$verbose
+        )
+        if (methods::is(fname_across_bulk_Rds, "gpError")) {
+            return(fname_across_bulk_Rds)
+        } else {
+            list_across_bulk = readRDS(fname_across_bulk_Rds)
+            METRICS_ACROSS_POP_BULK = list_across_bulk$METRICS_ACROSS_POP_BULK
+            YPRED_ACROSS_POP_BULK = list_across_bulk$YPRED_ACROSS_POP_BULK
+        }
+        ########################################
+        ### ACROSS POPULATIONS: PAIRWISE-POP ###
+        ########################################
+        fname_across_pairwise_Rds = fn_cross_validation_across_populations_pairwise(
+            list_merged=list_merged,
+            vec_models_to_test=args$vec_models_to_test,
+            bool_parallel=args$bool_parallel,
+            max_mem_Gb=args$max_mem_Gb,
+            n_threads=args$n_threads,
+            dir_output=args$dir_output,
+            verbose=args$verbose
+        )
+        if (methods::is(fname_across_pairwise_Rds, "gpError")) {
+            return(fname_across_pairwise_Rds)
+        } else {
+            list_across_pairwise = readRDS(fname_across_pairwise_Rds)
+            METRICS_ACROSS_POP_PAIRWISE = list_across_pairwise$METRICS_ACROSS_POP_PAIRWISE
+            YPRED_ACROSS_POP_PAIRWISE = list_across_pairwise$YPRED_ACROSS_POP_PAIRWISE
+        }
+        #############################################
+        ### ACROSS POPULATIONS: LEAVE-ONE-POP-OUT ###
+        #############################################
+        fname_across_lopo_Rds = fn_cross_validation_across_populations_lopo(
+            list_merged=list_merged,
+            vec_models_to_test=args$vec_models_to_test,
+            bool_parallel=args$bool_parallel,
+            max_mem_Gb=args$max_mem_Gb,
+            n_threads=args$n_threads,
+            dir_output=args$dir_output,
+            verbose=args$verbose
+        )
+        if (methods::is(fname_across_lopo_Rds, "gpError")) {
+            return(fname_across_lopo_Rds)
+        } else {
+            list_across_lopo = readRDS(fname_across_lopo_Rds)
+            METRICS_ACROSS_POP_LOPO = list_across_lopo$METRICS_ACROSS_POP_LOPO
+            YPRED_ACROSS_POP_LOPO = list_across_lopo$YPRED_ACROSS_POP_LOPO
+        }
+    } else {
+        METRICS_ACROSS_POP_BULK = NA
+        YPRED_ACROSS_POP_BULK = NA
+        METRICS_ACROSS_POP_LOPO = NA
+        YPRED_ACROSS_POP_LOPO = NA
+        METRICS_ACROSS_POP_PAIRWISE = NA
+        YPRED_ACROSS_POP_PAIRWISE = NA
     }
+    ### Finish-off with within population cross-validation
+    ### Subset by a single population and clean-up
     if (args$bool_within) {
         list_merged = fn_subset_merged_genotype_and_phenotype(
             list_merged=list_merged,
@@ -361,11 +432,8 @@ gp = function(args) {
             verbose=FALSE
         )
         if (methods::is(list_merged, "gpError")) {return(list_merged)}
-    } else {
-        list_merged = NULL
+        gc()
     }
-    ### Activate the garbage collector
-    gc()
     ### Genomic prediction cross-validation
     if (args$bool_within) {
         #########################
@@ -389,77 +457,10 @@ gp = function(args) {
             METRICS_WITHIN_POP = list_within$METRICS_WITHIN_POP
             YPRED_WITHIN_POP = list_within$YPRED_WITHIN_POP
         }
+
     } else {
         METRICS_WITHIN_POP = NA
         YPRED_WITHIN_POP = NA
-    }
-    if (args$bool_across) {
-        ################################
-        ### ACROSS POPULATIONS: BULK ###
-        ################################
-        fname_across_bulk_Rds = fn_cross_validation_across_populations_bulk(
-            list_merged=list_merged_for_across,
-            n_folds=args$n_folds,
-            n_reps=args$n_reps,
-            vec_models_to_test=args$vec_models_to_test,
-            bool_parallel=args$bool_parallel,
-            max_mem_Gb=args$max_mem_Gb,
-            n_threads=args$n_threads,
-            dir_output=args$dir_output,
-            verbose=args$verbose
-        )
-        if (methods::is(fname_across_bulk_Rds, "gpError")) {
-            return(fname_across_bulk_Rds)
-        } else {
-            list_across_bulk = readRDS(fname_across_bulk_Rds)
-            METRICS_ACROSS_POP_BULK = list_across_bulk$METRICS_ACROSS_POP_BULK
-            YPRED_ACROSS_POP_BULK = list_across_bulk$YPRED_ACROSS_POP_BULK
-        }
-        ########################################
-        ### ACROSS POPULATIONS: PAIRWISE-POP ###
-        ########################################
-        fname_across_pairwise_Rds = fn_cross_validation_across_populations_pairwise(
-            list_merged=list_merged_for_across,
-            vec_models_to_test=args$vec_models_to_test,
-            bool_parallel=args$bool_parallel,
-            max_mem_Gb=args$max_mem_Gb,
-            n_threads=args$n_threads,
-            dir_output=args$dir_output,
-            verbose=args$verbose
-        )
-        if (methods::is(fname_across_pairwise_Rds, "gpError")) {
-            return(fname_across_pairwise_Rds)
-        } else {
-            list_across_pairwise = readRDS(fname_across_pairwise_Rds)
-            METRICS_ACROSS_POP_PAIRWISE = list_across_pairwise$METRICS_ACROSS_POP_PAIRWISE
-            YPRED_ACROSS_POP_PAIRWISE = list_across_pairwise$YPRED_ACROSS_POP_PAIRWISE
-        }
-        #############################################
-        ### ACROSS POPULATIONS: LEAVE-ONE-POP-OUT ###
-        #############################################
-        fname_across_lopo_Rds = fn_cross_validation_across_populations_lopo(
-            list_merged=list_merged_for_across,
-            vec_models_to_test=args$vec_models_to_test,
-            bool_parallel=args$bool_parallel,
-            max_mem_Gb=args$max_mem_Gb,
-            n_threads=args$n_threads,
-            dir_output=args$dir_output,
-            verbose=args$verbose
-        )
-        if (methods::is(fname_across_lopo_Rds, "gpError")) {
-            return(fname_across_lopo_Rds)
-        } else {
-            list_across_lopo = readRDS(fname_across_lopo_Rds)
-            METRICS_ACROSS_POP_LOPO = list_across_lopo$METRICS_ACROSS_POP_LOPO
-            YPRED_ACROSS_POP_LOPO = list_across_lopo$YPRED_ACROSS_POP_LOPO
-        }
-    } else {
-        METRICS_ACROSS_POP_BULK = NA
-        YPRED_ACROSS_POP_BULK = NA
-        METRICS_ACROSS_POP_LOPO = NA
-        YPRED_ACROSS_POP_LOPO = NA
-        METRICS_ACROSS_POP_PAIRWISE = NA
-        YPRED_ACROSS_POP_PAIRWISE = NA
     }
     ##################################
     ### GENOMIC PREDICTIONS PER SE ###
@@ -494,6 +495,9 @@ gp = function(args) {
         ADDITIVE_GENETIC_EFFECTS = NA
         GENOMIC_PREDICTIONS = NA
     }
+    ### Clean-up
+    list_merged = NULL
+    gc()
     ### Output
     if (is.null(args$dir_output)) {
         args$dir_output = dirname(tempfile())

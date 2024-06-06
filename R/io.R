@@ -1094,6 +1094,7 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
                 return(error)
             } else {
                 if (verbose) {print("Genotype loaded from a VCF file.")}
+                vcf = NULL
                 return(G)
             }
         }, 
@@ -1120,6 +1121,7 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
             rownames(G) = vec_entries
             colnames(G) = vec_loci_names
             if (verbose) {print("Genotype loaded from a tab-delimited allele frequency table file.")}
+            df = NULL
             return(G)
         })
     })
@@ -1139,6 +1141,7 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
             return(error)
         }
         G = list_G_G_alt$G
+        list_G_G_alt = NULL
     }
     ### Bin allele frequencies
     if (!is.null(ploidy)) {
@@ -1168,7 +1171,12 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
         txtplot::txtdensity(vec_sparsity_per_locus[!is.na(vec_sparsity_per_locus)])
         print("Distribution of mean sparsity per sample")
         txtplot::txtdensity(vec_sparsity_per_sample[!is.na(vec_sparsity_per_sample)])
+        G_for_plotting = NULL
+        mat_sparsity = NULL
+        vec_sparsity_per_locus = NULL
+        vec_sparsity_per_sample = NULL
     }
+    gc()
     return(G)
 }
 
@@ -1668,6 +1676,9 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
         vec_freqs_per_locus = vec_freqs_per_locus[!is.na(vec_freqs_per_locus)]
         print(paste0("Mean allele frequencies per locus range from ", min(vec_freqs_per_locus), " to ", max(vec_freqs_per_locus)))
     }
+    ### Cleanup
+    list_ids_chr_pos_all = NULL
+    gc()
     ### Return filtered allele frequency matrix
     return(G)
 }
@@ -2114,11 +2125,16 @@ fn_merge_genotype_and_phenotype = function(G, list_pheno, COVAR=NULL, verbose=FA
                 list_PCs = stats::prcomp(COVAR)
                 print(summary(list_PCs)$importance[, 1:2])
                 txtplot::txtplot(list_PCs$x[,1], list_PCs$x[,2])
+                list_PCs = NULL
             }
         } else {
             print("Covariate is null.")
         }
     }
+    ### Cleanup
+    M = NULL
+    gc()
+    ### Output
     return(list(G=G, list_pheno=list(y=y, pop=pop, trait_name=trait_name), COVAR=COVAR))
 }
 
@@ -2208,6 +2224,10 @@ fn_subset_merged_genotype_and_phenotype = function(list_merged, vec_idx, verbose
     } else {
         COVAR = NULL
     }
+    ### Cleanup
+    list_merged = NULL
+    gc()
+    ### Output
     return(list(
         G=G,
         list_pheno=list_pheno,
