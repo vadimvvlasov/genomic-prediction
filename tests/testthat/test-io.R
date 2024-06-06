@@ -2,6 +2,7 @@
 # source("R/io.R")
 
 test_that("fn_G_extract_names", {
+    set.seed(123)
     n = 100
     n_alleles = 3
     mat_genotypes = simquantgen::fn_simulate_genotypes(n=n, n_alleles=n_alleles, verbose=TRUE)
@@ -17,6 +18,7 @@ test_that("fn_G_extract_names", {
 })
 
 test_that("fn_G_split_off_alternative_allele", {
+    set.seed(123)
     G_ref = simquantgen::fn_simulate_genotypes(verbose=TRUE)
     G_alt = 1 - G_ref; colnames(G_alt) = gsub("allele_1$", "allele_2", colnames(G_alt))
     G_refalt = cbind(G_ref, G_alt)
@@ -26,6 +28,7 @@ test_that("fn_G_split_off_alternative_allele", {
 })
 
 test_that("fn_G_numeric_to_non_numeric", {
+    set.seed(123)
     ploidy = 42
     G_numeric = simquantgen::fn_simulate_genotypes(ploidy=ploidy, n_alleles=52, verbose=TRUE)
     G_non_numeric = fn_G_numeric_to_non_numeric(G=G_numeric, ploidy=ploidy, verbose=TRUE)
@@ -35,6 +38,7 @@ test_that("fn_G_numeric_to_non_numeric", {
 })
 
 test_that("fn_G_non_numeric_to_numeric", {
+    set.seed(123)
     ploidy = 42
     n_alleles = 2
     G_numeric = simquantgen::fn_simulate_genotypes(ploidy=ploidy, n_alleles=n_alleles, verbose=TRUE)
@@ -46,6 +50,7 @@ test_that("fn_G_non_numeric_to_numeric", {
 })
 
 test_that("fn_G_to_vcf", {
+    set.seed(123)
     n = 123
     l = 456
     n_alleles = 2
@@ -59,6 +64,7 @@ test_that("fn_G_to_vcf", {
 })
 
 test_that("fn_vcf_to_G", {
+    set.seed(123)
     G = simquantgen::fn_simulate_genotypes(verbose=TRUE)
     vcf = fn_G_to_vcf(G=G, min_depth=1000, max_depth=1000, verbose=TRUE)
     G_back = fn_vcf_to_G(vcf=vcf, verbose=TRUE)
@@ -68,6 +74,7 @@ test_that("fn_vcf_to_G", {
 })
 
 test_that("fn_classify_allele_frequencies", {
+    set.seed(123)
     ploidy = 4
     G = simquantgen::fn_simulate_genotypes(ploidy=ploidy, verbose=TRUE)
     G_classes = fn_classify_allele_frequencies(G=G, ploidy=ploidy, verbose=TRUE)
@@ -78,6 +85,7 @@ test_that("fn_classify_allele_frequencies", {
 })
 
 test_that("fn_simulate_data", {
+    set.seed(123)
     list_sim = fn_simulate_data(verbose=TRUE)
     expect_equal(is.null(list_sim$fname_geno_vcf), FALSE)
     expect_equal(is.null(list_sim$fname_geno_tsv), TRUE)
@@ -109,6 +117,7 @@ test_that("fn_simulate_data", {
 })
 
 test_that("fn_load_genotype", {
+    set.seed(123)
     list_sim = fn_simulate_data(min_depth=1000, max_depth=1000, save_geno_vcf=TRUE, save_geno_tsv=TRUE, save_geno_rds=TRUE, save_pheno_tsv=TRUE, verbose=TRUE)
     G_vcf = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf, verbose=TRUE)
     G_tsv = fn_load_genotype(fname_geno=list_sim$fname_geno_tsv, verbose=TRUE)
@@ -123,6 +132,7 @@ test_that("fn_load_genotype", {
 })
 
 test_that("fn_filter_genotype", {
+    set.seed(123)
     list_sim = fn_simulate_data(verbose=TRUE)
     maf = 0.05
     sdev_min = 0.0001
@@ -195,6 +205,7 @@ test_that("fn_filter_genotype", {
 })
 
 test_that("fn_save_genotype", {
+    set.seed(123)
     list_sim = fn_simulate_data(min_depth=1000, max_depth=1000, verbose=TRUE)
     G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf, verbose=TRUE)
     fname_Rds = tempfile(fileext=".Rds")
@@ -212,6 +223,7 @@ test_that("fn_save_genotype", {
 })
 
 test_that("fn_load_phenotype", {
+    set.seed(123)
     list_sim = fn_simulate_data(verbose=TRUE)
     df_y = utils::read.table(list_sim$fname_pheno_tsv, header=TRUE)
     fname_csv = gsub(".tsv$", ".csv", list_sim$fname_pheno_tsv)
@@ -230,6 +242,7 @@ test_that("fn_load_phenotype", {
 })
 
 test_that("fn_filter_phenotype", {
+    set.seed(123)
     list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
     list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
     list_pheno$y[1] = Inf
@@ -241,6 +254,7 @@ test_that("fn_filter_phenotype", {
 })
 
 test_that("fn_save_phenotype", {
+    set.seed(123)
     list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
     list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
     fname_tsv = tempfile(fileext=".tsv")
@@ -259,6 +273,7 @@ test_that("fn_save_phenotype", {
 })
 
 test_that("fn_merge_genotype_and_phenotype", {
+    set.seed(123)
     list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
     G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
     rownames(G)[1] = "entry_exclude_me"
@@ -275,6 +290,7 @@ test_that("fn_merge_genotype_and_phenotype", {
 })
 
 test_that("fn_subset_merged_genotype_and_phenotype", {
+    set.seed(123)
     list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
     G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
     list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
@@ -292,6 +308,7 @@ test_that("fn_subset_merged_genotype_and_phenotype", {
 })
 
 test_that("fn_estimate_memory_footprint", {
+    set.seed(123)
     X = matrix(0.0, nrow=500, ncol=500e3)
     list_mem = fn_estimate_memory_footprint(X=X, verbose=TRUE)
     expect_equal(list_mem$size_X, object.size(X))

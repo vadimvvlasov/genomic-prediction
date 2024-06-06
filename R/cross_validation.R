@@ -763,6 +763,10 @@ fn_cross_validation_within_population = function(list_merged, n_folds=10, n_reps
                 df_metrics = rbind(df_metrics, list_perf$df_metrics)
                 df_y_validation = rbind(df_y_validation, list_perf$df_y_validation)
             }
+            ### Clean-up to reduce memory footprint
+            list_perf$df_metrics = NULL
+            list_perf$df_y_validation = NULL
+            gc()
         }
         ### Save temporary Rds output per population
         time_rand_id = paste0(round(as.numeric(Sys.time())), sample.int(1e6, size=1))

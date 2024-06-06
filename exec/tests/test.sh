@@ -78,7 +78,7 @@ do
         --n-folds 5 \
         --n-reps 1 \
         --bool-parallel TRUE \
-        --max-mem-Gb 60 \
+        --max-mem-Gb 360 \
         --n-threads 32 \
         --verbose TRUE >> outdir/lucerne/logfile
 done

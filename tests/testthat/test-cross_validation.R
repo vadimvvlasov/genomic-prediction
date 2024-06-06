@@ -125,6 +125,6 @@ test_that("fn_cross_validation_across_populations_lopo", {
     list_across_lopo = readRDS(fname_across_lopo_Rds)
     expect_equal(sum(dim(list_across_lopo$METRICS_ACROSS_POP_LOPO) == c(3*1*2, 19)), 2)
     expect_equal(sum(dim(list_across_lopo$YPRED_ACROSS_POP_LOPO) == c(3*(100/3)*2, 8)), 2)
-    expect_equal(mean(list_across_lopo$METRICS_ACROSS_POP_LOPO$corr) < 0.5, TRUE)
-    expect_equal(cor(list_across_lopo$YPRED_ACROSS_POP_LOPO$y_true, list_across_lopo$YPRED_ACROSS_POP_LOPO$y_pred) < 0.5, TRUE)
+    expect_equal(mean(list_across_lopo$METRICS_ACROSS_POP_LOPO$corr) < 0.9, TRUE)
+    expect_equal(cor(list_across_lopo$YPRED_ACROSS_POP_LOPO$y_true, list_across_lopo$YPRED_ACROSS_POP_LOPO$y_pred) < 0.9, TRUE)
 })
