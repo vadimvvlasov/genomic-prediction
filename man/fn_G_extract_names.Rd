@@ -19,12 +19,16 @@ subsequent elements are optional which may refer to the allele identifier and ot
 \item{verbose}{show names extraction messages? (Default=FALSE)}
 }
 \value{
-Ok:
-$vec_ids: vector of sample/entry/pool names (same order as in G)
-$vec_chr: vector of chromosome or scaffold names (same order as in G)
-$vec_pos: vector of numeric positions per chromosome (same order as in G)
-$vec_all: vector of allele names (same order as in G)
-Err: grError
+\itemize{
+\item Ok:
+\itemize{
+\item $vec_ids: vector of sample/entry/pool names (same order as in G)
+\item $vec_chr: vector of chromosome or scaffold names (same order as in G)
+\item $vec_pos: vector of numeric positions per chromosome (same order as in G)
+\item $vec_all: vector of allele names (same order as in G)
+}
+\item Err: grError
+}
 }
 \description{
 Extract names of samples/entries/pools and loci from a numeric (allele frequency) or non-numeric (genotype classes) matrix

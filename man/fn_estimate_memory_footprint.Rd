@@ -32,11 +32,15 @@ gBLUP models are more memory-intensive than penalised regression ones. (Default=
 \item{verbose}{show memory usage estimation messages? (Default=FALSE)}
 }
 \value{
-Ok:
-$size_X: memory used for a single genomic prediction instance
-$size_total: total memory required for parallel computations across models, folds and replications
-$n_threads: recommended and estimated maximum number of threads to use to prevent out-of-memory (OOM) error
-Err: gpError
+\itemize{
+\item Ok:
+\itemize{
+\item $size_X: memory used for a single genomic prediction instance
+\item $size_total: total memory required for parallel computations across models, folds and replications
+\item $n_threads: recommended and estimated maximum number of threads to use to prevent out-of-memory (OOM) error
+}
+\item Err: gpError
+}
 }
 \description{
 Estimate memory usage for parallel replicated k-fold cross validation of multiple genomic prediction models

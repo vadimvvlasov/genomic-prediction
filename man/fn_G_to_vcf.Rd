@@ -21,8 +21,10 @@ Note that this function only accepts biallelic loci.}
 \item{verbose}{show allele frequency genotype matrix to vcf conversion messages? (Default=FALSE)}
 }
 \value{
-Ok: simulated genotype data as a vcfR object with GT, AD and DP fields
-Err: grError
+\itemize{
+\item Ok: simulated genotype data as a vcfR object with GT, AD and DP fields
+\item Err: grError
+}
 }
 \description{
 Convert numeric allele frequency matrix into a vcfR::vcf object

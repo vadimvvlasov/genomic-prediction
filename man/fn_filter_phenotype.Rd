@@ -18,11 +18,15 @@ If true, this removes the corresponding element/s in the pop vector. (Default=FA
 \item{verbose}{show phenotype filtering messages? (Default=FALSE)}
 }
 \value{
-Ok:
-$y: named vector of numeric phenotype data
-$pop: population or groupings corresponding to each element of y
-$trait_name: name of the trait
-Err: gpError
+\itemize{
+\item Ok:
+\itemize{
+\item $y: named vector of numeric phenotype data
+\item $pop: population or groupings corresponding to each element of y
+\item $trait_name: name of the trait
+}
+\item Err: gpError
+}
 }
 \description{
 Filter phenotype data by converting outliers into missing data and optionally excluding missing data

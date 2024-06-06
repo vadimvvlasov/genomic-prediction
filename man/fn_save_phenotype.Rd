@@ -20,8 +20,10 @@ fn_save_phenotype(list_pheno, fname, sep = "\\t", verbose = FALSE)
 \item{verbose}{show phenotype filtering messages? (Default=FALSE)}
 }
 \value{
-Ok: file name of the output file
-Err: gpError
+\itemize{
+\item Ok: file name of the output file
+\item Err: gpError
+}
 }
 \description{
 Save phenotype data into a delimited file
@@ -30,6 +32,6 @@ with 3 columns referring to the sample ID, population ID, and trait values
 \examples{
 list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
 list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
-fn_save_phenotype(list_pheno, fname="test.tsv", sep="\t", verbose=TRUE)
-fn_save_phenotype(list_pheno, fname="test.csv", sep=",", verbose=TRUE)
+fn_save_phenotype(list_pheno, fname=tempfile(fileext=".tsv"), sep="\t", verbose=TRUE)
+fn_save_phenotype(list_pheno, fname=tempfile(fileext=".csv"), sep=",", verbose=TRUE)
 }

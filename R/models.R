@@ -15,43 +15,43 @@ suppressWarnings(suppressPackageStartupMessages(library(sommer)))
 #' Ordinary least squares model
 #'
 #' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
-#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'  - $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 #'      Row names can be any string of characters which identify the sample or entry or pool names.
 #'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#'  $list_pheno:
-#'      $y: named vector of numeric phenotype data
-#'      $pop: population or groupings corresponding to each element of y
-#'      $trait_name: name of the trait
-#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#'  - $list_pheno:
+#'      + $y: named vector of numeric phenotype data
+#'      + $pop: population or groupings corresponding to each element of y
+#'      + $trait_name: name of the trait
+#'  - $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
 #' @param vec_idx_training vector of numeric indexes referring to the training set
 #' @param vec_idx_validation vector of numeric indexes referring to the validation set
 #' @param other_params list of additional parameters, specifically $diag_inflate which refers to the value used for 
 #'  diagonal inflation for singular matrices (Default=list(diag_inflate=1e-4))
 #' @param verbose show ordinary least squares regression messages? (Default=FALSE)
 #' @returns
-#'  Ok:
-#'      $list_perf:
-#'          $mbe: mean bias error
-#'          $mae: mean absolute error
-#'          $rmse: root mean squared error
-#'          $r2: coefficient of determination
-#'          $corr: Pearson's product moment correlation
-#'          $power_t10: fraction of observed top 10 phenotype values correctly predicted
-#'          $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-#'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-#'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
-#'          $h2: narrow-sense heritability estimate
-#'      $df_y_validation:
-#'          $id: names of the samples/entries/pools, 
-#'          $pop: population from which the sample/entry/pool belongs to
-#'          $y_true: observed phenotype values
-#'          $y_pred: predicted phenotype values
-#'      $vec_effects: named numeric vector of estimated effects, where the names correspond to the
+#'  - Ok:
+#'      + $list_perf:
+#'          - $mbe: mean bias error
+#'          - $mae: mean absolute error
+#'          - $rmse: root mean squared error
+#'          - $r2: coefficient of determination
+#'          - $corr: Pearson's product moment correlation
+#'          - $power_t10: fraction of observed top 10 phenotype values correctly predicted
+#'          - $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+#'          - $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          - $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          - $h2: narrow-sense heritability estimate
+#'      + $df_y_validation:
+#'          - $id: names of the samples/entries/pools, 
+#'          - $pop: population from which the sample/entry/pool belongs to
+#'          - $y_true: observed phenotype values
+#'          - $y_pred: predicted phenotype values
+#'      + $vec_effects: named numeric vector of estimated effects, where the names correspond to the
 #'          SNP/allele identity including chromosome/scaffold, position and optionally allele.
-#'      $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
-#'  Err: gpError
+#'      + $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+#'  - Err: gpError
 #' @examples
 #' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
 #' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
@@ -188,43 +188,43 @@ fn_ols = function(list_merged, vec_idx_training, vec_idx_validation, other_param
 #' Ridge regression model (a.k.a. GBLUP; regularisation via Tikhonov regularisation; alpha=0)
 #'
 #' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
-#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'  - $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 #'      Row names can be any string of characters which identify the sample or entry or pool names.
 #'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#'  $list_pheno:
-#'      $y: named vector of numeric phenotype data
-#'      $pop: population or groupings corresponding to each element of y
-#'      $trait_name: name of the trait
-#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#'  - $list_pheno:
+#'      + $y: named vector of numeric phenotype data
+#'      + $pop: population or groupings corresponding to each element of y
+#'      + $trait_name: name of the trait
+#'  - $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
 #' @param vec_idx_training vector of numeric indexes referring to the training set
 #' @param vec_idx_validation vector of numeric indexes referring to the validation set
 #' @param other_params list of additional parameters, specifically $n_folds which refers to the number of
 #'  internal cross-fold validation to find the optimum lambda at which the deviance is minimised (Default=list(n_folds=10))
 #' @param verbose show ridge regression messages? (Default=FALSE)
 #' @returns
-#'  Ok:
-#'      $list_perf:
-#'          $mbe: mean bias error
-#'          $mae: mean absolute error
-#'          $rmse: root mean squared error
-#'          $r2: coefficient of determination
-#'          $corr: Pearson's product moment correlation
-#'          $power_t10: fraction of observed top 10 phenotype values correctly predicted
-#'          $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-#'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-#'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
-#'          $h2: narrow-sense heritability estimate
-#'      $df_y_validation:
-#'          $id: names of the samples/entries/pools, 
-#'          $pop: population from which the sample/entry/pool belongs to
-#'          $y_true: observed phenotype values
-#'          $y_pred: predicted phenotype values
-#'      $vec_effects: named numeric vector of estimated effects, where the names correspond to the
+#'  - Ok:
+#'      + $list_perf:
+#'          - $mbe: mean bias error
+#'          - $mae: mean absolute error
+#'          - $rmse: root mean squared error
+#'          - $r2: coefficient of determination
+#'          - $corr: Pearson's product moment correlation
+#'          - $power_t10: fraction of observed top 10 phenotype values correctly predicted
+#'          - $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+#'          - $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          - $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          - $h2: narrow-sense heritability estimate
+#'      + $df_y_validation:
+#'          - $id: names of the samples/entries/pools, 
+#'          - $pop: population from which the sample/entry/pool belongs to
+#'          - $y_true: observed phenotype values
+#'          - $y_pred: predicted phenotype values
+#'      + $vec_effects: named numeric vector of estimated effects, where the names correspond to the
 #'          SNP/allele identity including chromosome/scaffold, position and optionally allele.
-#'      $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
-#'  Err: gpError
+#'      + $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+#'  - Err: gpError
 #' @examples
 #' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
 #' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
@@ -331,43 +331,43 @@ fn_ridge = function(list_merged, vec_idx_training, vec_idx_validation, other_par
 #' Lasso regression model (regularisation via least absolute shrinkage and selection operator; alpha=1)
 #'
 #' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
-#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'  - $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 #'      Row names can be any string of characters which identify the sample or entry or pool names.
 #'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#'  $list_pheno:
-#'      $y: named vector of numeric phenotype data
-#'      $pop: population or groupings corresponding to each element of y
-#'      $trait_name: name of the trait
-#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#'  - $list_pheno:
+#'      + $y: named vector of numeric phenotype data
+#'      + $pop: population or groupings corresponding to each element of y
+#'      + $trait_name: name of the trait
+#'  - $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
 #' @param vec_idx_training vector of numeric indexes referring to the training set
 #' @param vec_idx_validation vector of numeric indexes referring to the validation set
 #' @param other_params list of additional parameters, specifically $n_folds which refers to the number of
 #'  internal cross-fold validation to find the optimum lambda at which the deviance is minimised (Default=list(n_folds=10))
 #' @param verbose show Lasso regression messages? (Default=FALSE)
 #' @returns
-#'  Ok:
-#'      $list_perf:
-#'          $mbe: mean bias error
-#'          $mae: mean absolute error
-#'          $rmse: root mean squared error
-#'          $r2: coefficient of determination
-#'          $corr: Pearson's product moment correlation
-#'          $power_t10: fraction of observed top 10 phenotype values correctly predicted
-#'          $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-#'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-#'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
-#'          $h2: narrow-sense heritability estimate
-#'      $df_y_validation:
-#'          $id: names of the samples/entries/pools, 
-#'          $pop: population from which the sample/entry/pool belongs to
-#'          $y_true: observed phenotype values
-#'          $y_pred: predicted phenotype values
-#'      $vec_effects: named numeric vector of estimated effects, where the names correspond to the
+#'  - Ok:
+#'      + $list_perf:
+#'          - $mbe: mean bias error
+#'          - $mae: mean absolute error
+#'          - $rmse: root mean squared error
+#'          - $r2: coefficient of determination
+#'          - $corr: Pearson's product moment correlation
+#'          - $power_t10: fraction of observed top 10 phenotype values correctly predicted
+#'          - $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+#'          - $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          - $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          - $h2: narrow-sense heritability estimate
+#'      + $df_y_validation:
+#'          - $id: names of the samples/entries/pools, 
+#'          - $pop: population from which the sample/entry/pool belongs to
+#'          - $y_true: observed phenotype values
+#'          - $y_pred: predicted phenotype values
+#'      + $vec_effects: named numeric vector of estimated effects, where the names correspond to the
 #'          SNP/allele identity including chromosome/scaffold, position and optionally allele.
-#'      $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
-#'  Err: gpError
+#'      + $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+#'  - Err: gpError
 #' @examples
 #' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
 #' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
@@ -474,43 +474,43 @@ fn_lasso = function(list_merged, vec_idx_training, vec_idx_validation, other_par
 #' Elastic-net regression model (regularisation via combination of ridge and Lasso; alpha is optimised)
 #'
 #' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
-#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'  - $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 #'      Row names can be any string of characters which identify the sample or entry or pool names.
 #'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#'  $list_pheno:
-#'      $y: named vector of numeric phenotype data
-#'      $pop: population or groupings corresponding to each element of y
-#'      $trait_name: name of the trait
-#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#'  - $list_pheno:
+#'      + $y: named vector of numeric phenotype data
+#'      + $pop: population or groupings corresponding to each element of y
+#'      + $trait_name: name of the trait
+#'  - $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
 #' @param vec_idx_training vector of numeric indexes referring to the training set
 #' @param vec_idx_validation vector of numeric indexes referring to the validation set
 #' @param other_params list of additional parameters, specifically $n_folds which refers to the number of
 #'  internal cross-fold validation to find the optimum lambda at which the deviance is minimised (Default=list(n_folds=10))
 #' @param verbose show elastic-net regression messages? (Default=FALSE)
 #' @returns
-#'  Ok:
-#'      $list_perf:
-#'          $mbe: mean bias error
-#'          $mae: mean absolute error
-#'          $rmse: root mean squared error
-#'          $r2: coefficient of determination
-#'          $corr: Pearson's product moment correlation
-#'          $power_t10: fraction of observed top 10 phenotype values correctly predicted
-#'          $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-#'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-#'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
-#'          $h2: narrow-sense heritability estimate
-#'      $df_y_validation:
-#'          $id: names of the samples/entries/pools, 
-#'          $pop: population from which the sample/entry/pool belongs to
-#'          $y_true: observed phenotype values
-#'          $y_pred: predicted phenotype values
-#'      $vec_effects: named numeric vector of estimated effects, where the names correspond to the
+#'  - Ok:
+#'      + $list_perf:
+#'          - $mbe: mean bias error
+#'          - $mae: mean absolute error
+#'          - $rmse: root mean squared error
+#'          - $r2: coefficient of determination
+#'          - $corr: Pearson's product moment correlation
+#'          - $power_t10: fraction of observed top 10 phenotype values correctly predicted
+#'          - $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+#'          - $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          - $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          - $h2: narrow-sense heritability estimate
+#'      + $df_y_validation:
+#'          - $id: names of the samples/entries/pools, 
+#'          - $pop: population from which the sample/entry/pool belongs to
+#'          - $y_true: observed phenotype values
+#'          - $y_pred: predicted phenotype values
+#'      + $vec_effects: named numeric vector of estimated effects, where the names correspond to the
 #'          SNP/allele identity including chromosome/scaffold, position and optionally allele.
-#'      $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
-#'  Err: gpError
+#'      + $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+#'  - Err: gpError
 #' @examples
 #' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
 #' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
@@ -617,45 +617,45 @@ fn_elastic_net = function(list_merged, vec_idx_training, vec_idx_validation, oth
 #' Bayes A regression model (scaled t-distributed effects)
 #'
 #' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
-#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'  - $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 #'      Row names can be any string of characters which identify the sample or entry or pool names.
 #'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#'  $list_pheno:
-#'      $y: named vector of numeric phenotype data
-#'      $pop: population or groupings corresponding to each element of y
-#'      $trait_name: name of the trait
-#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#'  - $list_pheno:
+#'      + $y: named vector of numeric phenotype data
+#'      + $pop: population or groupings corresponding to each element of y
+#'      + $trait_name: name of the trait
+#'  - $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
 #' @param vec_idx_training vector of numeric indexes referring to the training set
 #' @param vec_idx_validation vector of numeric indexes referring to the validation set
 #' @param other_params list of additional parameters, 
-#'  other_params$nIter total number of iterations (Default=12e3)
-#'  other_params$burnIn number of burn-in iterations (Default=2e3)
-#'  other_params$out_prefix prefix of temporary output files (Default="bglr_bayesA-")
+#'  - other_params$nIter: total number of iterations (Default=12e3)
+#'  - other_params$burnIn: number of burn-in iterations (Default=2e3)
+#'  - other_params$out_prefix: prefix of temporary output files (Default="bglr_bayesA-")
 #' @param verbose show Bayes A regression messages? (Default=FALSE)
 #' @returns
-#'  Ok:
-#'      $list_perf:
-#'          $mbe: mean bias error
-#'          $mae: mean absolute error
-#'          $rmse: root mean squared error
-#'          $r2: coefficient of determination
-#'          $corr: Pearson's product moment correlation
-#'          $power_t10: fraction of observed top 10 phenotype values correctly predicted
-#'          $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-#'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-#'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
-#'          $h2: narrow-sense heritability estimate
-#'      $df_y_validation:
-#'          $id: names of the samples/entries/pools, 
-#'          $pop: population from which the sample/entry/pool belongs to
-#'          $y_true: observed phenotype values
-#'          $y_pred: predicted phenotype values
-#'      $vec_effects: named numeric vector of estimated effects, where the names correspond to the
+#'  - Ok:
+#'      + $list_perf:
+#'          - $mbe: mean bias error
+#'          - $mae: mean absolute error
+#'          - $rmse: root mean squared error
+#'          - $r2: coefficient of determination
+#'          - $corr: Pearson's product moment correlation
+#'          - $power_t10: fraction of observed top 10 phenotype values correctly predicted
+#'          - $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+#'          - $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          - $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          - $h2: narrow-sense heritability estimate
+#'      + $df_y_validation:
+#'          - $id: names of the samples/entries/pools, 
+#'          - $pop: population from which the sample/entry/pool belongs to
+#'          - $y_true: observed phenotype values
+#'          - $y_pred: predicted phenotype values
+#'      + $vec_effects: named numeric vector of estimated effects, where the names correspond to the
 #'          SNP/allele identity including chromosome/scaffold, position and optionally allele.
-#'      $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
-#'  Err: gpError
+#'      + $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+#'  - Err: gpError
 #' @examples
 #' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
 #' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
@@ -759,45 +759,45 @@ fn_Bayes_A = function(list_merged, vec_idx_training, vec_idx_validation,
 #'  where \eqn{\pi \sim \beta(\theta_1, \theta_2)})
 #'
 #' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
-#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'  - $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 #'      Row names can be any string of characters which identify the sample or entry or pool names.
 #'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#'  $list_pheno:
-#'      $y: named vector of numeric phenotype data
-#'      $pop: population or groupings corresponding to each element of y
-#'      $trait_name: name of the trait
-#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#'  - $list_pheno:
+#'      + $y: named vector of numeric phenotype data
+#'      + $pop: population or groupings corresponding to each element of y
+#'      + $trait_name: name of the trait
+#'  - $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
 #' @param vec_idx_training vector of numeric indexes referring to the training set
 #' @param vec_idx_validation vector of numeric indexes referring to the validation set
 #' @param other_params list of additional parameters, 
-#'  other_params$nIter total number of iterations (Default=12e3)
-#'  other_params$burnIn number of burn-in iterations (Default=2e3)
-#'  other_params$out_prefix prefix of temporary output files (Default="bglr_bayesB-")
+#'  - other_params$nIter: total number of iterations (Default=12e3)
+#'  - other_params$burnIn: number of burn-in iterations (Default=2e3)
+#'  - other_params$out_prefix: prefix of temporary output files (Default="bglr_bayesB-")
 #' @param verbose show Bayes B regression messages? (Default=FALSE)
 #' @returns
-#'  Ok:
-#'      $list_perf:
-#'          $mbe: mean bias error
-#'          $mae: mean absolute error
-#'          $rmse: root mean squared error
-#'          $r2: coefficient of determination
-#'          $corr: Pearson's product moment correlation
-#'          $power_t10: fraction of observed top 10 phenotype values correctly predicted
-#'          $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-#'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-#'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
-#'          $h2: narrow-sense heritability estimate
-#'      $df_y_validation:
-#'          $id: names of the samples/entries/pools, 
-#'          $pop: population from which the sample/entry/pool belongs to
-#'          $y_true: observed phenotype values
-#'          $y_pred: predicted phenotype values
-#'      $vec_effects: named numeric vector of estimated effects, where the names correspond to the
+#'  - Ok:
+#'      + $list_perf:
+#'          - $mbe: mean bias error
+#'          - $mae: mean absolute error
+#'          - $rmse: root mean squared error
+#'          - $r2: coefficient of determination
+#'          - $corr: Pearson's product moment correlation
+#'          - $power_t10: fraction of observed top 10 phenotype values correctly predicted
+#'          - $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+#'          - $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          - $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          - $h2: narrow-sense heritability estimate
+#'      + $df_y_validation:
+#'          - $id: names of the samples/entries/pools, 
+#'          - $pop: population from which the sample/entry/pool belongs to
+#'          - $y_true: observed phenotype values
+#'          - $y_pred: predicted phenotype values
+#'      + $vec_effects: named numeric vector of estimated effects, where the names correspond to the
 #'          SNP/allele identity including chromosome/scaffold, position and optionally allele.
-#'      $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
-#'  Err: gpError
+#'      + $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+#'  - Err: gpError
 #' @examples
 #' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
 #' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
@@ -901,45 +901,45 @@ fn_Bayes_B = function(list_merged, vec_idx_training, vec_idx_validation,
 #'  with probability \eqn{1-\pi}, where \eqn{\pi \sim \beta(\theta_1, \theta_2)})
 #'
 #' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
-#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'  - $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 #'      Row names can be any string of characters which identify the sample or entry or pool names.
 #'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#'  $list_pheno:
-#'      $y: named vector of numeric phenotype data
-#'      $pop: population or groupings corresponding to each element of y
-#'      $trait_name: name of the trait
-#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#'  - $list_pheno:
+#'      + $y: named vector of numeric phenotype data
+#'      + $pop: population or groupings corresponding to each element of y
+#'      + $trait_name: name of the trait
+#'  - $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
 #' @param vec_idx_training vector of numeric indexes referring to the training set
 #' @param vec_idx_validation vector of numeric indexes referring to the validation set
 #' @param other_params list of additional parameters, 
-#'  other_params$nIter total number of iterations (Default=12e3)
-#'  other_params$burnIn number of burn-in iterations (Default=2e3)
-#'  other_params$out_prefix prefix of temporary output files (Default="bglr_bayesB-")
+#'  - other_params$nIter: total number of iterations (Default=12e3)
+#'  - other_params$burnIn: number of burn-in iterations (Default=2e3)
+#'  - other_params$out_prefix: prefix of temporary output files (Default="bglr_bayesB-")
 #' @param verbose show Bayes C regression messages? (Default=FALSE)
 #' @returns
-#'  Ok:
-#'      $list_perf:
-#'          $mbe: mean bias error
-#'          $mae: mean absolute error
-#'          $rmse: root mean squared error
-#'          $r2: coefficient of determination
-#'          $corr: Pearson's product moment correlation
-#'          $power_t10: fraction of observed top 10 phenotype values correctly predicted
-#'          $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-#'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-#'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
-#'          $h2: narrow-sense heritability estimate
-#'      $df_y_validation:
-#'          $id: names of the samples/entries/pools, 
-#'          $pop: population from which the sample/entry/pool belongs to
-#'          $y_true: observed phenotype values
-#'          $y_pred: predicted phenotype values
-#'      $vec_effects: named numeric vector of estimated effects, where the names correspond to the
+#'  - Ok:
+#'      + $list_perf:
+#'          - $mbe: mean bias error
+#'          - $mae: mean absolute error
+#'          - $rmse: root mean squared error
+#'          - $r2: coefficient of determination
+#'          - $corr: Pearson's product moment correlation
+#'          - $power_t10: fraction of observed top 10 phenotype values correctly predicted
+#'          - $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+#'          - $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          - $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          - $h2: narrow-sense heritability estimate
+#'      + $df_y_validation:
+#'          - $id: names of the samples/entries/pools, 
+#'          - $pop: population from which the sample/entry/pool belongs to
+#'          - $y_true: observed phenotype values
+#'          - $y_pred: predicted phenotype values
+#'      + $vec_effects: named numeric vector of estimated effects, where the names correspond to the
 #'          SNP/allele identity including chromosome/scaffold, position and optionally allele.
-#'      $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
-#'  Err: gpError
+#'      + $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+#'  - Err: gpError
 #' @examples
 #' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
 #' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
@@ -1044,43 +1044,43 @@ fn_Bayes_C = function(list_merged, vec_idx_training, vec_idx_validation,
 #'  The genotypic value of each sample/entry/pool is estimated as the best linear unbiased predictors or BLUPs.)
 #'
 #' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
-#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'  - $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 #'      Row names can be any string of characters which identify the sample or entry or pool names.
 #'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#'  $list_pheno:
-#'      $y: named vector of numeric phenotype data
-#'      $pop: population or groupings corresponding to each element of y
-#'      $trait_name: name of the trait
-#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#'  - $list_pheno:
+#'      + $y: named vector of numeric phenotype data
+#'      + $pop: population or groupings corresponding to each element of y
+#'      + $trait_name: name of the trait
+#'  - $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
 #' @param vec_idx_training vector of numeric indexes referring to the training set
 #' @param vec_idx_validation vector of numeric indexes referring to the validation set
 #' @param other_params list of additional parameters which is NULL
 #' @param verbose show gBLUP regression messages? (Default=FALSE)
 #' @returns
-#'  Ok:
-#'      $list_perf:
-#'          $mbe: mean bias error
-#'          $mae: mean absolute error
-#'          $rmse: root mean squared error
-#'          $r2: coefficient of determination
-#'          $corr: Pearson's product moment correlation
-#'          $power_t10: fraction of observed top 10 phenotype values correctly predicted
-#'          $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-#'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-#'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
-#'          $h2: narrow-sense heritability estimate
-#'      $df_y_validation:
-#'          $id: names of the samples/entries/pools, 
-#'          $pop: population from which the sample/entry/pool belongs to
-#'          $y_true: observed phenotype values
-#'          $y_pred: predicted phenotype values
-#'      $vec_effects: named numeric vector of estimated effects, where the names correspond to the
+#'  - Ok:
+#'      + $list_perf:
+#'          - $mbe: mean bias error
+#'          - $mae: mean absolute error
+#'          - $rmse: root mean squared error
+#'          - $r2: coefficient of determination
+#'          - $corr: Pearson's product moment correlation
+#'          - $power_t10: fraction of observed top 10 phenotype values correctly predicted
+#'          - $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+#'          - $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          - $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          - $h2: narrow-sense heritability estimate
+#'      + $df_y_validation:
+#'          - $id: names of the samples/entries/pools, 
+#'          - $pop: population from which the sample/entry/pool belongs to
+#'          - $y_true: observed phenotype values
+#'          - $y_pred: predicted phenotype values
+#'      + $vec_effects: named numeric vector of estimated effects, where the names correspond to the
 #'          SNP/allele identity including chromosome/scaffold, position and optionally allele.
-#'      $n_non_zero: number of non-zero estimated fixed (intercept and covariate/s) and random (genotype values)
+#'      + $n_non_zero: number of non-zero estimated fixed (intercept and covariate/s) and random (genotype values)
 #'           effects (effects greater than machine epsilon ~2.2e-16)
-#'  Err: gpError
+#'  - Err: gpError
 #' @examples
 #' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
 #' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)

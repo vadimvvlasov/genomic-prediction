@@ -21,8 +21,10 @@ subsequent elements are optional which may refer to the allele identifier and ot
 \item{verbose}{show genotype binning or classification messages? (Default=FALSE)}
 }
 \value{
-Ok: named n samples x p loci-alleles matrix of numeric genotype classes
-Err: gpError
+\itemize{
+\item Ok: named n samples x p loci-alleles matrix of numeric genotype classes
+\item Err: gpError
+}
 }
 \description{
 Classify or bin allele frequencies into genotype classes.

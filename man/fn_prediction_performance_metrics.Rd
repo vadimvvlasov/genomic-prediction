@@ -20,30 +20,41 @@ fn_prediction_performance_metrics(y_true, y_pred, verbose = FALSE)
 \item{verbose}{show genomic prediction performance metric calculation messages? (Default=FALSE)}
 }
 \value{
-Ok:
-$mbe: mean bias error
-$mae: mean absolute error
-$rmse: root mean squared error
-$r2: coefficient of determination
-$corr: Pearson's product moment correlation
-$power_t10: fraction of observed top 10 phenotype values correctly predicted
-$power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-$var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-$var_true: variance of observed phenotype values (estimator of total phenotypic variance)
-$h2: estimated narrow-sense heritability weighted by Pearson's correlation between observed and predicted phenotype values
-Formula:
-- h2_predicted = corr(observed, predicted) * h2_true
-- Caveat: yields NA if the estimated heritability lies beyond 0 and 1
+\itemize{
+\item Ok:
+\itemize{
+\item $mbe: mean bias error
+\item $mae: mean absolute error
+\item $rmse: root mean squared error
+\item $r2: coefficient of determination
+\item $corr: Pearson's product moment correlation
+\item $power_t10: fraction of observed top 10 phenotype values correctly predicted
+\item $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+\item $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+\item $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+\item $h2: estimated narrow-sense heritability weighted by Pearson's correlation between observed
+and predicted phenotype values.
+\itemize{
+\item Formula: h2_predicted = corr(observed, predicted) * h2_true
+\item Caveat:
+\itemize{
+\item yields NA if the estimated heritability lies beyond 0 and 1
 which happens when correlation between observed and predicted phenotypes is negative, and
 the predicted phenotypes have higher variance than observed phenotypes.
-This unexpected higher variance in the predictions implies that the genomic prediction model performs very poorly,
+\item This unexpected higher variance in the predictions implies that the genomic prediction model performs very poorly,
 and therefore heritability estimates from them should not be considered.
-Assumptions:
-- correlation between predicted and true trait values relates the variance of the predicted trait values with the true heritability,
-- predicted trait values are due to purely additive effects,
-- variance in the predicted trait values is proportional to the additive genetic variance (~Va)
-- variance in the true trait values represent the total phenotypic variance (Vp)
-Err: gpError
+}
+\item Assumptions:
+\itemize{
+\item correlation between predicted and true trait values relates the variance of the predicted trait values with the true heritability,
+\item predicted trait values are due to purely additive effects,
+\item variance in the predicted trait values is proportional to the additive genetic variance (~Va)
+\item variance in the true trait values represent the total phenotypic variance (Vp)
+}
+}
+}
+\item Err: gpError
+}
 }
 \description{
 Genomic prediction metrics

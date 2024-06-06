@@ -18,8 +18,10 @@ subsequent elements are optional which may refer to the allele identifier and ot
 \item{verbose}{show numeric to non-numeric genotype data conversion messages? (Default=FALSE)}
 }
 \value{
-Ok: n samples x p loci matrix of genotype classes
-Err: grError
+\itemize{
+\item Ok: n samples x p loci matrix of genotype classes
+\item Err: grError
+}
 }
 \description{
 Convert a numeric (allele frequency) genotype matrix into a non-numeric (genotype classes) genotype matrix

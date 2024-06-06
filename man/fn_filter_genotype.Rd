@@ -61,12 +61,14 @@ retain_minus_one_alleles_per_locus=TRUE in fn_load_genotype(...), and not that w
 \item{verbose}{show genotype filtering messages? (Default=FALSE)}
 }
 \value{
-Ok: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+\itemize{
+\item Ok: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 Row names can be any string of characters which identify the sample or entry or pool names.
 Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name,
 the second should be numeric which refers to the position in the chromosome/scaffold, and
 subsequent elements are optional which may refer to the allele identifier and other identifiers.
-Err: gpError
+\item Err: gpError
+}
 }
 \description{
 Filter genotypes by:

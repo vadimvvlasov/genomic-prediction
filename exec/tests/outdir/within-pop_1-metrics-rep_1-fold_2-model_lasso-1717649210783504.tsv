@@ -1,0 +1,2 @@
+rep	fold	model	pop_training	pop_validation	n_training	n_validation	duration_mins	n_non_zero_effects	mbe	mae	rmse	r2	corr	power_t10	power_b10	var_pred	var_true	h2
+1	2	lasso	pop_1	pop_1	86	22	0.128320840994517	22	3.42386211751529	19.4279500143264	24.4963895743515	0.00427340570971513	0.16532141436577	0.5	0	32.0664876429032	631.346009447519	0.3072237889

@@ -19,21 +19,27 @@ fn_cv_1(
 the replicate id, fold number and model will be sourced from}
 
 \item{list_merged}{list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
-$G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+\itemize{
+\item $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 Row names can be any string of characters which identify the sample or entry or pool names.
 Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name,
 the second should be numeric which refers to the position in the chromosome/scaffold, and
 subsequent elements are optional which may refer to the allele identifier and other identifiers.
-$list_pheno:
-$y: named vector of numeric phenotype data
-$pop: population or groupings corresponding to each element of y
-$trait_name: name of the trait
-$COVAR: numeric n samples x k covariates matrix with non-null row and column names.}
+\item $list_pheno:
+\itemize{
+\item $y: named vector of numeric phenotype data
+\item $pop: population or groupings corresponding to each element of y
+\item $trait_name: name of the trait
+}
+\item $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+}}
 
 \item{df_params}{data frame containing all possible or just a defined non-exhaustive combinations of:
-$rep: replication number
-$fold: fold number
-$model: model name}
+\itemize{
+\item $rep: replication number
+\item $fold: fold number
+\item $model: model name
+}}
 
 \item{mat_idx_shuffle}{numeric n sample x r replications matrix of sample/entry/pool index shuffling where
 each column refer to a random shuffling of samples/entry/pool from which the identities of the
@@ -48,37 +54,45 @@ i.e. prefix (which can include an existing directory) of Bayesian (BGLR) model t
 \item{verbose}{show cross-validation on a single fold, replicate, and model messages? (Default=FALSE)}
 }
 \value{
-Ok:
-$df_metrics:
-$rep: replication number
-$fold: fold number
-$model: genomic prediction model name
-$pop_training: population/s used in the training set (separated by commas if more than 1)
-$pop_validation: population/s used in the validation set (separated by commas if more than 1)
-$duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
-$n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
-$mbe: mean bias error
-$mae: mean absolute error
-$rmse: root mean squared error
-$r2: coefficient of determination
-$corr: Pearson's product moment correlation
-$power_t10: fraction of observed top 10 phenotype values correctly predicted
-$power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-$var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-$var_true: variance of observed phenotype values (estimator of total phenotypic variance)
-$h2: narrow-sense heritability estimate
-$df_y_validation:
-$rep: replication number
-$fold: fold number
-$model: genomic prediction model name
-$pop_training: population/s used in the training set (separated by commas if more than 1)
-$id: names of the samples/entries/pools,
-$pop_validation: population from which the sample/entry/pool belongs to
-$y_true: observed phenotype values
-$y_pred: predicted phenotype values
-$fname_metrics_out: filename of df_metrics saved as a the tab-delimited file with 2 rows
-$fname_y_validation_out: filename of df_y_validation saved as a the tab-delimited file
-Err: gpError
+\itemize{
+\item Ok:
+\itemize{
+\item $df_metrics:
+\itemize{
+\item $rep: replication number
+\item $fold: fold number
+\item $model: genomic prediction model name
+\item $pop_training: population/s used in the training set (separated by commas if more than 1)
+\item $pop_validation: population/s used in the validation set (separated by commas if more than 1)
+\item $duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
+\item $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+\item $mbe: mean bias error
+\item $mae: mean absolute error
+\item $rmse: root mean squared error
+\item $r2: coefficient of determination
+\item $corr: Pearson's product moment correlation
+\item $power_t10: fraction of observed top 10 phenotype values correctly predicted
+\item $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+\item $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+\item $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+\item $h2: narrow-sense heritability estimate
+}
+\item $df_y_validation:
+\itemize{
+\item $rep: replication number
+\item $fold: fold number
+\item $model: genomic prediction model name
+\item $pop_training: population/s used in the training set (separated by commas if more than 1)
+\item $id: names of the samples/entries/pools,
+\item $pop_validation: population from which the sample/entry/pool belongs to
+\item $y_true: observed phenotype values
+\item $y_pred: predicted phenotype values
+}
+\item $fname_metrics_out: filename of df_metrics saved as a the tab-delimited file with 2 rows
+\item $fname_y_validation_out: filename of df_y_validation saved as a the tab-delimited file
+}
+\item Err: gpError
+}
 }
 \description{
 Cross-validate on a single fold, replicate, and model

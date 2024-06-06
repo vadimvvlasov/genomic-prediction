@@ -27,18 +27,22 @@ which fully or partially match with the row names in G and the names in list_phe
 \item{verbose}{show genotype, phenotype, and covariate merging messages? (Default=FALSE)}
 }
 \value{
-Ok:
-$G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+\itemize{
+\item Ok:
+\itemize{
+\item $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 Row names can be any string of characters which identify the sample or entry or pool names.
 Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name,
 the second should be numeric which refers to the position in the chromosome/scaffold, and
 subsequent elements are optional which may refer to the allele identifier and other identifiers.
-$list_pheno:
+\item $list_pheno:
 $y: named vector of numeric phenotype data
 $pop: population or groupings corresponding to each element of y
 $trait_name: name of the trait
-$COVAR: numeric n samples x k covariates matrix with non-null row and column names.
-Err: gpError
+\item $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+}
+\item Err: gpError
+}
 }
 \description{
 Merge genotype and phenotype data by their entry names, i.e. rownames for G and names for y.

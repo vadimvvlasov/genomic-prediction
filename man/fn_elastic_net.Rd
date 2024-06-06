@@ -14,16 +14,20 @@ fn_elastic_net(
 }
 \arguments{
 \item{list_merged}{list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
-$G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+\itemize{
+\item $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 Row names can be any string of characters which identify the sample or entry or pool names.
 Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name,
 the second should be numeric which refers to the position in the chromosome/scaffold, and
 subsequent elements are optional which may refer to the allele identifier and other identifiers.
-$list_pheno:
-$y: named vector of numeric phenotype data
-$pop: population or groupings corresponding to each element of y
-$trait_name: name of the trait
-$COVAR: numeric n samples x k covariates matrix with non-null row and column names.}
+\item $list_pheno:
+\itemize{
+\item $y: named vector of numeric phenotype data
+\item $pop: population or groupings corresponding to each element of y
+\item $trait_name: name of the trait
+}
+\item $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+}}
 
 \item{vec_idx_training}{vector of numeric indexes referring to the training set}
 
@@ -35,27 +39,35 @@ internal cross-fold validation to find the optimum lambda at which the deviance 
 \item{verbose}{show elastic-net regression messages? (Default=FALSE)}
 }
 \value{
-Ok:
-$list_perf:
-$mbe: mean bias error
-$mae: mean absolute error
-$rmse: root mean squared error
-$r2: coefficient of determination
-$corr: Pearson's product moment correlation
-$power_t10: fraction of observed top 10 phenotype values correctly predicted
-$power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-$var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-$var_true: variance of observed phenotype values (estimator of total phenotypic variance)
-$h2: narrow-sense heritability estimate
-$df_y_validation:
-$id: names of the samples/entries/pools,
-$pop: population from which the sample/entry/pool belongs to
-$y_true: observed phenotype values
-$y_pred: predicted phenotype values
-$vec_effects: named numeric vector of estimated effects, where the names correspond to the
+\itemize{
+\item Ok:
+\itemize{
+\item $list_perf:
+\itemize{
+\item $mbe: mean bias error
+\item $mae: mean absolute error
+\item $rmse: root mean squared error
+\item $r2: coefficient of determination
+\item $corr: Pearson's product moment correlation
+\item $power_t10: fraction of observed top 10 phenotype values correctly predicted
+\item $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+\item $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+\item $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+\item $h2: narrow-sense heritability estimate
+}
+\item $df_y_validation:
+\itemize{
+\item $id: names of the samples/entries/pools,
+\item $pop: population from which the sample/entry/pool belongs to
+\item $y_true: observed phenotype values
+\item $y_pred: predicted phenotype values
+}
+\item $vec_effects: named numeric vector of estimated effects, where the names correspond to the
 SNP/allele identity including chromosome/scaffold, position and optionally allele.
-$n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
-Err: gpError
+\item $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+}
+\item Err: gpError
+}
 }
 \description{
 Elastic-net regression model (regularisation via combination of ridge and Lasso; alpha is optimised)

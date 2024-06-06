@@ -24,8 +24,10 @@ and the second should be numeric which refers to the position in the chromosome/
 \item{verbose}{show non-numeric to numeric genotype data conversion messages? (Default=FALSE)}
 }
 \value{
-Ok: n samples x p loci-alleles matrix of genotype classes (numeric ranging from 0 to 1)
-Err: grError
+\itemize{
+\item Ok: n samples x p loci-alleles matrix of genotype classes (numeric ranging from 0 to 1)
+\item Err: grError
+}
 }
 \description{
 Convert a non-numeric genotype classes matrix into a numeric (allele frequency) genotype matrix which includes all the alleles

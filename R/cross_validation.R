@@ -7,20 +7,20 @@
 #' @param i index referring to the row in df_params (below) from which 
 #'  the replicate id, fold number and model will be sourced from
 #' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
-#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'  - $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 #'      Row names can be any string of characters which identify the sample or entry or pool names.
 #'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#'  $list_pheno:
-#'      $y: named vector of numeric phenotype data
-#'      $pop: population or groupings corresponding to each element of y
-#'      $trait_name: name of the trait
-#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#'  - $list_pheno:
+#'      + $y: named vector of numeric phenotype data
+#'      + $pop: population or groupings corresponding to each element of y
+#'      + $trait_name: name of the trait
+#'  - $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
 #' @param df_params data frame containing all possible or just a defined non-exhaustive combinations of:
-#'  $rep: replication number
-#'  $fold: fold number
-#'  $model: model name
+#'  - $rep: replication number
+#'  - $fold: fold number
+#'  - $model: model name
 #' @param mat_idx_shuffle numeric n sample x r replications matrix of sample/entry/pool index shuffling where
 #'  each column refer to a random shuffling of samples/entry/pool from which the identities of the
 #'  training and validation sets will be sourced from
@@ -30,37 +30,39 @@
 #'  i.e. prefix (which can include an existing directory) of Bayesian (BGLR) model temporary files
 #' @param verbose show cross-validation on a single fold, replicate, and model messages? (Default=FALSE)
 #' @returns
-#'  Ok:
-#'      $df_metrics:
-#'          $rep: replication number
-#'          $fold: fold number
-#'          $model: genomic prediction model name
-#'          $pop_training: population/s used in the training set (separated by commas if more than 1)
-#'          $pop_validation: population/s used in the validation set (separated by commas if more than 1)
-#'          $duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
-#'          $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
-#'          $mbe: mean bias error
-#'          $mae: mean absolute error
-#'          $rmse: root mean squared error
-#'          $r2: coefficient of determination
-#'          $corr: Pearson's product moment correlation
-#'          $power_t10: fraction of observed top 10 phenotype values correctly predicted
-#'          $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-#'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-#'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
-#'          $h2: narrow-sense heritability estimate
-#'      $df_y_validation: 
-#'          $rep: replication number
-#'          $fold: fold number
-#'          $model: genomic prediction model name
-#'          $pop_training: population/s used in the training set (separated by commas if more than 1)
-#'          $id: names of the samples/entries/pools, 
-#'          $pop_validation: population from which the sample/entry/pool belongs to
-#'          $y_true: observed phenotype values
-#'          $y_pred: predicted phenotype values
-#'      $fname_metrics_out: filename of df_metrics saved as a the tab-delimited file with 2 rows
-#'      $fname_y_validation_out: filename of df_y_validation saved as a the tab-delimited file
-#'  Err: gpError
+#'  - Ok:
+#'      + $df_metrics:
+#'          - $rep: replication number
+#'          - $fold: fold number
+#'          - $model: genomic prediction model name
+#'          - $pop_training: population/s used in the training set (separated by commas if more than 1)
+#'          - $pop_validation: population/s used in the validation set (separated by commas if more than 1)
+#'          - $n_training: number of samples/entries/pools in the training set
+#'          - $n_validation: number of samples/entries/pools in the validation set
+#'          - $duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
+#'          - $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+#'          - $mbe: mean bias error
+#'          - $mae: mean absolute error
+#'          - $rmse: root mean squared error
+#'          - $r2: coefficient of determination
+#'          - $corr: Pearson's product moment correlation
+#'          - $power_t10: fraction of observed top 10 phenotype values correctly predicted
+#'          - $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+#'          - $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          - $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          - $h2: narrow-sense heritability estimate
+#'      + $df_y_validation: 
+#'          - $rep: replication number
+#'          - $fold: fold number
+#'          - $model: genomic prediction model name
+#'          - $pop_training: population/s used in the training set (separated by commas if more than 1)
+#'          - $id: names of the samples/entries/pools, 
+#'          - $pop_validation: population from which the sample/entry/pool belongs to
+#'          - $y_true: observed phenotype values
+#'          - $y_pred: predicted phenotype values
+#'      + $fname_metrics_out: filename of df_metrics saved as a the tab-delimited file with 2 rows
+#'      + $fname_y_validation_out: filename of df_y_validation saved as a the tab-delimited file
+#'  - Err: gpError
 #' @examples
 #' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
 #' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
@@ -239,6 +241,8 @@ fn_cv_1 = function(i, list_merged, df_params, mat_idx_shuffle, vec_set_partition
         model=model,
         pop_training=paste(sort(unique(list_merged$list_pheno$pop[vec_idx_training])), collapse=","),
         pop_validation=paste(sort(unique(list_merged$list_pheno$pop[vec_idx_validation])), collapse=","),
+        n_training=sum(!is.na(list_merged$list_pheno$y[vec_idx_training])),
+        n_validation=sum(!is.na(list_merged$list_pheno$y[vec_idx_validation])),
         duration_mins=as.numeric(duration_mins),
         n_non_zero_effects=perf$n_non_zero,
         perf$list_perf
@@ -281,16 +285,16 @@ fn_cv_1 = function(i, list_merged, df_params, mat_idx_shuffle, vec_set_partition
 #'  as well as estimate the maximum number of threads which can be used in parallel without memory errors.
 #'
 #' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
-#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'  - $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 #'      Row names can be any string of characters which identify the sample or entry or pool names.
 #'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#'  $list_pheno:
-#'      $y: named vector of numeric phenotype data
-#'      $pop: population or groupings corresponding to each element of y
-#'      $trait_name: name of the trait
-#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#'  - $list_pheno:
+#'      + $y: named vector of numeric phenotype data
+#'      + $pop: population or groupings corresponding to each element of y
+#'      + $trait_name: name of the trait
+#'  - $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
 #' @param cv_type (Default=1)
 #'  - 1: k-fold cross-validation across all samples/entries/pools regardless of their groupings
 #'  - 2: pairwise-population cross-validation, e.g. training on population A and validation on population B
@@ -323,17 +327,17 @@ fn_cv_1 = function(i, list_merged, df_params, mat_idx_shuffle, vec_set_partition
 #' @param max_mem_Gb maximum memory in gigabytes available for computation (Default=15)
 #' @param verbose show cross-validation parameter preparation messages? (Default=FALSE)
 #' @returns
-#' Ok:
-#'  $df_params: data frame containing all possible or just a defined non-exhaustive combinations of:
-#'      $rep: replication number
-#'      $fold: fold number
-#'      $model: model name
-#'  $mat_idx_shuffle numeric: n sample x r replications matrix of sample/entry/pool index shuffling where
+#'  - Ok:
+#'  - $df_params: data frame containing all possible or just a defined non-exhaustive combinations of:
+#'      + $rep: replication number
+#'      + $fold: fold number
+#'      + $model: model name
+#'  - $mat_idx_shuffle numeric: n sample x r replications matrix of sample/entry/pool index shuffling where
 #'      each column refer to a random shuffling of samples/entry/pool from which the identities of the
 #'      training and validation sets will be sourced from
-#'  $vec_set_partition_groupings vector of numeric partitioning indexes where each index refer to the
+#'  - $vec_set_partition_groupings vector of numeric partitioning indexes where each index refer to the
 #'      fold which will serve as the validation population
-#' Err: gpError
+#'  - Err: gpError
 #' @examples
 #' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
 #' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
@@ -517,16 +521,16 @@ fn_cross_validation_preparation = function(list_merged, cv_type=1, n_folds=10, n
 #' K-fold cross-validation per population
 #'
 #' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
-#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'  - $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 #'      Row names can be any string of characters which identify the sample or entry or pool names.
 #'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#'  $list_pheno:
-#'      $y: named vector of numeric phenotype data
-#'      $pop: population or groupings corresponding to each element of y
-#'      $trait_name: name of the trait
-#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#'  - $list_pheno:
+#'      + $y: named vector of numeric phenotype data
+#'      + $pop: population or groupings corresponding to each element of y
+#'      + $trait_name: name of the trait
+#'  - $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
 #' @param n_folds if cv_type=1, i.e. k-fold cross-validation is desired, then this defines the number of partitions or folds.
 #'  However, if the resulting size per fold is less than 2, then this return an error.
 #'  Additionally, this parameter is ignored is cv_type=2 or cv_type=3 (Default=10).
@@ -558,35 +562,37 @@ fn_cross_validation_preparation = function(list_merged, cv_type=1, n_folds=10, n
 #' @param dir_output output directory where temporary text and Rds files will be saved into (Default=NULL)
 #' @param verbose show within population cross-validation messages? (Default=FALSE)
 #' @returns
-#' Ok: filename of temporary Rds file containing a 2-element list:
-#'      $METRICS_WITHIN_POP (row-binded df_metrics across populations, reps, folds, and models):
-#'          $rep: replication number
-#'          $fold: fold number
-#'          $model: genomic prediction model name
-#'          $pop_training: population/s used in the training set (separated by commas if more than 1)
-#'          $pop_validation: population/s used in the validation set (separated by commas if more than 1)
-#'          $duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
-#'          $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
-#'          $mbe: mean bias error
-#'          $mae: mean absolute error
-#'          $rmse: root mean squared error
-#'          $r2: coefficient of determination
-#'          $corr: Pearson's product moment correlation
-#'          $power_t10: fraction of observed top 10 phenotype values correctly predicted
-#'          $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-#'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-#'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
-#'          $h2: narrow-sense heritability estimate
-#'      $YPRED_WITHIN_POP (row-binded df_y_validation across populations, reps, folds, and models):
-#'          $rep: replication number
-#'          $fold: fold number
-#'          $model: genomic prediction model name
-#'          $pop_training: population/s used in the training set (separated by commas if more than 1)
-#'          $id: names of the samples/entries/pools, 
-#'          $pop_validation: population from which the sample/entry/pool belongs to
-#'          $y_true: observed phenotype values
-#'          $y_pred: predicted phenotype values
-#' Err: gpError
+#'  - Ok: filename of temporary Rds file containing a 2-element list:
+#'      + $METRICS_WITHIN_POP (row-binded df_metrics across populations, reps, folds, and models):
+#'          - $rep: replication number
+#'          - $fold: fold number
+#'          - $model: genomic prediction model name
+#'          - $pop_training: population/s used in the training set (separated by commas if more than 1)
+#'          - $pop_validation: population/s used in the validation set (separated by commas if more than 1)
+#'          - $n_training: number of samples/entries/pools in the training set
+#'          - $n_validation: number of samples/entries/pools in the validation set
+#'          - $duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
+#'          - $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+#'          - $mbe: mean bias error
+#'          - $mae: mean absolute error
+#'          - $rmse: root mean squared error
+#'          - $r2: coefficient of determination
+#'          - $corr: Pearson's product moment correlation
+#'          - $power_t10: fraction of observed top 10 phenotype values correctly predicted
+#'          - $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+#'          - $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          - $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          - $h2: narrow-sense heritability estimate
+#'      + $YPRED_WITHIN_POP (row-binded df_y_validation across populations, reps, folds, and models):
+#'          - $rep: replication number
+#'          - $fold: fold number
+#'          - $model: genomic prediction model name
+#'          - $pop_training: population/s used in the training set (separated by commas if more than 1)
+#'          - $id: names of the samples/entries/pools, 
+#'          - $pop_validation: population from which the sample/entry/pool belongs to
+#'          - $y_true: observed phenotype values
+#'          - $y_pred: predicted phenotype values
+#'  - Err: gpError
 #' @examples
 #' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
 #' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
@@ -660,7 +666,7 @@ fn_cross_validation_within_population = function(list_merged, n_folds=10, n_reps
         vec_idx = which(list_merged$list_pheno$pop == population)
         list_merged_sub = fn_subset_merged_genotype_and_phenotype(list_merged=list_merged, vec_idx=vec_idx, verbose=verbose)
         if (methods::is(list_merged_sub, "gpError")) {
-            error = chain(list_merged_sub, method::new("gpError",
+            error = chain(list_merged_sub, methods::new("gpError",
                 code=000,
                 message=paste0(
                     "Error in cross_validation::fn_cross_validation_within_population(...). ",
@@ -678,7 +684,7 @@ fn_cross_validation_within_population = function(list_merged, n_folds=10, n_reps
             max_mem_Gb=max_mem_Gb,
             verbose=verbose)
         if (methods::is(list_cv_params, "gpError")) {
-            error = chain(list_cv_params, method::new("gpError",
+            error = chain(list_cv_params, methods::new("gpError",
                 code=000,
                 message=paste0(
                     "Error in cross_validation::fn_cross_validation_within_population(...). ",
@@ -690,32 +696,31 @@ fn_cross_validation_within_population = function(list_merged, n_folds=10, n_reps
         if (bool_parallel) {
             ###########################################
             ### Multi-threaded cross-validation
-            list_list_perf = tryCatch(
-                parallel::mclapply(c(1:nrow(list_cv_params$df_params)), 
-                    FUN=fn_cv_1, 
-                        list_merged=list_merged_sub,
-                        df_params=list_cv_params$df_params,
-                        mat_idx_shuffle=list_cv_params$mat_idx_shuffle,
-                        vec_set_partition_groupings=list_cv_params$vec_set_partition_groupings,
-                        prefix_tmp=file.path(dir_output, "within"),
-                        verbose=verbose, 
-                    mc.cores=min(c(n_threads, list_cv_params$n_threads)), 
-                    mc.preschedule=FALSE, 
-                    mc.set.seed=TRUE, 
-                    mc.silent=FALSE, 
-                    mc.cleanup=TRUE),
-                error = function(e){NA}
-            )
-            if (is.na(list_list_perf[1])) {
-                error = methods::new("gpError",
-                    code=000,
-                    message=paste0(
-                        "Error in cross_validation::fn_cross_validation_within_population(...). ",
-                        "Something went wrong in the execution of multi-threaded within population k-fold cross-validation. ",
-                        "Please check re-run cross_validation::fn_cross_validation_within_population(...) with ",
-                        "bool_parallel=FALSE to identify the error."
-                    ))
-                return(error)
+            list_list_perf = parallel::mclapply(c(1:nrow(list_cv_params$df_params)), 
+                FUN=fn_cv_1, 
+                    list_merged=list_merged_sub,
+                    df_params=list_cv_params$df_params,
+                    mat_idx_shuffle=list_cv_params$mat_idx_shuffle,
+                    vec_set_partition_groupings=list_cv_params$vec_set_partition_groupings,
+                    prefix_tmp=file.path(dir_output, paste0("within-", population)),
+                    verbose=verbose, 
+                mc.cores=min(c(n_threads, list_cv_params$n_threads)), 
+                mc.preschedule=FALSE, 
+                mc.set.seed=TRUE, 
+                mc.silent=FALSE, 
+                mc.cleanup=TRUE)
+            for (idx in 1:length(list_list_perf)) {
+                if (methods::is(list_list_perf[[idx]], "gpError")) {
+                    error = chain(list_list_perf[[idx]], methods::new("gpError",
+                        code=000,
+                        message=paste0(
+                            "Error in cross_validation::fn_cross_validation_within_population(...). ",
+                            "Something went wrong in the execution of multi-threaded within population k-fold cross-validation. ",
+                            "Please check re-run cross_validation::fn_cross_validation_within_population(...) with ",
+                            "bool_parallel=FALSE to identify the error."
+                        )))
+                    return(error)
+                }
             }
         } else {
             ############################################
@@ -728,7 +733,7 @@ fn_cross_validation_within_population = function(list_merged, n_folds=10, n_reps
                     df_params=list_cv_params$df_params,
                     mat_idx_shuffle=list_cv_params$mat_idx_shuffle,
                     vec_set_partition_groupings=list_cv_params$vec_set_partition_groupings,
-                    prefix_tmp=file.path(dir_output, "within"),
+                    prefix_tmp=file.path(dir_output, paste0("within-", population)),
                     verbose=verbose
                 )
                 if (methods::is(list_perf, "gpError")) {
@@ -813,16 +818,16 @@ fn_cross_validation_within_population = function(list_merged, n_folds=10, n_reps
 #' K-fold cross-validation across populations without accounting for population grouping
 #'
 #' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
-#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'  - $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 #'      Row names can be any string of characters which identify the sample or entry or pool names.
 #'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#'  $list_pheno:
-#'      $y: named vector of numeric phenotype data
-#'      $pop: population or groupings corresponding to each element of y
-#'      $trait_name: name of the trait
-#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#'  - $list_pheno:
+#'      + $y: named vector of numeric phenotype data
+#'      + $pop: population or groupings corresponding to each element of y
+#'      + $trait_name: name of the trait
+#'  - $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
 #' @param n_folds if cv_type=1, i.e. k-fold cross-validation is desired, then this defines the number of partitions or folds.
 #'  However, if the resulting size per fold is less than 2, then this return an error.
 #'  Additionally, this parameter is ignored is cv_type=2 or cv_type=3 (Default=10).
@@ -854,35 +859,37 @@ fn_cross_validation_within_population = function(list_merged, n_folds=10, n_reps
 #' @param dir_output output directory where temporary text and Rds files will be saved into (Default=NULL)
 #' @param verbose show bulk across population cross-validation messages? (Default=FALSE)
 #' @returns
-#' Ok: filename of temporary Rds file containing a 2-element list:
-#'      $METRICS_ACROSS_POP_BULK:
-#'          $rep: replication number
-#'          $fold: fold number
-#'          $model: genomic prediction model name
-#'          $pop_training: population/s used in the training set (separated by commas if more than 1)
-#'          $pop_validation: population/s used in the validation set (separated by commas if more than 1)
-#'          $duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
-#'          $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
-#'          $mbe: mean bias error
-#'          $mae: mean absolute error
-#'          $rmse: root mean squared error
-#'          $r2: coefficient of determination
-#'          $corr: Pearson's product moment correlation
-#'          $power_t10: fraction of observed top 10 phenotype values correctly predicted
-#'          $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-#'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-#'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
-#'          $h2: narrow-sense heritability estimate
-#'      $YPRED_ACROSS_POP_BULK:
-#'          $rep: replication number
-#'          $fold: fold number
-#'          $model: genomic prediction model name
-#'          $pop_training: population/s used in the training set (separated by commas if more than 1)
-#'          $id: names of the samples/entries/pools, 
-#'          $pop_validation: population from which the sample/entry/pool belongs to
-#'          $y_true: observed phenotype values
-#'          $y_pred: predicted phenotype values
-#' Err: gpError
+#'  - Ok: filename of temporary Rds file containing a 2-element list:
+#'      + $METRICS_ACROSS_POP_BULK:
+#'          - $rep: replication number
+#'          - $fold: fold number
+#'          - $model: genomic prediction model name
+#'          - $pop_training: population/s used in the training set (separated by commas if more than 1)
+#'          - $pop_validation: population/s used in the validation set (separated by commas if more than 1)
+#'          - $n_training: number of samples/entries/pools in the training set
+#'          - $n_validation: number of samples/entries/pools in the validation set
+#'          - $duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
+#'          - $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+#'          - $mbe: mean bias error
+#'          - $mae: mean absolute error
+#'          - $rmse: root mean squared error
+#'          - $r2: coefficient of determination
+#'          - $corr: Pearson's product moment correlation
+#'          - $power_t10: fraction of observed top 10 phenotype values correctly predicted
+#'          - $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+#'          - $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          - $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          - $h2: narrow-sense heritability estimate
+#'      + $YPRED_ACROSS_POP_BULK:
+#'          - $rep: replication number
+#'          - $fold: fold number
+#'          - $model: genomic prediction model name
+#'          - $pop_training: population/s used in the training set (separated by commas if more than 1)
+#'          - $id: names of the samples/entries/pools, 
+#'          - $pop_validation: population from which the sample/entry/pool belongs to
+#'          - $y_true: observed phenotype values
+#'          - $y_pred: predicted phenotype values
+#'  - Err: gpError
 #' @examples
 #' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
 #' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
@@ -968,7 +975,7 @@ fn_cross_validation_across_populations_bulk = function(list_merged, n_folds=10, 
         max_mem_Gb=max_mem_Gb,
         verbose=verbose)
     if (methods::is(list_cv_params, "gpError")) {
-        error = chain(list_cv_params, method::new("gpError",
+        error = chain(list_cv_params, methods::new("gpError",
             code=000,
             message=paste0(
                 "Error in cross_validation::fn_cross_validation_within_population(...). ",
@@ -980,33 +987,32 @@ fn_cross_validation_across_populations_bulk = function(list_merged, n_folds=10, 
     if (bool_parallel) {
         ###########################################
         ### Multi-threaded cross-validation
-        list_list_perf = tryCatch(
-            parallel::mclapply(c(1:nrow(list_cv_params$df_params)), 
-                FUN=fn_cv_1, 
-                    list_merged=list_merged,
-                    df_params=list_cv_params$df_params,
-                    mat_idx_shuffle=list_cv_params$mat_idx_shuffle,
-                    vec_set_partition_groupings=list_cv_params$vec_set_partition_groupings,
-                    prefix_tmp=file.path(dir_output, "across_bulk"),
-                    verbose=verbose, 
-                mc.cores=min(c(n_threads, list_cv_params$n_threads)), 
-                mc.preschedule=FALSE, 
-                mc.set.seed=TRUE, 
-                mc.silent=FALSE, 
-                mc.cleanup=TRUE),
-            error = function(e){NA}
-        )
-        if (is.na(list_list_perf[1])) {
-            error = methods::new("gpError",
-                code=000,
-                message=paste0(
-                    "Error in cross_validation::fn_cross_validation_across_populations_bulk(...). ",
-                    "Something went wrong in the execution of multi-threaded across population cross-validation, ",
-                    "without regard for population groupings. ",
-                    "Please check re-run cross_validation::fn_cross_validation_across_populations_bulk(...) with ",
-                    "bool_parallel=FALSE to identify the error."
-                ))
-            return(error)
+        list_list_perf = parallel::mclapply(c(1:nrow(list_cv_params$df_params)), 
+            FUN=fn_cv_1, 
+                list_merged=list_merged,
+                df_params=list_cv_params$df_params,
+                mat_idx_shuffle=list_cv_params$mat_idx_shuffle,
+                vec_set_partition_groupings=list_cv_params$vec_set_partition_groupings,
+                prefix_tmp=file.path(dir_output, "across_bulk"),
+                verbose=verbose, 
+            mc.cores=min(c(n_threads, list_cv_params$n_threads)), 
+            mc.preschedule=FALSE, 
+            mc.set.seed=TRUE, 
+            mc.silent=FALSE, 
+            mc.cleanup=TRUE)
+        for (idx in 1:length(list_list_perf)) {
+            if (methods::is(list_list_perf[[idx]], "gpError")) {
+                error = chain(list_list_perf[[idx]], methods::new("gpError",
+                    code=000,
+                    message=paste0(
+                        "Error in cross_validation::fn_cross_validation_across_populations_bulk(...). ",
+                        "Something went wrong in the execution of multi-threaded across population cross-validation, ",
+                        "without regard for population groupings. ",
+                        "Please check re-run cross_validation::fn_cross_validation_across_populations_bulk(...) with ",
+                        "bool_parallel=FALSE to identify the error."
+                    )))
+                return(error)
+            }
         }
     } else {
         ############################################
@@ -1075,16 +1081,16 @@ fn_cross_validation_across_populations_bulk = function(list_merged, n_folds=10, 
 #' Pairwise-population cross-validation
 #'
 #' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
-#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'  - $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 #'      Row names can be any string of characters which identify the sample or entry or pool names.
 #'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#'  $list_pheno:
-#'      $y: named vector of numeric phenotype data
-#'      $pop: population or groupings corresponding to each element of y
-#'      $trait_name: name of the trait
-#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#'  - $list_pheno:
+#'      + $y: named vector of numeric phenotype data
+#'      + $pop: population or groupings corresponding to each element of y
+#'      + $trait_name: name of the trait
+#'  - $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
 #' @param vec_models_to_test genomic prediction models to use (uses all the models below by default). Please choose one or more from:
 #'  - "ridge": \eqn{Cost_{ridge} = \Sigma(y - X\beta)^2 + \lambda\Sigma\beta^2$, where $\hat{\beta} = {(X^TX + \lambda I)^{-1} X^Ty}}
 #'      https://en.wikipedia.org/wiki/Ridge_regression
@@ -1110,35 +1116,37 @@ fn_cross_validation_across_populations_bulk = function(list_merged, n_folds=10, 
 #' @param dir_output output directory where temporary text and Rds files will be saved into (Default=NULL)
 #' @param verbose show bulk across population cross-validation messages? (Default=FALSE)
 #' @returns
-#' Ok: filename of temporary Rds file containing a 2-element list:
-#'      $METRICS_ACROSS_POP_PAIRWISE:
-#'          $rep: replication number
-#'          $fold: fold number
-#'          $model: genomic prediction model name
-#'          $pop_training: population/s used in the training set (separated by commas if more than 1)
-#'          $pop_validation: population/s used in the validation set (separated by commas if more than 1)
-#'          $duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
-#'          $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
-#'          $mbe: mean bias error
-#'          $mae: mean absolute error
-#'          $rmse: root mean squared error
-#'          $r2: coefficient of determination
-#'          $corr: Pearson's product moment correlation
-#'          $power_t10: fraction of observed top 10 phenotype values correctly predicted
-#'          $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-#'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-#'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
-#'          $h2: narrow-sense heritability estimate
-#'      $YPRED_ACROSS_POP_PAIRWISE:
-#'          $rep: replication number
-#'          $fold: fold number
-#'          $model: genomic prediction model name
-#'          $pop_training: population/s used in the training set (separated by commas if more than 1)
-#'          $id: names of the samples/entries/pools, 
-#'          $pop_validation: population from which the sample/entry/pool belongs to
-#'          $y_true: observed phenotype values
-#'          $y_pred: predicted phenotype values
-#' Err: gpError
+#'  - Ok: filename of temporary Rds file containing a 2-element list:
+#'      + $METRICS_ACROSS_POP_PAIRWISE:
+#'          - $rep: replication number
+#'          - $fold: fold number
+#'          - $model: genomic prediction model name
+#'          - $pop_training: population/s used in the training set (separated by commas if more than 1)
+#'          - $pop_validation: population/s used in the validation set (separated by commas if more than 1)
+#'          - $n_training: number of samples/entries/pools in the training set
+#'          - $n_validation: number of samples/entries/pools in the validation set
+#'          - $duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
+#'          - $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+#'          - $mbe: mean bias error
+#'          - $mae: mean absolute error
+#'          - $rmse: root mean squared error
+#'          - $r2: coefficient of determination
+#'          - $corr: Pearson's product moment correlation
+#'          - $power_t10: fraction of observed top 10 phenotype values correctly predicted
+#'          - $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+#'          - $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          - $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          - $h2: narrow-sense heritability estimate
+#'      + $YPRED_ACROSS_POP_PAIRWISE:
+#'          - $rep: replication number
+#'          - $fold: fold number
+#'          - $model: genomic prediction model name
+#'          - $pop_training: population/s used in the training set (separated by commas if more than 1)
+#'          - $id: names of the samples/entries/pools, 
+#'          - $pop_validation: population from which the sample/entry/pool belongs to
+#'          - $y_true: observed phenotype values
+#'          - $y_pred: predicted phenotype values
+#'  - Err: gpError
 #' @examples
 #' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
 #' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
@@ -1227,7 +1235,7 @@ fn_cross_validation_across_populations_pairwise = function(list_merged,
             vec_idx = which((list_merged$list_pheno$pop == population1) | (list_merged$list_pheno$pop == population2))
             list_merged_sub = fn_subset_merged_genotype_and_phenotype(list_merged=list_merged, vec_idx=vec_idx, verbose=verbose)
             if (methods::is(list_merged_sub, "gpError")) {
-                error = chain(list_merged_sub, method::new("gpError",
+                error = chain(list_merged_sub, methods::new("gpError",
                     code=000,
                     message=paste0(
                         "Error in cross_validation::fn_cross_validation_across_populations_pairwise(...). ",
@@ -1245,7 +1253,7 @@ fn_cross_validation_across_populations_pairwise = function(list_merged,
                 max_mem_Gb=max_mem_Gb,
                 verbose=verbose)
             if (methods::is(list_cv_params, "gpError")) {
-                error = chain(list_cv_params, method::new("gpError",
+                error = chain(list_cv_params, methods::new("gpError",
                     code=000,
                     message=paste0(
                         "Error in cross_validation::fn_cross_validation_within_population(...). ",
@@ -1257,32 +1265,31 @@ fn_cross_validation_across_populations_pairwise = function(list_merged,
             if (bool_parallel) {
                 ###########################################
                 ### Multi-threaded cross-validation
-                list_list_perf = tryCatch(
-                    parallel::mclapply(c(1:nrow(list_cv_params$df_params)), 
-                        FUN=fn_cv_1, 
-                            list_merged=list_merged_sub,
-                            df_params=list_cv_params$df_params,
-                            mat_idx_shuffle=list_cv_params$mat_idx_shuffle,
-                            vec_set_partition_groupings=list_cv_params$vec_set_partition_groupings,
-                            prefix_tmp=file.path(dir_output, "across_pairwise"),
-                            verbose=verbose, 
-                        mc.cores=min(c(n_threads, list_cv_params$n_threads)), 
-                        mc.preschedule=FALSE, 
-                        mc.set.seed=TRUE, 
-                        mc.silent=FALSE, 
-                        mc.cleanup=TRUE),
-                    error = function(e){NA}
-                )
-                if (is.na(list_list_perf[1])) {
-                    error = methods::new("gpError",
-                        code=000,
-                        message=paste0(
-                            "Error in cross_validation::fn_cross_validation_across_populations_pairwise(...). ",
-                            "Something went wrong in the execution of multi-threaded pairwise-population cross-validation. ",
-                            "Please check re-run cross_validation::fn_cross_validation_across_populations_pairwise(...) with ",
-                            "bool_parallel=FALSE to identify the error."
-                        ))
-                    return(error)
+                list_list_perf = parallel::mclapply(c(1:nrow(list_cv_params$df_params)), 
+                    FUN=fn_cv_1, 
+                        list_merged=list_merged_sub,
+                        df_params=list_cv_params$df_params,
+                        mat_idx_shuffle=list_cv_params$mat_idx_shuffle,
+                        vec_set_partition_groupings=list_cv_params$vec_set_partition_groupings,
+                        prefix_tmp=file.path(dir_output, paste0("across_pairwise-", population1, "-x-", population2)),
+                        verbose=verbose, 
+                    mc.cores=min(c(n_threads, list_cv_params$n_threads)), 
+                    mc.preschedule=FALSE, 
+                    mc.set.seed=TRUE, 
+                    mc.silent=FALSE, 
+                    mc.cleanup=TRUE)
+                for (idx in 1:length(list_list_perf)) {
+                    if (methods::is(list_list_perf[[idx]], "gpError")) {
+                        error = chain(list_list_perf[[idx]], methods::new("gpError",
+                            code=000,
+                            message=paste0(
+                                "Error in cross_validation::fn_cross_validation_across_populations_pairwise(...). ",
+                                "Something went wrong in the execution of multi-threaded pairwise-population cross-validation. ",
+                                "Please check re-run cross_validation::fn_cross_validation_across_populations_pairwise(...) with ",
+                                "bool_parallel=FALSE to identify the error."
+                            )))
+                        return(error)
+                    }
                 }
             } else {
                 ############################################
@@ -1295,7 +1302,7 @@ fn_cross_validation_across_populations_pairwise = function(list_merged,
                         df_params=list_cv_params$df_params,
                         mat_idx_shuffle=list_cv_params$mat_idx_shuffle,
                         vec_set_partition_groupings=list_cv_params$vec_set_partition_groupings,
-                        prefix_tmp=file.path(dir_output, "across_pairwise"),
+                        prefix_tmp=file.path(dir_output, paste0("across_pairwise-", population1, "-x-", population2)),
                         verbose=verbose
                     )
                     if (methods::is(list_perf, "gpError")) {
@@ -1304,7 +1311,7 @@ fn_cross_validation_across_populations_pairwise = function(list_merged,
                             message=paste0(
                                 "Error in cross_validation::fn_cross_validation_across_populations_pairwise(...). ",
                                 "Error running pairwise cross-validation for populations: ", 
-                                population_1, " and ", population2, " at ",
+                                population1, " and ", population2, " at ",
                                 "rep: ", list_cv_params$df_params$rep[i], ", ",
                                 "fold: ", list_cv_params$df_params$fold[i], ", and ",
                                 "model: ", list_cv_params$df_params$model[i], "."
@@ -1382,16 +1389,16 @@ fn_cross_validation_across_populations_pairwise = function(list_merged,
 #' Leave-one-population-out (LOPO) cross-validation
 #'
 #' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
-#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'  - $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 #'      Row names can be any string of characters which identify the sample or entry or pool names.
 #'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#'  $list_pheno:
-#'      $y: named vector of numeric phenotype data
-#'      $pop: population or groupings corresponding to each element of y
-#'      $trait_name: name of the trait
-#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#'  - $list_pheno:
+#'      + $y: named vector of numeric phenotype data
+#'      + $pop: population or groupings corresponding to each element of y
+#'      + $trait_name: name of the trait
+#'  - $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
 #' @param vec_models_to_test genomic prediction models to use (uses all the models below by default). Please choose one or more from:
 #'  - "ridge": \eqn{Cost_{ridge} = \Sigma(y - X\beta)^2 + \lambda\Sigma\beta^2$, where $\hat{\beta} = {(X^TX + \lambda I)^{-1} X^Ty}}
 #'      https://en.wikipedia.org/wiki/Ridge_regression
@@ -1417,35 +1424,37 @@ fn_cross_validation_across_populations_pairwise = function(list_merged,
 #' @param dir_output output directory where temporary text and Rds files will be saved into (Default=NULL)
 #' @param verbose show bulk across population cross-validation messages? (Default=FALSE)
 #' @returns
-#' Ok: filename of temporary Rds file containing a 2-element list:
-#'      $METRICS_ACROSS_POP_LOPO:
-#'          $rep: replication number
-#'          $fold: fold number
-#'          $model: genomic prediction model name
-#'          $pop_training: population/s used in the training set (separated by commas if more than 1)
-#'          $pop_validation: population/s used in the validation set (separated by commas if more than 1)
-#'          $duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
-#'          $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
-#'          $mbe: mean bias error
-#'          $mae: mean absolute error
-#'          $rmse: root mean squared error
-#'          $r2: coefficient of determination
-#'          $corr: Pearson's product moment correlation
-#'          $power_t10: fraction of observed top 10 phenotype values correctly predicted
-#'          $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-#'          $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-#'          $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
-#'          $h2: narrow-sense heritability estimate
-#'      $YPRED_ACROSS_POP_LOPO:
-#'          $rep: replication number
-#'          $fold: fold number
-#'          $model: genomic prediction model name
-#'          $pop_training: population/s used in the training set (separated by commas if more than 1)
-#'          $id: names of the samples/entries/pools, 
-#'          $pop_validation: population from which the sample/entry/pool belongs to
-#'          $y_true: observed phenotype values
-#'          $y_pred: predicted phenotype values
-#' Err: gpError
+#'  - Ok: filename of temporary Rds file containing a 2-element list:
+#'      + $METRICS_ACROSS_POP_LOPO:
+#'          - $rep: replication number
+#'          - $fold: fold number
+#'          - $model: genomic prediction model name
+#'          - $pop_training: population/s used in the training set (separated by commas if more than 1)
+#'          - $pop_validation: population/s used in the validation set (separated by commas if more than 1)
+#'          - $n_training: number of samples/entries/pools in the training set
+#'          - $n_validation: number of samples/entries/pools in the validation set
+#'          - $duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
+#'          - $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+#'          - $mbe: mean bias error
+#'          - $mae: mean absolute error
+#'          - $rmse: root mean squared error
+#'          - $r2: coefficient of determination
+#'          - $corr: Pearson's product moment correlation
+#'          - $power_t10: fraction of observed top 10 phenotype values correctly predicted
+#'          - $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+#'          - $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          - $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          - $h2: narrow-sense heritability estimate
+#'      + $YPRED_ACROSS_POP_LOPO:
+#'          - $rep: replication number
+#'          - $fold: fold number
+#'          - $model: genomic prediction model name
+#'          - $pop_training: population/s used in the training set (separated by commas if more than 1)
+#'          - $id: names of the samples/entries/pools, 
+#'          - $pop_validation: population from which the sample/entry/pool belongs to
+#'          - $y_true: observed phenotype values
+#'          - $y_pred: predicted phenotype values
+#'  - Err: gpError
 #' @examples
 #' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
 #' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
@@ -1529,32 +1538,31 @@ fn_cross_validation_across_populations_lopo = function(list_merged,
     if (bool_parallel) {
         ###########################################
         ### Multi-threaded cross-validation
-        list_list_perf = tryCatch(
-            parallel::mclapply(c(1:nrow(list_cv_params$df_params)), 
-                FUN=fn_cv_1, 
-                    list_merged=list_merged,
-                    df_params=list_cv_params$df_params,
-                    mat_idx_shuffle=list_cv_params$mat_idx_shuffle,
-                    vec_set_partition_groupings=list_cv_params$vec_set_partition_groupings,
-                    prefix_tmp=file.path(dir_output, "across_lopo"),
-                    verbose=verbose, 
-                mc.cores=min(c(n_threads, list_cv_params$n_threads)), 
-                mc.preschedule=FALSE, 
-                mc.set.seed=TRUE, 
-                mc.silent=FALSE, 
-                mc.cleanup=TRUE),
-            error = function(e){NA}
-        )
-        if (is.na(list_list_perf[1])) {
-            error = methods::new("gpError",
-                code=000,
-                message=paste0(
-                    "Error in cross_validation::fn_cross_validation_across_populations_lopo(...). ",
-                    "Something went wrong in the execution of multi-threaded pairwise-population cross-validation. ",
-                    "Please check re-run cross_validation::fn_cross_validation_across_populations_lopo(...) with ",
-                    "bool_parallel=FALSE to identify the error."
-                ))
-            return(error)
+        list_list_perf = parallel::mclapply(c(1:nrow(list_cv_params$df_params)), 
+            FUN=fn_cv_1, 
+                list_merged=list_merged,
+                df_params=list_cv_params$df_params,
+                mat_idx_shuffle=list_cv_params$mat_idx_shuffle,
+                vec_set_partition_groupings=list_cv_params$vec_set_partition_groupings,
+                prefix_tmp=file.path(dir_output, "across_lopo"),
+                verbose=verbose, 
+            mc.cores=min(c(n_threads, list_cv_params$n_threads)), 
+            mc.preschedule=FALSE, 
+            mc.set.seed=TRUE, 
+            mc.silent=FALSE, 
+            mc.cleanup=TRUE)
+        for (idx in 1:length(list_list_perf)) {
+            if (methods::is(list_list_perf[[idx]], "gpError")) {
+                error = chain(list_list_perf[[idx]], methods::new("gpError",
+                    code=000,
+                    message=paste0(
+                        "Error in cross_validation::fn_cross_validation_across_populations_lopo(...). ",
+                        "Something went wrong in the execution of multi-threaded pairwise-population cross-validation. ",
+                        "Please check re-run cross_validation::fn_cross_validation_across_populations_lopo(...) with ",
+                        "bool_parallel=FALSE to identify the error."
+                    )))
+                return(error)
+            }
         }
     } else {
         ############################################

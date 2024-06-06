@@ -33,12 +33,12 @@ methods::setMethod(f="chain",
 #'  subsequent elements are optional which may refer to the allele identifier and other identifiers.
 #' @param verbose show names extraction messages? (Default=FALSE)
 #' @returns
-#' Ok:
-#'  $vec_ids: vector of sample/entry/pool names (same order as in G)
-#'  $vec_chr: vector of chromosome or scaffold names (same order as in G)
-#'  $vec_pos: vector of numeric positions per chromosome (same order as in G)
-#'  $vec_all: vector of allele names (same order as in G)
-#' Err: grError
+#'  - Ok:
+#'      + $vec_ids: vector of sample/entry/pool names (same order as in G)
+#'      + $vec_chr: vector of chromosome or scaffold names (same order as in G)
+#'      + $vec_pos: vector of numeric positions per chromosome (same order as in G)
+#'      + $vec_all: vector of allele names (same order as in G)
+#'  - Err: grError
 #' @examples
 #' mat_genotypes = simquantgen::fn_simulate_genotypes(verbose=TRUE)
 #' list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=mat_genotypes, verbose=TRUE)
@@ -103,10 +103,10 @@ fn_G_extract_names = function(mat_genotypes, verbose=FALSE) {
 #'  subsequent elements are optional which may refer to the allele identifier and other identifiers.
 #' @param verbose show genotype data alternative allele splitting messages? (Default=FALSE)
 #' @returns
-#' Ok:
-#'  $G: n samples x p loci matrix of allele frequencies excluding trailing allele (numeric ranging from 0 to 1)
-#'  $G_alt: n samples x p loci matrix of allele frequencies of the trailing allele (numeric ranging from 0 to 1)
-#' Err: grError
+#'  - Ok:
+#'      + $G: n samples x p loci matrix of allele frequencies excluding trailing allele (numeric ranging from 0 to 1)
+#'      + $G_alt: n samples x p loci matrix of allele frequencies of the trailing allele (numeric ranging from 0 to 1)
+#'  - Err: grError
 #' @examples
 #' G_ref = simquantgen::fn_simulate_genotypes(verbose=TRUE)
 #' G_alt = 1 - G_ref; colnames(G_alt) = gsub("allele_1$", "allele_2", colnames(G_alt))
@@ -201,8 +201,8 @@ fn_G_split_off_alternative_allele = function(G, verbose=FALSE) {
 #' @param ploidy ploidy level which can refer to the number of haploid genomes to simulate pools (Default=2)
 #' @param verbose show numeric to non-numeric genotype data conversion messages? (Default=FALSE)
 #' @returns
-#' Ok: n samples x p loci matrix of genotype classes
-#' Err: grError
+#'  - Ok: n samples x p loci matrix of genotype classes
+#'  - Err: grError
 #' @examples
 #' ploidy = 42
 #' G_numeric = simquantgen::fn_simulate_genotypes(ploidy=ploidy, n_alleles=52, verbose=TRUE)
@@ -325,8 +325,8 @@ fn_G_numeric_to_non_numeric = function(G, ploidy=2, verbose=FALSE) {
 #' @param retain_minus_one_alleles_per_locus omit the alternative or trailing allele per locus? (Default=TRUE)
 #' @param verbose show non-numeric to numeric genotype data conversion messages? (Default=FALSE)
 #' @returns
-#' Ok: n samples x p loci-alleles matrix of genotype classes (numeric ranging from 0 to 1)
-#' Err: grError
+#'  - Ok: n samples x p loci-alleles matrix of genotype classes (numeric ranging from 0 to 1)
+#'  - Err: grError
 #' @examples
 #' ploidy = 42
 #' G_numeric = simquantgen::fn_simulate_genotypes(ploidy=ploidy, n_alleles=52, verbose=TRUE)
@@ -432,8 +432,8 @@ fn_G_non_numeric_to_numeric = function(G_non_numeric, retain_minus_one_alleles_p
 #' @param max_depth maximum depth per locus (Default=1000)
 #' @param verbose show allele frequency genotype matrix to vcf conversion messages? (Default=FALSE)
 #' @returns
-#' Ok: simulated genotype data as a vcfR object with GT, AD and DP fields
-#' Err: grError
+#'  - Ok: simulated genotype data as a vcfR object with GT, AD and DP fields
+#'  - Err: grError
 #' @examples
 #' G = simquantgen::fn_simulate_genotypes(verbose=TRUE)
 #' vcf = fn_G_to_vcf(G=G, verbose=TRUE)
@@ -588,12 +588,12 @@ fn_G_to_vcf = function(G, min_depth=100, max_depth=1000, verbose=FALSE) {
 #' @param retain_minus_one_alleles_per_locus omit the alternative or trailing allele per locus? (Default=TRUE)
 #' @param verbose show vcf to allele frequency genotype matrix conversion messages? (Default=FALSE)
 #' @returns
-#' Ok: named n samples x p biallelic loci matrix.
+#'  - Ok: named n samples x p biallelic loci matrix.
 #'  Row names can be any string of characters.
 #'  Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'  the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'  subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#' Err: gpError
+#'  - Err: gpError
 #' @examples
 #' G = simquantgen::fn_simulate_genotypes(verbose=TRUE)
 #' vcf = fn_G_to_vcf(G=G, verbose=TRUE)
@@ -776,8 +776,8 @@ fn_vcf_to_G = function(vcf, min_depth=0, max_depth=.Machine$integer.max, force_b
 #' @param ploidy ploidy level which can refer to the number of haploid genomes to simulate pools (Default=2)
 #' @param verbose show genotype binning or classification messages? (Default=FALSE)
 #' @returns
-#' Ok: named n samples x p loci-alleles matrix of numeric genotype classes
-#' Err: gpError
+#'  - Ok: named n samples x p loci-alleles matrix of numeric genotype classes
+#'  - Err: gpError
 #' @examples
 #' ploidy = 4
 #' G = simquantgen::fn_simulate_genotypes(ploidy=ploidy, verbose=TRUE)
@@ -861,12 +861,12 @@ fn_classify_allele_frequencies = function(G, ploidy=2, verbose=FALSE) {
 #' @param non_numeric_Rds save non-numeric Rds genotype file? (Default=FALSE)
 #' @param verbose show genotype and phenotype data simulation messages? (Default=FALSE)
 #' @returns
-#' Ok:
-#'  $fname_geno_vcf: filename of the simulated genotype data as a vcf file
-#'  $fname_geno_tsv: filename of the simulated genotype data as a tab-delimited allele frequency table file
-#'  $fname_geno_rds: filename of the simulated named genotype matrix as an Rds file
-#'  $fname_pheno_tsv: filename of the simulated phenotype data as a tab-delimited file
-#' Err: gpError
+#'  - Ok:
+#'      + $fname_geno_vcf: filename of the simulated genotype data as a vcf file
+#'      + $fname_geno_tsv: filename of the simulated genotype data as a tab-delimited allele frequency table file
+#'      + $fname_geno_rds: filename of the simulated named genotype matrix as an Rds file
+#'      + $fname_pheno_tsv: filename of the simulated phenotype data as a tab-delimited file
+#'  - Err: gpError
 #' @examples
 #' list_sim = fn_simulate_data(verbose=TRUE, 
 #'  save_geno_vcf=TRUE, save_geno_tsv=TRUE, save_geno_rds=TRUE, save_pheno_tsv=TRUE)
@@ -1004,7 +1004,8 @@ fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, m
 #' 
 #' @param fname_geno filename of the genotype file
 #'  This may be in 1 of 3 formats:
-#'      - VCF format, 
+#'      - VCF format with AD (allele depth) and/or GT (genotype), and DP (depth) fields,
+#'          where multi-allelic loci are split into separate rows, 
 #'      - allele frequency table saved as a tab-delimited file with a header line and the first 3 columns refer to the
 #'          chromosome (chr), position (pos), and allele (allele),
 #'          with subsequent columns referring to the allele frequencies of a sample, entry or pool.
@@ -1025,12 +1026,12 @@ fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, m
 #' @param max_depth if input is a VCF file: maximum depth per locus beyond which will be set to missing data (Default=.Machine$integer.max)
 #' @param verbose show genotype loading messages? (Default=FALSE)
 #' @returns
-#' Ok: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'  - Ok: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 #'  Row names can be any string of characters which identify the sample or entry or pool names.
 #'  Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'  the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'  subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#' Err: gpError
+#'  - Err: gpError
 #' @examples
 #' list_sim = fn_simulate_data(verbose=TRUE, 
 #'  save_geno_vcf=TRUE, save_geno_tsv=TRUE, save_geno_rds=TRUE, save_pheno_tsv=TRUE)
@@ -1200,12 +1201,12 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
 #' @param n_topmost_sparse_samples_to_remove number of top-most sparse samples to remove, e.g. 5 or 10 (Default=NULL)
 #' @param verbose show genotype filtering messages? (Default=FALSE)
 #' @returns
-#' Ok: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'  - Ok: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 #'  Row names can be any string of characters which identify the sample or entry or pool names.
 #'  Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'  the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'  subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#' Err: gpError
+#'  - Err: gpError
 #' @examples
 #' list_sim = fn_simulate_data(verbose=TRUE)
 #' G = fn_load_genotype(list_sim$fname_geno_vcf, retain_minus_one_alleles_per_locus=FALSE)
@@ -1691,13 +1692,13 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
 #'      Names of the samples, entries, or pools in the header line can be any unique string of characters.
 #' @param verbose show genotype saving messages? (Default=FALSE)
 #' @returns
-#' Ok: file name of the output file
-#' Err: gpError
+#'  - Ok: file name of the output file
+#'  - Err: gpError
 #' @examples
 #' list_sim = fn_simulate_data(verbose=TRUE)
 #' G = fn_load_genotype(list_sim$fname_geno_vcf, min_depth=42, max_depth=750)
-#' fn_save_genotype(G=G, fname="test.Rds", file_type="Rds", verbose=TRUE)
-#' fn_save_genotype(G=G, fname="test.tsv", file_type="tsv", verbose=TRUE)
+#' fn_save_genotype(G=G, fname=tempfile(fileext=".Rds"), file_type="Rds", verbose=TRUE)
+#' fn_save_genotype(G=G, fname=tempfile(fileext=".tsv"), file_type="tsv", verbose=TRUE)
 #' @export
 fn_save_genotype = function(G, fname, file_type=c("RDS", "TSV")[1], verbose=FALSE) {
     ###################################################
@@ -1771,11 +1772,11 @@ fn_save_genotype = function(G, fname, file_type=c("RDS", "TSV")[1], verbose=FALS
 #' @param na_strings vector of string corresponding to missing data in the phenotype column (Default=c("", "-", "NA", "na", "NaN", "missing", "MISSING"))
 #' @param verbose show phenotype loading messages? (Default=FALSE)
 #' @returns
-#' Ok:
-#'  $y: named vector of numeric phenotype data
-#'  $pop: population or groupings corresponding to each element of y
-#'  $trait_name: name of the trait
-#' Err: gpError
+#'  - Ok:
+#'      + $y: named vector of numeric phenotype data
+#'      + $pop: population or groupings corresponding to each element of y
+#'      + $trait_name: name of the trait
+#'  - Err: gpError
 #' @examples
 #' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
 #' list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
@@ -1809,7 +1810,7 @@ fn_load_phenotype = function(fname_pheno, sep="\t", header=TRUE,
                 "Are the sample IDs really at column '", idx_col_id, "'? ",
                 "Are the population IDs really at column '", idx_col_pop, "'? ",
                 "Are the phenotype data really at column '", idx_col_y, "'? ",
-                "Are your missing data encoded as any of these: ", paste(paste0("'", na.strings, "'"), collapse=", "), "?"))
+                "Are your missing data encoded as any of these: ", paste(paste0("'", na_strings, "'"), collapse=", "), "?"))
         return(error)
     }
     entry = as.character(df[, idx_col_id])
@@ -1823,7 +1824,7 @@ fn_load_phenotype = function(fname_pheno, sep="\t", header=TRUE,
                 "Phenotype file: ", fname_pheno, ", contains non-numeric data at column ", idx_col_y, ". ",
                 "Are you certain that your file is separated by: '", sep, "'? ",
                 "Are the phenotype data really at column '", idx_col_y, "'? ",
-                "Are your missing data encoded as any of these: ", paste(paste0("'", na.strings, "'"), collapse=", "), "? ",
+                "Are your missing data encoded as any of these: ", paste(paste0("'", na_strings, "'"), collapse=", "), "? ",
                 "Do these look like numbers to you: ", paste(utils::head(y), collapse=", "), "? ",
                 "These too: ", paste(utils::tail(y), collapse=", "), "?"))
         return(error)
@@ -1851,11 +1852,11 @@ fn_load_phenotype = function(fname_pheno, sep="\t", header=TRUE,
 #'  If true, this removes the corresponding element/s in the pop vector. (Default=FALSE)
 #' @param verbose show phenotype filtering messages? (Default=FALSE)
 #' @returns
-#' Ok:
-#'  $y: named vector of numeric phenotype data
-#'  $pop: population or groupings corresponding to each element of y
-#'  $trait_name: name of the trait
-#' Err: gpError
+#'  - Ok:
+#'      + $y: named vector of numeric phenotype data
+#'      + $pop: population or groupings corresponding to each element of y
+#'      + $trait_name: name of the trait
+#'  - Err: gpError
 #' @examples
 #' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
 #' list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
@@ -1946,13 +1947,13 @@ fn_filter_phenotype = function(list_pheno, remove_NA=FALSE, verbose=FALSE) {
 #' @param sep delimited of the output file (Default="\\t")
 #' @param verbose show phenotype filtering messages? (Default=FALSE)
 #' @returns
-#' Ok: file name of the output file
-#' Err: gpError
+#'  - Ok: file name of the output file
+#'  - Err: gpError
 #' @examples
 #' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
 #' list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
-#' fn_save_phenotype(list_pheno, fname="test.tsv", sep="\t", verbose=TRUE)
-#' fn_save_phenotype(list_pheno, fname="test.csv", sep=",", verbose=TRUE)
+#' fn_save_phenotype(list_pheno, fname=tempfile(fileext=".tsv"), sep="\t", verbose=TRUE)
+#' fn_save_phenotype(list_pheno, fname=tempfile(fileext=".csv"), sep=",", verbose=TRUE)
 #' @export
 fn_save_phenotype = function(list_pheno, fname, sep="\t", verbose=FALSE) {
     ###################################################
@@ -2013,18 +2014,18 @@ fn_save_phenotype = function(list_pheno, fname, sep="\t", verbose=FALSE) {
 #'  which fully or partially match with the row names in G and the names in list_pheno$y. (Default=NULL)
 #' @param verbose show genotype, phenotype, and covariate merging messages? (Default=FALSE)
 #' @returns
-#' Ok:
-#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'  - Ok:
+#'      + $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 #'      Row names can be any string of characters which identify the sample or entry or pool names.
 #'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#'  $list_pheno:
+#'      + $list_pheno:
 #'      $y: named vector of numeric phenotype data
 #'      $pop: population or groupings corresponding to each element of y
 #'      $trait_name: name of the trait
-#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
-#' Err: gpError
+#'      + $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#'  - Err: gpError
 #' @examples
 #' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
 #' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
@@ -2124,31 +2125,31 @@ fn_merge_genotype_and_phenotype = function(G, list_pheno, COVAR=NULL, verbose=FA
 #' Subset the list of merged genotype and phenotype data using a vector of sample/entry/pool indexes.
 #'
 #' @param list_merged list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
-#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'      + $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 #'      Row names can be any string of characters which identify the sample or entry or pool names.
 #'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#'  $list_pheno:
+#'      + $list_pheno:
 #'      $y: named vector of numeric phenotype data
 #'      $pop: population or groupings corresponding to each element of y
 #'      $trait_name: name of the trait
-#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#'      + $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
 #' @param vec_idx numeric vector of sample/entry/pool indexes to extract from list_merged
 #' @param verbose show genotype, phenotype, and covariate subsetting messages? (Default=FALSE)
 #' @returns
-#' Ok:
-#'  $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'  - Ok:
+#'      + $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 #'      Row names can be any string of characters which identify the sample or entry or pool names.
 #'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#'  $list_pheno:
+#'      + $list_pheno:
 #'      $y: named vector of numeric phenotype data
 #'      $pop: population or groupings corresponding to each element of y
 #'      $trait_name: name of the trait
-#'  $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
-#' Err: gpError
+#'      + $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+#'  - Err: gpError
 #' @examples
 #' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
 #' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
@@ -2226,11 +2227,11 @@ fn_subset_merged_genotype_and_phenotype = function(list_merged, vec_idx, verbose
 #' @param memory_multiplier estimated memory usage multiplier (Default=40)
 #' @param verbose show memory usage estimation messages? (Default=FALSE)
 #' @returns
-#' Ok:
-#'  $size_X: memory used for a single genomic prediction instance
-#'  $size_total: total memory required for parallel computations across models, folds and replications
-#'  $n_threads: recommended and estimated maximum number of threads to use to prevent out-of-memory (OOM) error
-#' Err: gpError
+#'  - Ok:
+#'      + $size_X: memory used for a single genomic prediction instance
+#'      + $size_total: total memory required for parallel computations across models, folds and replications
+#'      + $n_threads: recommended and estimated maximum number of threads to use to prevent out-of-memory (OOM) error
+#'  - Err: gpError
 #' @examples
 #' list_mem = fn_estimate_memory_footprint(X=rnorm(10000), verbose=TRUE)
 #' @export

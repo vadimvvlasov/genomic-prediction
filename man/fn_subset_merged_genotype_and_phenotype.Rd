@@ -8,34 +8,38 @@ fn_subset_merged_genotype_and_phenotype(list_merged, vec_idx, verbose = FALSE)
 }
 \arguments{
 \item{list_merged}{list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
-$G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
++ $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 Row names can be any string of characters which identify the sample or entry or pool names.
 Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name,
 the second should be numeric which refers to the position in the chromosome/scaffold, and
 subsequent elements are optional which may refer to the allele identifier and other identifiers.
-$list_pheno:
++ $list_pheno:
 $y: named vector of numeric phenotype data
 $pop: population or groupings corresponding to each element of y
 $trait_name: name of the trait
-$COVAR: numeric n samples x k covariates matrix with non-null row and column names.}
++ $COVAR: numeric n samples x k covariates matrix with non-null row and column names.}
 
 \item{vec_idx}{numeric vector of sample/entry/pool indexes to extract from list_merged}
 
 \item{verbose}{show genotype, phenotype, and covariate subsetting messages? (Default=FALSE)}
 }
 \value{
-Ok:
-$G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+\itemize{
+\item Ok:
+\itemize{
+\item $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 Row names can be any string of characters which identify the sample or entry or pool names.
 Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name,
 the second should be numeric which refers to the position in the chromosome/scaffold, and
 subsequent elements are optional which may refer to the allele identifier and other identifiers.
-$list_pheno:
+\item $list_pheno:
 $y: named vector of numeric phenotype data
 $pop: population or groupings corresponding to each element of y
 $trait_name: name of the trait
-$COVAR: numeric n samples x k covariates matrix with non-null row and column names.
-Err: gpError
+\item $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+}
+\item Err: gpError
+}
 }
 \description{
 Subset the list of merged genotype and phenotype data using a vector of sample/entry/pool indexes.

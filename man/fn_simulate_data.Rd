@@ -58,12 +58,16 @@ fn_simulate_data(
 \item{verbose}{show genotype and phenotype data simulation messages? (Default=FALSE)}
 }
 \value{
-Ok:
-$fname_geno_vcf: filename of the simulated genotype data as a vcf file
-$fname_geno_tsv: filename of the simulated genotype data as a tab-delimited allele frequency table file
-$fname_geno_rds: filename of the simulated named genotype matrix as an Rds file
-$fname_pheno_tsv: filename of the simulated phenotype data as a tab-delimited file
-Err: gpError
+\itemize{
+\item Ok:
+\itemize{
+\item $fname_geno_vcf: filename of the simulated genotype data as a vcf file
+\item $fname_geno_tsv: filename of the simulated genotype data as a tab-delimited allele frequency table file
+\item $fname_geno_rds: filename of the simulated named genotype matrix as an Rds file
+\item $fname_pheno_tsv: filename of the simulated phenotype data as a tab-delimited file
+}
+\item Err: gpError
+}
 }
 \description{
 Simple wrapper of simquantgen simulation of 10 standard normally distributed QTL additive effects

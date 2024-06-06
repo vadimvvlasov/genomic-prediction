@@ -1,0 +1,2 @@
+rep	fold	model	pop_training	pop_validation	n_training	n_validation	duration_mins	n_non_zero_effects	mbe	mae	rmse	r2	corr	power_t10	power_b10	var_pred	var_true	h2
+1	1	elastic_net	pop_1	pop_1	86	22	0.1328484416008	16	2.36953342671964	14.5282732600894	17.6361851352937	-0.0374169857543598	0.160027361056063	0.5	0	43.1157004269815	314.093775522401	0.8577917643

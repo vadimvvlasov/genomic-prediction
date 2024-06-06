@@ -16,10 +16,14 @@ subsequent elements are optional which may refer to the allele identifier and ot
 \item{verbose}{show genotype data alternative allele splitting messages? (Default=FALSE)}
 }
 \value{
-Ok:
-$G: n samples x p loci matrix of allele frequencies excluding trailing allele (numeric ranging from 0 to 1)
-$G_alt: n samples x p loci matrix of allele frequencies of the trailing allele (numeric ranging from 0 to 1)
-Err: grError
+\itemize{
+\item Ok:
+\itemize{
+\item $G: n samples x p loci matrix of allele frequencies excluding trailing allele (numeric ranging from 0 to 1)
+\item $G_alt: n samples x p loci matrix of allele frequencies of the trailing allele (numeric ranging from 0 to 1)
+}
+\item Err: grError
+}
 }
 \description{
 Split trailing alternative allele from a numeric (allele frequency) matrix if it exists

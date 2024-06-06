@@ -14,6 +14,7 @@ Suggests:
 Remotes:
     jeffersonfparil/simquantgen
 Imports:
+    methods,
     vcfR,
     parallel,
     glmnet,

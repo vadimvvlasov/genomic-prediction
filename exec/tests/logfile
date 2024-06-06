@@ -1,0 +1,1622 @@
+[1] "               ,@@@@@@@,"
+[1] "       ,,,.   ,@@@@@@/@@,  .oo8888o."
+[1] "    ,&%%&%&&%,@@@@@/@@@@@@,8888|88/8o"
+[1] "   ,%&|%&&%&&%,@@@|@@@/@@@88|88888/88'"
+[1] "   %&&%&%&/%&&%@@|@@/ /@@@88888|88888'"
+[1] "   %&&%/ %&%%&&@@| V /@@' `88|8 `/88'"
+[1] "   `&%| ` /%&'    |.|        | '|8'"
+[1] "       |o|        | |         | |"
+[1] "       |.|        | |         | |"
+[1] "    ||/ ._|//_/__/  ,|_//__||/.  |_//__/_"
+[1] "Performing genomic prediction cross-validation using"
+[1] "     - genotype file: /group/pasture/Jeff/ryegrass/workdir/STR_NUE_WUE_HS-1717536141.3435302.3200855812-IMPUTED.tsv"
+[1] "     - phenotype file: /group/pasture/Jeff/ryegrass/workdir/Lucerne_PhenomicsDB_2024-05-27-Biomass.tsv"
+[1] "     - covariate file: "
+[1] "     - population: pop_1"
+[1] "     - within population CV: TRUE"
+[1] "     - across populations CV: FALSE"
+[1] "     - with a total of 32 threads available and "
+[1] "       a total memory of 60 Gb."
+[1] "Start time: 2024-06-06 14:46:34.806502"
+[1] "Genotype loaded from a tab-delimited allele frequency table file."
+[1] "The loci are identified by the chromosome, position, allele, and other identifiers which will not be used."
+[1] "Genotype data has 113 samples/entries/pools genotyped across 36437 loci/alleles/SNPs."
+[1] "Distribution of allele frequencies"
+    +--+---------+----------+----------+---------+----------+--+
+    |                                                    ***   |
+2.5 +                                                   ** **  +
+    |                                                  **   *  |
+  2 +                                                  *    *  +
+    |                                                 **       |
+    |                                                 *        |
+1.5 +                                                **        +
+    |                                                *         |
+    |                                               *          |
+  1 +     *                                        **          +
+    |  ********                      *******    ***            |
+    |  *      ****           *********     ******              |
+0.5 +            *************                                 +
+    +--+---------+----------+----------+---------+----------+--+
+       0        0.2        0.4        0.6       0.8         1   
+[1] "Distribution of mean sparsity per locus"
+  5 +--------------+--------------+-------------+--------------+
+    |                                                          |
+    |                                                          |
+4.5 +                                                          +
+    |                                                          |
+  4 +                                                          +
+    |                                                          |
+    |                             *                            |
+3.5 +                                                          +
+    |                                                          |
+  3 +                                                          +
+    |                                                          |
+2.5 +                                                          +
+    |                                                          |
+    +--------------+--------------+-------------+--------------+
+   -1            -0.5             0            0.5             1
+[1] "Distribution of mean sparsity per sample"
+    +--------------+--------------+-------------+--------------+
+    |                                                          |
+    |                                                          |
+1.4 +                                                          +
+    |                                                          |
+    |                                                          |
+1.2 +                                                          +
+    |                             *                            |
+    |                                                          |
+  1 +                                                          +
+    |                                                          |
+    |                                                          |
+0.8 +                                                          +
+    |                                                          |
+    +--------------+--------------+-------------+--------------+
+   -1            -0.5             0            0.5             1
+[1] "Distribution of phenotype data:"
+      +-----+-------------+-------------+------------+---------+
+      |          ****                                          |
+      |         *   **                                         |
+0.015 +        **    **                                        +
+      |       **      **                                       |
+      |       *        **                                      |
+ 0.01 +      **         **                                     +
+      |      *            ***                                  |
+      |     *               **                                 |
+      |    **                ***                               |
+0.005 +   **                   **                              +
+      |  **                     ***                            |
+      |  *                        ***                          |
+    0 +                              ***********************   +
+      +-----+-------------+-------------+------------+---------+
+            0            50            100          150         
+[1] "Distribution of mean allele frequencies per locus:"
+    ++----------+-----------+----------+-----------+----------++
+    |                                                   ***    |
+    |                                                  ** **   |
+  2 +                                                 **   *   +
+    |                                                **    *   |
+    |                                               **     *   |
+1.5 +                                              **       *  +
+    |                                            ***        *  |
+    |                                          ***          *  |
+  1 +                                       ****               +
+    |    ***********                 ********                  |
+    |   **          *****************                          |
+    |  **                                                      |
+0.5 +  *                                                       +
+    ++----------+-----------+----------+-----------+----------++
+     0         0.2         0.4        0.6         0.8         1 
+[1] "Distribution of allele frequency standard deviation per locus:"
+8 +--------------+----------------+----------------+-----------+
+  |                             *******                        |
+  |                            **     **                       |
+  |                          ***       *                       |
+6 +                    *******         **                      +
+  |                 ***                 **                     |
+  |               ***                    *                     |
+4 +               *                      **                    +
+  |              *                        **                   |
+  |             **                         *                   |
+2 +            **                          **                  +
+  |           **                            **                 |
+  |          **                              **                |
+0 +  *********                                 *************   +
+  +--------------+----------------+----------------+-----------+
+                0.1              0.2              0.3           
+[1] "All loci passed the minimum allele frequency and standard deviation thresholds."
+[1] "Distribution of mean sparsity per locus"
+  5 +--------------+--------------+-------------+--------------+
+    |                                                          |
+    |                                                          |
+4.5 +                                                          +
+    |                                                          |
+  4 +                                                          +
+    |                                                          |
+    |                             *                            |
+3.5 +                                                          +
+    |                                                          |
+  3 +                                                          +
+    |                                                          |
+2.5 +                                                          +
+    |                                                          |
+    +--------------+--------------+-------------+--------------+
+   -1            -0.5             0            0.5             1
+[1] "All loci passed the filtering by mean sparsity per locus."
+[1] "Distribution of mean sparsity per sample"
+    +--------------+--------------+-------------+--------------+
+    |                                                          |
+    |                                                          |
+1.4 +                                                          +
+    |                                                          |
+    |                                                          |
+1.2 +                                                          +
+    |                             *                            |
+    |                                                          |
+  1 +                                                          +
+    |                                                          |
+    |                                                          |
+0.8 +                                                          +
+    |                                                          |
+    +--------------+--------------+-------------+--------------+
+   -1            -0.5             0            0.5             1
+[1] "All samples passed the filtering by mean sparsity per sample."
+[1] "[Repeat] All loci passed the minimum allele frequency and standard deviation thresholds."
+[1] "After genotype filtering we retain n=113 with p=36437"
+[1] "Mean sparsity = 0%"
+[1] "Allele frequency distribution: "
+    +--+---------+----------+----------+---------+----------+--+
+1.6 +   ***                                              ***   +
+    |   * **                                            *  *   |
+    |  **  *                                           **  **  |
+1.4 +  *    *                                          *    *  +
+    |  *    **                                        **    *  |
+1.2 +  *     *                                        *     *  +
+    |        **                                      **        |
+  1 +         *                                      *         +
+    |         **                                    **         |
+    |          **                                  **          |
+0.8 +           **             ******             **           +
+    |            **       ******    ******       **            |
+0.6 +             ********               *********             +
+    +--+---------+----------+----------+---------+----------+--+
+       0        0.2        0.4        0.6       0.8         1   
+[1] "Mean allele frequencies per locus range from 0.0365063274336283 to 0.963223902654867"
+[1] "Before removing outlier/s:"
+[1] "n=119"
+      +-----+-------------+-------------+------------+---------+
+      |          ****                                          |
+      |         *   **                                         |
+0.015 +        **    **                                        +
+      |       **      **                                       |
+      |       *        **                                      |
+ 0.01 +      **         **                                     +
+      |      *            ***                                  |
+      |     *               **                                 |
+      |    **                ***                               |
+0.005 +   **                   **                              +
+      |  **                     ***                            |
+      |  *                        ***                          |
+    0 +                              ***********************   +
+      +-----+-------------+-------------+------------+---------+
+            0            50            100          150         
+[1] "After removing outlier/s:"
+[1] "n=119"
+      +--------+--------+---------+--------+--------+---------++
+      |               ********                                 |
+      |              **      **                                |
+0.015 +             **        ***                              +
+      |            **           **                             |
+      |           **             **                            |
+      |          **               ***                          |
+ 0.01 +         **                  *****                      +
+      |        **                       ****                   |
+      |      **                            ****                |
+0.005 +     **                                ***              +
+      |   ***                                   ***            |
+      |  **                                        ****        |
+      |                                               ******   |
+    0 +--------+--------+---------+--------+--------+---------++
+               0       20        40       60       80        100
+[1] "Genotype distribution:"
+[1] "p=36437"
+    +--+---------+----------+----------+---------+----------+--+
+  3 +                                                     ***  +
+    |                                                     * *  |
+    |                                                    ** *  |
+2.5 +                                                    *  *  +
+    |                                                   **     |
+  2 +                                                   *      +
+    |                                                  **      |
+1.5 +                                                  *       +
+    |   **                                            **       |
+    |  *****                                         **        |
+  1 +  *   ****                                    ***         +
+    |         ****            **********************           |
+0.5 +            **************                                +
+    +--+---------+----------+----------+---------+----------+--+
+       0        0.2        0.4        0.6       0.8         1   
+[1] "Phenotype distribution:"
+[1] "n=113"
+      +--------+--------+---------+--------+--------+---------++
+      |               ********                                 |
+      |              **      **                                |
+0.015 +             **        ***                              +
+      |            **           **                             |
+      |           **             ***                           |
+      |          **                ****                        |
+ 0.01 +         **                    *****                    +
+      |        **                         ***                  |
+      |      ***                            ***                |
+0.005 +     **                                ***              +
+      |   ***                                    ***           |
+      |  **                                        ****        |
+      |                                               ******   |
+    0 +--------+--------+---------+--------+--------+---------++
+               0       20        40       60       80        100
+[1] "Covariate is null."
+[1] "Size of X: = 35667472 bytes"
+[1] "n_models = 7; n_folds = 5; n_reps = 1"
+[1] "Total memory requested = 60 Gb (61440 Mb; 62914560 Kb; 64424509440 bytes)"
+[1] "Size of each dataset (merged genotype, phenotype and covariate data) = 0 Gb (34 Mb; 34831.5 Kb; 35667472 bytes)"
+[1] "Estimated total memory required for simultaneous parallel computations = 46.5 Gb (61440 Mb; 62914560 Kb; 64424509440 bytes)"
+[1] "To prevent out-of-memory (OOM) errors, we recommend a maximum number of threads = 45"
+[1] "Intercept = 30.86635422206"
+[1] "Random effects distribution, i.e. BLUPs of each sample:"
+     +------+-------+--------+-------+-------+--------+-------++
+     |                   ****                                  |
+     |                  **  **                                 |
+0.08 +                  *    *                                 +
+     |                 **    **                                |
+     |                 *      **                               |
+0.06 +                *        *                               +
+     |              ***         *                              |
+0.04 +            ***           **                             +
+     |          ***              **                            |
+     |        ***                 *********                    |
+0.02 +       **                           ***                  +
+     |    ***                               ***                |
+     |  ***                                   ***************  |
+   0 +------+-------+--------+-------+-------+--------+-------++
+           -10     -5        0       5      10       15      20 
+[1] "Number of non-zero effects: 113 (100%)"
+[1] "Scatter plot of the observed and predicted phenotypes"
+   +-----+--------------+---------------+---------------+------+
+ 4 +                                         *                 +
+   |                                                           |
+ 2 +  *              *                                         +
+   |               *                                           |
+   |                                  *                   *    |
+ 0 +                             *                          *  +
+   |                *            *  *       *                  |
+-2 +                   *                  *     *              +
+   |                  *          *          *                  |
+-4 +                                            *              +
+   |                 *                                         |
+   |                                                           |
+-6 +                       *                                   +
+   +-----+--------------+---------------+---------------+------+
+         0             20              40              60       
+[1] "Mean bias error (mbe) = 33.8736995456346"
+[1] "Mean absolute error (mae) = 34.4360760793513"
+[1] "Root mean square error (rmse) = 38.0713707400198"
+[1] "Coefficient of determination (r2) = -3.83438332685285"
+[1] "Power to identify top 10 (power_t10) = 33.8736995456346"
+[1] "Power to identify bottom 10 (power_b10) = 0"
+[1] "Pearson's correlation (corr) = 0.0484773991337106"
+[1] "Variance of predicted phenotypes (var_pred) = 6.75490523809599 (estimator of additive genetic variance)"
+[1] "Variance of observed phenotypes (var_true) = 314.093775522401 (estimator of total phenotypic variance)"
+[1] "Narrow-sense heritability estimate (h2) = 0.4436297061"
+[1] "Performance:"
+  rep fold model pop_training pop_validation n_training n_validation
+1   1    1 gBLUP        pop_1          pop_1         86           22
+  duration_mins n_non_zero_effects     mbe      mae     rmse        r2
+1    0.01288915                113 33.8737 34.43608 38.07137 -3.834383
+       corr power_t10 power_b10 var_pred var_true        h2
+1 0.0484774         0         0 6.754905 314.0938 0.4436297
+[1] "Output file names:"
+[1] "    - outdir/within-pop_1-metrics-rep_1-fold_1-model_gBLUP-1717649203632785.tsv"
+[1] "    - outdir/within-pop_1-y_pred-rep_1-fold_1-model_gBLUP-1717649203632785.tsv"
+[1] "Intercept = 30.3909190201476"
+[1] "Random effects distribution, i.e. BLUPs of each sample:"
+     +----------+------------+------------+------------+-------+
+ 0.1 +                  *******                                +
+     |               ****     **                               |
+     |             ***         **                              |
+0.08 +            **            **                             +
+     |           **              **                            |
+0.06 +          **                **                           +
+     |         **                  ***                         |
+     |        **                     ****                      |
+0.04 +       **                         ****                   +
+     |      **                             ****                |
+     |     **                                 ***              |
+0.02 +   ***                                    ***            +
+     |  **                                         **********  |
+     +----------+------------+------------+------------+-------+
+               -5            0            5           10        
+[1] "Number of non-zero effects: 113 (100%)"
+[1] "Scatter plot of the observed and predicted phenotypes"
+   +----+----------+----------+---------+----------+----------++
+ 4 +                       *         *  *                  *   +
+   |                *                                          |
+   |                                                           |
+ 2 +                      *                                    +
+   |                                                           |
+   |  *                   *                                    |
+ 0 +  *                    ** *      *        *                +
+   |                              *                            |
+   |                 *   *                                     |
+-2 +        **                                                 +
+   |      *                                                    |
+   |                             *                             |
+-4 +                                        *                  +
+   +----+----------+----------+---------+----------+----------++
+        0         20         40        60         80         100
+[1] "Mean bias error (mbe) = 36.0134005064737"
+[1] "Mean absolute error (mae) = 36.8514358417344"
+[1] "Root mean square error (rmse) = 43.2728617384225"
+[1] "Coefficient of determination (r2) = -2.10718549245118"
+[1] "Power to identify top 10 (power_t10) = 36.0134005064737"
+[1] "Power to identify bottom 10 (power_b10) = 0"
+[1] "Pearson's correlation (corr) = 0.286400082606731"
+[1] "Variance of predicted phenotypes (var_pred) = 5.55271293339518 (estimator of additive genetic variance)"
+[1] "Variance of observed phenotypes (var_true) = 631.346009447519 (estimator of total phenotypic variance)"
+[1] "Narrow-sense heritability estimate (h2) = 0.0307089271"
+[1] "Intercept = 31.903953958349"
+[1] "Random effects distribution, i.e. BLUPs of each sample:"
+     +--+-------------------+--------------------+-------------+
+     |                    ******                               |
+     |                   **    **                              |
+0.15 +                  **      **                             +
+     |                 **        **                            |
+     |               ***          **                           |
+     |            ****             ***                         |
+ 0.1 +          ***                  ***                       +
+     |         **                      ***                     |
+     |        **                         ***                   |
+0.05 +       **                            **                  +
+     |     ***                              **                 |
+     |  ****                                 ***               |
+     |                                         **************  |
+   0 +--+-------------------+--------------------+-------------+
+       -5                   0                    5              
+[1] "Number of non-zero effects: 113 (100%)"
+[1] "Scatter plot of the observed and predicted phenotypes"
+   +------+-------------+------------+------------+------------+
+   |                                                        *  |
+ 3 +            *                                              +
+   |                                                           |
+ 2 +                                                *      *   +
+   |  *                                                        |
+ 1 +                                *              *           +
+   |         *                *                            *   |
+ 0 +                  **        *                              +
+   |   *          *               *                            |
+-1 +               *  **                                       +
+   |          *                                                |
+-2 +                                                           +
+   |                                         *                 |
+   +------+-------------+------------+------------+------------+
+          0            20           40           60             
+[1] "Mean bias error (mbe) = 30.0178547523604"
+[1] "Mean absolute error (mae) = 31.2546216284074"
+[1] "Root mean square error (rmse) = 39.3607077780301"
+[1] "Coefficient of determination (r2) = -1.30368399631709"
+[1] "Power to identify top 10 (power_t10) = 30.0178547523604"
+[1] "Power to identify bottom 10 (power_b10) = 0"
+[1] "Pearson's correlation (corr) = 0.365488396518325"
+[1] "Variance of predicted phenotypes (var_pred) = 1.96531720264796 (estimator of additive genetic variance)"
+[1] "Variance of observed phenotypes (var_true) = 706.142242263919 (estimator of total phenotypic variance)"
+[1] "Narrow-sense heritability estimate (h2) = 0.0076149467"
+[1] "Intercept = 33.6145333437838"
+[1] "Random effects distribution, i.e. BLUPs of each sample:"
+     +-----------+-----------+-----------+-----------+---------+
+0.05 +                    *****                                +
+     |                   **   **                               |
+     |                 ***      *                              |
+0.04 +               ***        **                             +
+     |             ***           **                            |
+0.03 +           ***              **                           +
+     |          **                 **                          |
+     |         **                   **                         |
+0.02 +        **                      ***                      +
+     |      **                          *****                  |
+     |     **                               ****               |
+0.01 +  ***                                    ***             +
+     |  *                                        ************  |
+     +-----------+-----------+-----------+-----------+---------+
+                -10          0          10          20          
+[1] "Number of non-zero effects: 113 (100%)"
+[1] "Scatter plot of the observed and predicted phenotypes"
+   +------+----------------+----------------+----------------+-+
+15 +                        *                                  +
+   |                                                           |
+   |                                                           |
+10 +                                                           +
+   |                  *                                        |
+   |                                                           |
+ 5 +                      *                                    +
+   |                           *                               |
+   |  *                      *                                 |
+ 0 +                             *    *      *          *      +
+   |              *             *                           *  |
+   |     *            *    * *              *                  |
+-5 +                    *           *                          +
+   +------+----------------+----------------+----------------+-+
+          0               20               40               60  
+[1] "Mean bias error (mbe) = 22.8310943477992"
+[1] "Mean absolute error (mae) = 23.6125929260924"
+[1] "Root mean square error (rmse) = 28.2018773112802"
+[1] "Coefficient of determination (r2) = -2.33042314692215"
+[1] "Power to identify top 10 (power_t10) = 22.8310943477992"
+[1] "Power to identify bottom 10 (power_b10) = 0"
+[1] "Pearson's correlation (corr) = -0.109462184024156"
+[1] "Variance of predicted phenotypes (var_pred) = 20.1446269866496 (estimator of additive genetic variance)"
+[1] "Variance of observed phenotypes (var_true) = 250.752874704918 (estimator of total phenotypic variance)"
+[1] "Narrow-sense heritability estimate (h2) = NA"
+[1] "Performance:"
+  rep fold model pop_training pop_validation n_training n_validation
+1   1    2 gBLUP        pop_1          pop_1         86           22
+  duration_mins n_non_zero_effects     mbe      mae     rmse        r2
+1    0.02512915                113 36.0134 36.85144 43.27286 -2.107185
+       corr power_t10 power_b10 var_pred var_true         h2
+1 0.2864001       0.5         0 5.552713  631.346 0.03070893
+[1] "Output file names:"
+[1] "    - outdir/within-pop_1-metrics-rep_1-fold_2-model_gBLUP-1717649204121675.tsv"
+[1] "    - outdir/within-pop_1-y_pred-rep_1-fold_2-model_gBLUP-1717649204121675.tsv"
+[1] "Performance:"
+  rep fold model pop_training pop_validation n_training n_validation
+1   1    4 gBLUP        pop_1          pop_1         87           21
+  duration_mins n_non_zero_effects      mbe      mae     rmse        r2
+1    0.02514637                113 30.01785 31.25462 39.36071 -1.303684
+       corr power_t10 power_b10 var_pred var_true          h2
+1 0.3654884       0.5         0 1.965317 706.1422 0.007614947
+[1] "Output file names:"
+[1] "    - outdir/within-pop_1-metrics-rep_1-fold_4-model_gBLUP-1717649205760347.tsv"
+[1] "    - outdir/within-pop_1-y_pred-rep_1-fold_4-model_gBLUP-1717649205760347.tsv"
+[1] "Performance:"
+  rep fold model pop_training pop_validation n_training n_validation
+1   1    3 gBLUP        pop_1          pop_1         87           21
+  duration_mins n_non_zero_effects      mbe      mae     rmse        r2
+1    0.02944967                113 22.83109 23.61259 28.20188 -2.330423
+        corr power_t10 power_b10 var_pred var_true h2
+1 -0.1094622         0         0 20.14463 250.7529 NA
+[1] "Output file names:"
+[1] "    - outdir/within-pop_1-metrics-rep_1-fold_3-model_gBLUP-1717649205891662.tsv"
+[1] "    - outdir/within-pop_1-y_pred-rep_1-fold_3-model_gBLUP-1717649205891662.tsv"
+[1] "Intercept = 30.7470898229121"
+[1] "Random effects distribution, i.e. BLUPs of each sample:"
+     +--+-------------------+-------------------+--------------+
+ 0.2 +                    ****                                 +
+     |                  ***  **                                |
+     |                 **     **                               |
+0.15 +                **       **                              +
+     |              ***         *                              |
+     |            ***           **                             |
+ 0.1 +           **              *                             +
+     |         ***                *                            |
+     |        **                   **   **                     |
+     |       **                     *********                  |
+0.05 +     **                               **                 +
+     |   ***                                  **               |
+     |  **                                     **************  |
+   0 +--+-------------------+-------------------+--------------+
+       -5                   0                   5               
+[1] "Number of non-zero effects: 113 (100%)"
+[1] "Scatter plot of the observed and predicted phenotypes"
+   +---------+----------+----------+----------+-----------+----+
+ 4 +                                                        *  +
+   |             *                           *                 |
+   |                             *                             |
+   |                                                           |
+ 2 +                       *                                   +
+   |                                                           |
+   |                                       *                   |
+   |                            *         ***                  |
+ 0 +  *                                          *             +
+   |             *  *  *    **                                 |
+   |                   *                                       |
+   |                      *                                    |
+-2 +                      *                             *      +
+   +---------+----------+----------+----------+-----------+----+
+             0         20         40         60          80     
+[1] "Mean bias error (mbe) = 34.6937739387471"
+[1] "Mean absolute error (mae) = 35.8967921401816"
+[1] "Root mean square error (rmse) = 42.0105164481395"
+[1] "Coefficient of determination (r2) = -2.03300346900504"
+[1] "Power to identify top 10 (power_t10) = 34.6937739387471"
+[1] "Power to identify bottom 10 (power_b10) = 0"
+[1] "Pearson's correlation (corr) = 0.271833340600281"
+[1] "Variance of predicted phenotypes (var_pred) = 3.28227227288951 (estimator of additive genetic variance)"
+[1] "Variance of observed phenotypes (var_true) = 609.602192082208 (estimator of total phenotypic variance)"
+[1] "Narrow-sense heritability estimate (h2) = 0.0198073038"
+[1] "Performance:"
+  rep fold model pop_training pop_validation n_training n_validation
+1   1    5 gBLUP        pop_1          pop_1         86           22
+  duration_mins n_non_zero_effects      mbe      mae     rmse        r2
+1    0.01344491                113 34.69377 35.89679 42.01052 -2.033003
+       corr power_t10 power_b10 var_pred var_true        h2
+1 0.2718333       0.5         0 3.282272 609.6022 0.0198073
+[1] "Output file names:"
+[1] "    - outdir/within-pop_1-metrics-rep_1-fold_5-model_gBLUP-1717649206478919.tsv"
+[1] "    - outdir/within-pop_1-y_pred-rep_1-fold_5-model_gBLUP-1717649206478919.tsv"
+[1] "Allele effects distribution:"
+   +---+----------------+---------------+----------------+-----+
+   |   *                                                       |
+15 +                                                           +
+   |                                                           |
+   |                                                           |
+   |                                                           |
+10 +                                                           +
+   |                                                           |
+   |                                                           |
+   |                                                           |
+ 5 +                                                           +
+   |                                                           |
+   |   *                                                       |
+ 0 +  *******************************************************  +
+   +---+----------------+---------------+----------------+-----+
+       0               10              20               30      
+[1] "Relative posisitions of allele effects across the genome:"
+   +--+-------------+--------------+-------------+-------------+
+30 +  *                                                        +
+   |                                                           |
+   |                                                           |
+   |                                                           |
+20 +                                                           +
+   |                                                           |
+   |                                                           |
+   |                                                           |
+10 +                                                           +
+   |                                                           |
+   |                                     *                     |
+   |                                                           |
+ 0 +  *****************************************************    +
+   +--+-------------+--------------+-------------+-------------+
+      0           10000          20000         30000            
+[1] "Number of non-zero effects: 4 (0%)"
+[1] "Scatter plot of the observed and predicted phenotypes"
+     +------+------------+------------+------------+-----------+
+     |                           *                             |
+  34 +                                                         +
+     |                                                         |
+33.5 +                         *                     *         +
+     |                                                         |
+  33 +           *                                             +
+     |                                                         |
+     |                                                         |
+32.5 +                                                         +
+     |                               *              *          |
+  32 +         *                                               +
+     |  **          *  *                      *            **  |
+31.5 +         *        *          *                        *  +
+     +------+------------+------------+------------+-----------+
+            0           20           40           60            
+[1] "Mean bias error (mbe) = -1.67002903460239"
+[1] "Mean absolute error (mae) = 22.4463056187712"
+[1] "Root mean square error (rmse) = 25.9244051888283"
+[1] "Coefficient of determination (r2) = 0.000656692974715489"
+[1] "Power to identify top 10 (power_t10) = -1.67002903460239"
+[1] "Power to identify bottom 10 (power_b10) = 0"
+[1] "Pearson's correlation (corr) = 0.0972933122733335"
+[1] "Variance of predicted phenotypes (var_pred) = 0.582089293914466 (estimator of additive genetic variance)"
+[1] "Variance of observed phenotypes (var_true) = 706.142242263919 (estimator of total phenotypic variance)"
+[1] "Narrow-sense heritability estimate (h2) = 0.0084725557"
+[1] "Performance:"
+  rep fold       model pop_training pop_validation n_training n_validation
+1   1    4 elastic_net        pop_1          pop_1         87           21
+  duration_mins n_non_zero_effects       mbe      mae     rmse          r2
+1     0.0861809                  4 -1.670029 22.44631 25.92441 0.000656693
+        corr power_t10 power_b10  var_pred var_true          h2
+1 0.09729331         0         0 0.5820893 706.1422 0.008472556
+[1] "Output file names:"
+[1] "    - outdir/within-pop_1-metrics-rep_1-fold_4-model_elastic_net-1717649208871768.tsv"
+[1] "    - outdir/within-pop_1-y_pred-rep_1-fold_4-model_elastic_net-1717649208871768.tsv"
+[1] "Allele effects distribution:"
+  +--------+--------+--------+---------+--------+--------+-----+
+6 +                 *                                          +
+  |                                                            |
+5 +                 *                                          +
+  |                                                            |
+4 +                                                            +
+  |                                                            |
+3 +                                                            +
+  |                                                            |
+2 +                                                            +
+  |                 *                                          |
+1 +                                                            +
+  |                                                            |
+0 +  ********************************************************  +
+  +--------+--------+--------+---------+--------+--------+-----+
+          -10       0       10        20       30       40      
+[1] "Relative posisitions of allele effects across the genome:"
+    +--+-------------+-------------+-------------+-------------+
+ 40 +  *                                                       +
+    |                                                          |
+ 30 +                                                          +
+    |                                                          |
+    |                     *                                    |
+ 20 +                                                          +
+    |                                                          |
+ 10 +                                            *             +
+    |                     *     *   *            *       *     |
+  0 +  ****************************************************    +
+    |            **                          *        *        |
+-10 +                                                          +
+    |           *                       *                      |
+    +--+-------------+-------------+-------------+-------------+
+       0           10000         20000         30000            
+[1] "Number of non-zero effects: 22 (0%)"
+[1] "Scatter plot of the observed and predicted phenotypes"
+   +----+----------+----------+---------+----------+----------++
+   |                        *                                  |
+40 +                                                       *   +
+   |  *                   *          *  *                      |
+   |         *             *                                   |
+35 +                       *                                   +
+   |                 *    *                   *                |
+   |  *             *                                          |
+30 +                                 *                         +
+   |        *            *        *                            |
+   |                          *             *                  |
+25 +      *                                                    +
+   |                                                           |
+   |                             *                             |
+20 +----+----------+----------+---------+----------+----------++
+        0         20         40        60         80         100
+[1] "Mean bias error (mbe) = 3.42386211751529"
+[1] "Mean absolute error (mae) = 19.4279500143264"
+[1] "Root mean square error (rmse) = 24.4963895743515"
+[1] "Coefficient of determination (r2) = 0.00427340570971513"
+[1] "Power to identify top 10 (power_t10) = 3.42386211751529"
+[1] "Power to identify bottom 10 (power_b10) = 0"
+[1] "Pearson's correlation (corr) = 0.16532141436577"
+[1] "Variance of predicted phenotypes (var_pred) = 32.0664876429032 (estimator of additive genetic variance)"
+[1] "Variance of observed phenotypes (var_true) = 631.346009447519 (estimator of total phenotypic variance)"
+[1] "Narrow-sense heritability estimate (h2) = 0.3072237889"
+[1] "Allele effects distribution:"
+  ++---------+---------+--------+---------+---------+---------++
+  |          *                                                 |
+8 +                                                            +
+  |                                                            |
+  |                                                            |
+6 +                                                            +
+  |                                                            |
+  |                                                            |
+4 +                                                            +
+  |                                                            |
+  |                                                            |
+2 +         *                                                  +
+  |          *                                                 |
+0 +  ********************************************************  +
+  ++---------+---------+--------+---------+---------+---------++
+  -10        0        10       20        30        40        50 
+[1] "Relative posisitions of allele effects across the genome:"
+ 50 +--+-------------+-------------+-------------+-------------+
+    |  *                                                       |
+ 40 +                                                          +
+    |                                                          |
+    |                                                          |
+ 30 +                                            *             +
+    |                                                          |
+ 20 +                                                          +
+    |                                                          |
+ 10 +                                                          +
+    |                *                    *                    |
+    |                                              *     *     |
+  0 +  ****************************************************    +
+    |                *                *              **        |
+-10 +--+-------------+-------------+-------------+-------------+
+       0           10000         20000         30000            
+[1] "Number of non-zero effects: 16 (0%)"
+[1] "Scatter plot of the observed and predicted phenotypes"
+   +-----+--------------+---------------+---------------+------+
+50 +                                         *                 +
+   |                                                           |
+45 +                                                           +
+   |     [1]    "Allele effects distribution:" 
+                                                  |
+40 +                                                        *  +
+   |                                                           |
+35 +                 *                          *              +
+   |                                                           |
+   |  *            * *     *     *                             |
+30 +                *            *    *     *                  +
+   |                  **            *     *               *    |
+25 +                             *          *                  +
+   |                       *                    *              |
+20 +-----+--------------+---------------+---------------+------+
+         0             20              40              60       
+[1] "Mean bias error (mbe) = 2.36953342671964"
+[1] "Mean absolute error (mae) = 14.5282732600894"
+[1] "Root mean square error (rmse) = 17.6361851352937"
+[1] "Coefficient of determination (r2) = -0.0374169857543598"
+[1] "Power to identify top 10 (power_t10) = 2.36953342671964"
+[1] "Power to identify bottom 10 (power_b10) = 0"
+[1] "Pearson's correlation (corr) = 0.160027361056063"
+[1] "Variance of predicted phenotypes (var_pred) = 43.1157004269815 (estimator of additive genetic variance)"
+[1] "Variance of observed phenotypes (var_true) = 314.093775522401 (estimator of total phenotypic variance)"
+[1] "Narrow-sense heritability estimate (h2) = 0.8577917643"
+   +----------+--------------+--------------+--------------+---+
+10 +          *                                                +
+   |                                                           |
+ 8 +          *                                                +
+   |                                                           |
+   |                                                           |
+ 6 +                                                           +
+   |                                                           |
+ 4 +                                                           +
+   |                                                           |
+   |          *                                                |
+ 2 +                                                           +
+   |                                                           |
+ 0 +  *******************************************************  +
+   +----------+--------------+--------------+--------------+---+
+              0             10             20             30    
+[1] "Relative posisitions of allele effects across the genome:"
+   +--+-------------+--------------+-------------+-------------+
+30 +  *                                                        +
+   |                                                           |
+   |                                                           |
+20 +                                                           +
+   |                                                           |
+   |                                                           |
+   |                                                           |
+10 +                                                           +
+   |                                             *             |
+   |                     *                                     |
+ 0 +  *****************************************************    +
+   |                                                           |
+   |                                    *                      |
+   +--+-------------+--------------+-------------+-------------+
+      0           10000          20000         30000            
+[1] "Number of non-zero effects: 4 (0%)"
+[1] "Scatter plot of the observed and predicted phenotypes"
+     +----+---------+----------+---------+---------+----------++
+     |                      *                              *   |
+31.5 +                               *                         +
+     |  *                                *     *               |
+  31 +                                                         +
+     |                       *    *                            |
+30.5 +        *                                                +
+     |                       *                                 |
+     |                      *               *                  |
+  30 +  *   *                                                  +
+     |                               *                         |
+29.5 +         *     *    *        *                           +
+     |                *        *                               |
+  29 +                     *                                   +
+     +----+---------+----------+---------+---------+----------++
+          0        20         40        60        80         100
+[1] "Mean bias error (mbe) = 5.79883239409273"
+[1] "Mean absolute error (mae) = 19.703501270212"
+[1] "Root mean square error (rmse) = 24.9358911821317"
+[1] "Coefficient of determination (r2) = -0.0317767432282741"
+[1] "Power to identify top 10 (power_t10) = 5.79883239409273"
+[1] "Power to identify bottom 10 (power_b10) = 0"
+[1] "Pearson's correlation (corr) = 0.366198229470169"
+[1] "Variance of predicted phenotypes (var_pred) = 0.747762791194956 (estimator of additive genetic variance)"
+[1] "Variance of observed phenotypes (var_true) = 631.346009447519 (estimator of total phenotypic variance)"
+[1] "Narrow-sense heritability estimate (h2) = 0.003234299"
+[1] "Allele effects distribution:"
+[1] "Performance:"
+  rep fold model pop_training pop_validation n_training n_validation
+1   1    2 lasso        pop_1          pop_1         86           22
+  duration_mins n_non_zero_effects      mbe      mae     rmse          r2
+1     0.1283208                 22 3.423862 19.42795 24.49639 0.004273406
+       corr power_t10 power_b10 var_pred var_true        h2
+1 0.1653214       0.5         0 32.06649  631.346 0.3072238
+[1] "Output file names:"
+[1] "    - outdir/within-pop_1-metrics-rep_1-fold_2-model_lasso-1717649210783504.tsv"
+[1] "    - outdir/within-pop_1-y_pred-rep_1-fold_2-model_lasso-1717649210783504.tsv"
+   +---+----------------+---------------+----------------+-----+
+   |   *                                                       |
+15 +                                                           +
+   |                                                           |
+   |                                                           |
+   |                                                           |
+10 +                                                           +
+   |                                                           |
+   |                                                           |
+   |                                                           |
+ 5 +                                                           +
+   |                                                           |
+   |   *                                                       |
+ 0 +  *******************************************************  +
+   +---+----------------+---------------+----------------+-----+
+       0               10              20               30      
+[1] "Relative posisitions of allele effects across the genome:"
+   +--+-------------+--------------+-------------+-------------+
+30 +  *                                                        +
+   |                                                           |
+   |                                                           |
+   |                                                           |
+20 +                                                           +
+   |                                                           |
+   |                                                           |
+   |                                                           |
+10 +                                                           +
+   |                                                           |
+   |                                     *                     |
+   |                                                           |
+ 0 +  *****************************************************    +
+   +--+-------------+--------------+-------------+-------------+
+      0           10000          20000         30000            
+[1] "Number of non-zero effects: 4 (0%)"
+[1] "Scatter plot of the observed and predicted phenotypes"
+     +------+------------+------------+------------+-----------+
+     |                           *                             |
+  34 +                                                         +
+     |                                                         |
+33.5 +                         *                     *         +
+     |                                                         |
+  33 +           *                                             +
+     |                                                         |
+     |                                                         |
+32.5 +                                                         +
+     |                               *              *          |
+  32 +         *                                               +
+     |  **          *  *                      *            **  |
+31.5 +         *        *          *                        *  +
+     +------+------------+------------+------------+-----------+
+            0           20           40           60            
+[1] "Mean bias error (mbe) = -1.67002903460239"
+[1] "Mean absolute error (mae) = 22.4463056187712"
+[1] "Root mean square error (rmse) = 25.9244051888283"
+[1] "Coefficient of determination (r2) = 0.000656692974715489"
+[1] "Power to identify top 10 (power_t10) = -1.67002903460239"
+[1] "Power to identify bottom 10 (power_b10) = 0"
+[1] "Pearson's correlation (corr) = 0.0972933122733335"
+[1] "Variance of predicted phenotypes (var_pred) = 0.582089293914466 (estimator of additive genetic variance)"
+[1] "Variance of observed phenotypes (var_true) = 706.142242263919 (estimator of total phenotypic variance)"
+[1] "Narrow-sense heritability estimate (h2) = 0.0084725557"
+[1] "Allele effects distribution:"
+  +----+--------+--------+--------+--------+--------+--------+-+
+6 +             *                                              +
+  |                                                            |
+5 +             *                                              +
+  |                                                            |
+4 +                                                            +
+  |                                                            |
+3 +                                                            +
+  |                                                            |
+2 +                                                            +
+  |                                                            |
+1 +             *                                              +
+  |                                                            |
+0 +  ********************************************************  +
+  +----+--------+--------+--------+--------+--------+--------+-+
+      -10       0       10       20       30       40       50  
+[1] "Relative posisitions of allele effects across the genome:"
+ 50 +--+-------------+-------------+-------------+-------------+
+    |  *                                                       |
+ 40 +                                                          +
+    |                                                          |
+    |                                                          |
+ 30 +                                                          +
+    |                                                          |
+ 20 +                    *                                     +
+    |                                            *             |
+ 10 +                                                     *    +
+    |                      *    *                     *        |
+  0 +  ****************************************************    +
+    |                            *     *     *      *          |
+-10 +                 *        *              *                +
+    +--+-------------+-------------+-------------+-------------+
+       0           10000         20000         30000            
+[1] "Number of non-zero effects: 20 (0%)"
+[1] "Scatter plot of the observed and predicted phenotypes"
+   +---------+----------+----------+----------+-----------+----+
+40 +             *                                          *  +
+   |                                                           |
+   |                                      *                    |
+35 +                       *                                   +
+   |                         *                                 |
+   |             *        *      *                             |
+   |                                        *                  |
+30 +                   *                   *                   +
+   |                                       *                   |
+   |  *             *  *  *  *  *            *                 |
+25 +                                             *             +
+   |                                                    *      |
+   |                        *                                  |
+   +---------+----------+----------+----------+-----------+----+
+             0         20         40         60          80     
+[1] "Mean bias error (mbe) = 4.93032503718649"
+[1] "Mean absolute error (mae) = 19.9731819216465"
+[1] "Root mean square error (rmse) = 25.0194037403282"
+[1] "Coefficient of determination (r2) = -0.0757485686757007"
+[1] "Power to identify top 10 (power_t10) = 4.93032503718649"
+[1] "Power to identify bottom 10 (power_b10) = 0"
+[1] "Pearson's correlation (corr) = 0.0100818242641172"
+[1] "Variance of predicted phenotypes (var_pred) = 27.2736776386702 (estimator of additive genetic variance)"
+[1] "Variance of observed phenotypes (var_true) = 609.602192082208 (estimator of total phenotypic variance)"
+[1] "Narrow-sense heritability estimate (h2) = NA"
+[1] "Performance:"
+  rep fold       model pop_training pop_validation n_training n_validation
+1   1    1 elastic_net        pop_1          pop_1         86           22
+  duration_mins n_non_zero_effects      mbe      mae     rmse          r2
+1     0.1328484                 16 2.369533 14.52827 17.63619 -0.03741699
+       corr power_t10 power_b10 var_pred var_true        h2
+1 0.1600274       0.5         0  43.1157 314.0938 0.8577918
+[1] "Output file names:"
+[1] "    - outdir/within-pop_1-metrics-rep_1-fold_1-model_elastic_net-1717649211533928.tsv"
+[1] "    - outdir/within-pop_1-y_pred-rep_1-fold_1-model_elastic_net-1717649211533928.tsv"
+[1] "Performance:"
+  rep fold       model pop_training pop_validation n_training n_validation
+1   1    2 elastic_net        pop_1          pop_1         86           22
+  duration_mins n_non_zero_effects      mbe     mae     rmse          r2
+1     0.1324813                  4 5.798832 19.7035 24.93589 -0.03177674
+       corr power_t10 power_b10  var_pred var_true          h2
+1 0.3661982       0.5         0 0.7477628  631.346 0.003234299
+[1] "Output file names:"
+[1] "    - outdir/within-pop_1-metrics-rep_1-fold_2-model_elastic_net-1717649211382959.tsv"
+[1] "    - outdir/within-pop_1-y_pred-rep_1-fold_2-model_elastic_net-1717649211382959.tsv"
+[1] "Allele effects distribution:"
+[1] "Allele effects distribution:"
+  +-------+---------+---------+---------+---------+---------+--+
+  |                 *                                          |
+6 +                                                            +
+  |                                                            |
+  |                                                            |
+4 +                                                            +
+  |                                                            |
+  |                                                            |
+  |                                                            |
+2 +                                                            +
+  |                                                            |
+  |                                                            |
+  |                 *                                          |
+0 +  ********************************************************  +
+  +-------+---------+---------+---------+---------+---------+--+
+         -10        0        10        20        30        40   
+[1] "Relative posisitions of allele effects across the genome:"
+8 +---+----------+----------+----------+----------+----------+-+
+  |              *                                             |
+  |                                                            |
+6 +                                                            +
+  |              *                                             |
+  |                                                            |
+  |                                                            |
+4 +                                                            +
+  |                                                            |
+  |              *                                             |
+2 +                                                            +
+  |                                                            |
+  |                                                            |
+0 +  ********************************************************  +
+  +---+----------+----------+----------+----------+----------+-+
+     -10         0         10         20         30         40  
+[1] "Relative posisitions of allele effects across the genome:"
+    +--+-------------+-------------+-------------+-------------+
+ 40 +  *                                                       +
+    |                                                          |
+ 30 +                                            *             +
+    |                                                          |
+ 20 +                                                          +
+    |                                                          |
+    |                                                          |
+ 10 +                              *                  *        +
+    |           *        *             *                       |
+  0 +  ****************************************************    +
+    |                                               *          |
+-10 +                                                          +
+    |             *                                            |
+    +--+-------------+-------------+-------------+-------------+
+       0           10000         20000         30000            
+[1] "Number of non-zero effects: 14 (0%)"
+[1] "Scatter plot of the observed and predicted phenotypes"
+   +------+----------------+----------------+----------------+-+
+   |                                                        *  |
+   |     *            *                                        |
+45 +                                                           +
+   |                                                           |
+   |                                                           |
+40 +                                                           +
+   |                                                           |
+   |                           *      *                 *      |
+35 +              *                                            +
+   |  *               * *   *   *   *       *                  |
+   |              *        * *                                 |
+30 +                                         *                 +
+   |                      *      *                             |
+   +------+----------------+----------------+----------------+-+
+          0               20               40               60  
+[1] "Mean bias error (mbe) = -11.2026319136802"
+[1] "Mean absolute error (mae) = 15.5792324974708"
+[1] "Root mean square error (rmse) = 19.3791375940879"
+[1] "Coefficient of determination (r2) = -0.572578272728313"
+[1] "Power to identify top 10 (power_t10) = -11.2026319136802"
+[1] "Power to identify bottom 10 (power_b10) = 0"
+[1] "Pearson's correlation (corr) = 0.117746305060153"
+[1] "Variance of predicted phenotypes (var_pred) = 31.7638794657332 (estimator of additive genetic variance)"
+[1] "Variance of observed phenotypes (var_true) = 250.752874704918 (estimator of total phenotypic variance)"
+[1] "Narrow-sense heritability estimate (h2) = NA"
+[1] "Allele effects distribution:"
+  +-------+---------+---------+--------+---------+---------+---+
+6 +                 *                                          +
+  |                 *                                          |
+5 +                                                            +
+  |                                                            |
+4 +                                                            +
+  |                                + - - + - - - - - - - - - - - - - + - - - - - - - - - - - - - + -|-
+-3- -+- - - - - - - - + - - - - - - - - - - - - - + 
+   4 0   +     *                                                          + 
+     |                                            + 
+         |                                                                | 
+ 2   +                                            | 
+   3 0   +                                                                + 
+     |                                            + 
+         |                                                                | 
+ 1   +                                   *        | 
+         |                                                                + 
+     |                                            | 
+   2 0   +                                                                | 
+ 0   +     * * * * * * * * * * * * * * * * * * * *+*
+* * * * *|* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *     + 
+     + - - - - - - - + - - - - - - - - - + - - - -|-
+- -1-0- ++- - - - - - - - + - - - - - - - - - + - -*- - - - - - - + - - - + 
+                   - 10        0        10       20        30        40    
+[1] "Relative posisitions of allele effects across the genome:"
+*             +
+    |                                                          |
+    |                                  *                  *    |
+  0 +  ****************************************************    +
+    |                                         *                |
+-10 +                          *                               +
+    +--+-------------+-------------+-------------+-------------+
+       0           10000         20000         30000            
+[1] "Number of non-zero effects: 12 (0%)"
+[1] "Scatter plot of the observed and predicted phenotypes"
+   +---------+----------+----------+----------+-----------+----+
+   |             *                                             |
+   |                                                           |
+   |                                                           |
+35 +                                      *                 *  +
+   |                                                           |
+   |                       *                                   |
+   |                         *   *                             |
+   |             *        *                 **                 |
+30 +                   *        *          *                   +
+   |  *                *  *                      *             |
+   |                *                                   *      |
+   |                                                           |
+25 +                        *                                  +
+   +---------+----------+----------+----------+-----------+----+
+             0         20         40         60          80     
+[1] "Mean bias error (mbe) = 4.52602494585279"
+[1] "Mean absolute error (mae) = 19.4536984281816"
+[1] "Root mean square error (rmse) = 24.5681299180822"
+[1] "Coefficient of determination (r2) = -0.0372920899230227"
+[1] "Power to identify top 10 (power_t10) = 4.52602494585279"
+[1] "Power to identify bottom 10 (power_b10) = 0"
+[1] "Pearson's correlation (corr) = 0.0512060211033807"
+[1] "Variance of predicted phenotypes (var_pred) = 11.331320288248 (estimator of additive genetic variance)"
+[1] "Variance of observed phenotypes (var_true) = 609.602192082208 (estimator of total phenotypic variance)"
+[1] "Narrow-sense heritability estimate (h2) = 0.3630052988"
+    +--+-------------+-------------+-------------+-------------+
+ 40 +  *                                                       +
+    |                                                          |
+ 30 +                                                          +
+    |                                            *             |
+ 20 +                                                          +
+    |                                                          |
+    |                                                          |
+ 10 +                              *                  *        +
+    |           *        *             *            *          |
+  0 +  ****************************************************    +
+    |                                               *          |
+-10 +                                                          +
+    |             *                                            |
+    +--+-------------+-------------+-------------+-------------+
+       0           10000         20000         30000            
+[1] "Number of non-zero effects: 17 (0%)"
+[1] "Scatter plot of the observed and predicted phenotypes"
+50 +------+----------------+----------------+----------------+-+
+   |                  *                                     *  |
+   |     *                                                     |
+45 +                                                           +
+   |                                                           |
+   |                                                           |
+40 +                                                           +
+   |               [1]  "Performance:" 
+                                          |
+   |                           *      *                 *      |
+35 +              *                                            +
+   |  *               * *   *   *   *       *                  |
+   |                       * *                                 |
+30 +              *          *               *                 +
+   |                      *      *           rep  fold  model  pop_training  pop_validation  n_training  n_validation 
+1    1     4  lasso         pop_1           pop_1          87            21 
+    duration_mins  n_non_zero_effects        mbe       mae|     rmse
+          r2 
+1      0.1303738                   4+ -1.670029- 22.44631- 25.92441- 0.000656693-
+- -       corr+ power_t10- power_b10-  var_pred- var_true-          h2-
+1- 0.09729331-         0-         0- 0.5820893- 706.1422- 0.008472556-
+----+-[1]- "Output file names:"-
+----[1]-- "    - outdir/within-pop_1-metrics-rep_1-fold_4-model_lasso-1717649211331202.tsv"-
+---[1]-- "    - outdir/within-pop_1-y_pred-rep_1-fold_4-model_lasso-1717649211331202.tsv"-
++----------------+-+
+          0               20               40               60  
+[1] "Mean bias error (mbe) = -11.2186443923963"
+[1] "Mean absolute error (mae) = 15.583061525389"
+[1] "Root mean square error (rmse) = 19.4691553127533"
+[1] "Coefficient of determination (r2) = -0.587221719751276"
+[1] "Power to identify top 10 (power_t10) = -11.2186443923963"
+[1] "Power to identify bottom 10 (power_b10) = 0"
+[1] "Pearson's correlation (corr) = 0.11465226604163"
+[1] "Variance of predicted phenotypes (var_pred) = 35.4904664138961 (estimator of additive genetic variance)"
+[1] "Variance of observed phenotypes (var_true) = 250.752874704918 (estimator of total phenotypic variance)"
+[1] "Narrow-sense heritability estimate (h2) = NA"
+[1] "Performance:"
+  rep fold       model pop_training pop_validation n_training n_validation
+1   1    5 elastic_net        pop_1          pop_1         86           22
+  duration_mins n_non_zero_effects      mbe      mae    rmse          r2
+1     0.1278961                 20 4.930325 19.97318 25.0194 -0.07574857
+        corr power_t10 power_b10 var_pred var_true h2
+1 0.01008182         0         0 27.27368 609.6022 NA
+[1] "Output file names:"
+[1] "    - outdir/within-pop_1-metrics-rep_1-fold_5-model_elastic_net-1717649211389852.tsv"
+[1] "    - outdir/within-pop_1-y_pred-rep_1-fold_5-model_elastic_net-1717649211389852.tsv"
+[1] "Performance:"
+  rep fold model pop_training pop_validation n_training n_validation
+1   1    3 lasso        pop_1          pop_1         87           21
+  duration_mins n_non_zero_effects       mbe      mae     rmse         r2
+1     0.1391995                 14 -11.20263 15.57923 19.37914 -0.5725783
+       corr power_t10 power_b10 var_pred var_true h2
+1 0.1177463       0.5         0 31.76388 250.7529 NA
+[1] "Output file names:"
+[1] "    - outdir/within-pop_1-metrics-rep_1-fold_3-model_lasso-1717649211850618.tsv"
+[1] "    - outdir/within-pop_1-y_pred-rep_1-fold_3-model_lasso-1717649211850618.tsv"
+[1] "Performance:"
+  rep fold       model pop_training pop_validation n_training n_validation
+1   1    3 elastic_net        pop_1          pop_1         87           21
+  duration_mins n_non_zero_effects       mbe      mae     rmse         r2
+1     0.1410653                 17 -11.21864 15.58306 19.46916 -0.5872217
+       corr power_t10 power_b10 var_pred var_true h2
+1 0.1146523       0.5         0 35.49047 250.7529 NA
+[1] "Output file names:"
+[1] "    - outdir/within-pop_1-metrics-rep_1-fold_3-model_elastic_net-1717649211264118.tsv"
+[1] "    - outdir/within-pop_1-y_pred-rep_1-fold_3-model_elastic_net-1717649211264118.tsv"
+[1] "Performance:"
+  rep fold model pop_training pop_validation n_training n_validation
+1   1    5 lasso        pop_1          pop_1         86           22
+  duration_mins n_non_zero_effects      mbe     mae     rmse          r2
+1     0.1340353                 12 4.526025 19.4537 24.56813 -0.03729209
+        corr power_t10 power_b10 var_pred var_true        h2
+1 0.05120602         0         0 11.33132 609.6022 0.3630053
+[1] "Output file names:"
+[1] "    - outdir/within-pop_1-metrics-rep_1-fold_5-model_lasso-1717649211556009.tsv"
+[1] "    - outdir/within-pop_1-y_pred-rep_1-fold_5-model_lasso-1717649211556009.tsv"
+[1] "Allele effects distribution:"
+   +---------+------------+-------------+-------------+--------+
+   |         *                                                 |
+   |                                                           |
+   |                                                           |
+10 +                                                           +
+   |                                                           |
+   |                                                           |
+   |                                                           |
+   |                                                           |
+ 5 +                                                           +
+   |         *                                                 |
+   |                                                           |
+   |                                                           |
+ 0 +  *******************************************************  +
+   +---------+------------+-------------+-------------+--------+
+             0           10            20            30         
+[1] "Relative posisitions of allele effects across the genome:"
+   +--+-------------+--------------+-------------+-------------+
+   |  *                                                        |
+30 +                                                           +
+   |                                                           |
+   |                                                           |
+20 +                                                           +
+   |                                             *             |
+   |                                                           |
+   |                                                           |
+10 +                                                           +
+   |                                                           |
+   |                                                           |
+ 0 +  *****************************************************    +
+   |                 *                                         |
+   +--+-------------+--------------+-------------+-------------+
+      0           10000          20000         30000            
+[1] "Number of non-zero effects: 5 (0%)"
+[1] "Scatter plot of the observed and predicted phenotypes"
+   +-----+--------------+---------------+---------------+------+
+   |                                         *                 |
+   |                                                           |
+40 +                                                           +
+   |                                                           |
+   |                                                        *  |
+   |                                                           |
+35 +                       *                    *              +
+   |                                                           |
+   |                                                           |
+   |  *                                                        |
+   |                **           *                        *    |
+30 +               *  *    *        * *     *                  +
+   |                 * *         *        * *   *              |
+   +-----+--------------+---------------+---------------+------+
+         0             20              40              60       
+[1] "Mean bias error (mbe) = 1.46387256685771"
+[1] "Mean absolute error (mae) = 13.9579577891641"
+[1] "Root mean square error (rmse) = 16.7235376558011"
+[1] "Coefficient of determination (r2) = 0.06717460449109"
+[1] "Power to identify top 10 (power_t10) = 1.46387256685771"
+[1] "Power to identify bottom 10 (power_b10) = 0"
+[1] "Pearson's correlation (corr) = 0.283770952015075"
+[1] "Variance of predicted phenotypes (var_pred) = 13.2005720190125 (estimator of additive genetic variance)"
+[1] "Variance of observed phenotypes (var_true) = 314.093775522401 (estimator of total phenotypic variance)"
+[1] "Narrow-sense heritability estimate (h2) = 0.1481035552"
+[1] "Performance:"
+  rep fold model pop_training pop_validation n_training n_validation
+1   1    1 lasso        pop_1          pop_1         86           22
+  duration_mins n_non_zero_effects      mbe      mae     rmse        r2
+1     0.1543542                  5 1.463873 13.95796 16.72354 0.0671746
+      corr power_t10 power_b10 var_pred var_true        h2
+1 0.283771       0.5         0 13.20057 314.0938 0.1481036
+[1] "Output file names:"
+[1] "    - outdir/within-pop_1-metrics-rep_1-fold_1-model_lasso-1717649212840910.tsv"
+[1] "    - outdir/within-pop_1-y_pred-rep_1-fold_1-model_lasso-1717649212840910.tsv"
+[1] "Allele effects distribution:"
+80 +--+------------+-----------+------------+-----------+------+
+   |  *                                                        |
+   |                                                           |
+60 +                                                           +
+   |                                                           |
+   |  *                                                        |
+   |                                                           |
+40 +                                                           +
+   |                                                           |
+   |                                                           |
+20 +                                                           +
+   |                                                           |
+   |  *                                                        |
+ 0 +  *******************************************************  +
+   +--+------------+-----------+------------+-----------+------+
+      0           10          20           30          40       
+[1] "Relative posisitions of allele effects across the genome:"
+   +--+-------------+--------------+-------------+-------------+
+   |  *                                                        |
+40 +                                                           +
+   |                                                           |
+   |                                                           |
+30 +                                                           +
+   |                                                           |
+20 +                                                           +
+   |                                                           |
+   |                                                           |
+10 +                                                           +
+   |                                                           |
+   |                                                           |
+ 0 +  *****************************************************    +
+   +--+-------------+--------------+-------------+-------------+
+      0           10000          20000         30000            
+[1] "Number of non-zero effects: 36438 (100%)"
+[1] "Scatter plot of the observed and predicted phenotypes"
+   +------+-------------+------------+------------+------------+
+45 +                                                        *  +
+   |            *                   *                          |
+   |                                                           |
+40 +         *                  *                   *          +
+   |                          *                            *   |
+35 +  *               *                            *       *   +
+   |                   *          *                            |
+30 +              *                                            +
+   |   *           *  **                                       |
+   |          *                                                |
+25 +                                                           +
+   |                                                           |
+20 +                                         *                 +
+   +------+-------------+------------+------------+------------+
+          0            20           40           60             
+[1] "Mean bias error (mbe) = -4.05288929376957"
+[1] "Mean absolute error (mae) = 22.109285233016"
+[1] "Root mean square error (rmse) = 25.1241323472613"
+[1] "Coefficient of determination (r2) = 0.0614028054915302"
+[1] "Power to identify top 10 (power_t10) = -4.05288929376957"
+[1] "Power to identify bottom 10 (power_b10) = 0"
+[1] "Pearson's correlation (corr) = 0.296788550823615"
+[1] "Variance of predicted phenotypes (var_pred) = 42.8476690822687 (estimator of additive genetic variance)"
+[1] "Variance of observed phenotypes (var_true) = 706.142242263919 (estimator of total phenotypic variance)"
+[1] "Narrow-sense heritability estimate (h2) = 0.2044503535"
+[1] "Performance:"
+  rep fold model pop_training pop_validation n_training n_validation
+1   1    4 ridge        pop_1          pop_1         87           21
+  duration_mins n_non_zero_effects       mbe      mae     rmse         r2
+1     0.3671788              36438 -4.052889 22.10929 25.12413 0.06140281
+       corr power_t10 power_b10 var_pred var_true        h2
+1 0.2967886       0.5         0 42.84767 706.1422 0.2044504
+[1] "Output file names:"
+[1] "    - outdir/within-pop_1-metrics-rep_1-fold_4-model_ridge-1717649225204138.tsv"
+[1] "    - outdir/within-pop_1-y_pred-rep_1-fold_4-model_ridge-1717649225204138.tsv"
+[1] "Allele effects distribution:"
+100 +--+------------+-------------+------------+-------------+-+
+    |  *                                                       |
+    |                                                          |
+ 80 +                                                          +
+    |                                                          |
+    |  *                                                       |
+ 60 +                                                          +
+    |                                                          |
+ 40 +                                                          +
+    |                                                          |
+    |                                                          |
+ 20 +                                                          +
+    |  *                                                       |
+  0 +  ******************************************************  +
+    +--+------------+-------------+------------+-------------+-+
+       0           10            20           30            40  
+[1] "Relative posisitions of allele effects across the genome:"
+40 +--+-------------+--------------+-------------+-------------+
+   |  *                                                        |
+   |                                                           |
+   |                                                           |
+30 +                                                           +
+   |                                                           |
+   |                                                           |
+20 +                                                           +
+   |                                                           |
+   |                                                           |
+10 +                                                           +
+   |                                                           |
+   |                                                           |
+ 0 +  *****************************************************    +
+   +--+-------------+--------------+-------------+-------------+
+      0           10000          20000         30000            
+[1] "Number of non-zero effects: 36438 (100%)"
+[1] "Scatter plot of the observed and predicted phenotypes"
+45 +----+----------+----------+---------+----------+----------++
+   |                                 *                         |
+   |                                                           |
+40 +                                                       *   +
+   |                       *            *                      |
+   |                *     *                                    |
+35 +  *                     *                                  +
+   |                      **  *   *                            |
+30 +  *              *               *        *                +
+   |                     *                                     |
+   |         *                                                 |
+25 +      *                                                    +
+   |        *                                                  |
+   |                             *          *                  |
+20 +----+----------+----------+---------+----------+----------++
+        0         20         40        60         80         100
+[1] "Mean bias error (mbe) = 4.53842106019838"
+[1] "Mean absolute error (mae) = 18.30023646922"
+[1] "Root mean square error (rmse) = 24.05703775986"
+[1] "Coefficient of determination (r2) = 0.0396705529502982"
+[1] "Power to identify top 10 (power_t10) = 4.53842106019838"
+[1] "Power to identify bottom 10 (power_b10) = 0"
+[1] "Pearson's correlation (corr) = 0.274513714516722"
+[1] "Variance of predicted phenotypes (var_pred) = 35.0633350860408 (estimator of additive genetic variance)"
+[1] "Variance of observed phenotypes (var_true) = 631.346009447519 (estimator of total phenotypic variance)"
+[1] "Narrow-sense heritability estimate (h2) = 0.2023120431"
+[1] "Allele effects distribution:"
+    +--+---------------+----------------+---------------+------+
+    |  *                                                       |
+    |                                                          |
+    |                                                          |
+100 +                                                          +
+    |                                                          |
+    |                                                          |
+    |                                                          |
+    |                                                          |
+ 50 +  *                                                       +
+    |                                                          |
+    |                                                          |
+    |  *                                                       |
+  0 +  ******************************************************  +
+    +--+---------------+----------------+---------------+------+
+       0              10               20              30       
+[1] "Relative posisitions of allele effects across the genome:"
+   +--+-------------+--------------+-------------+-------------+
+   |  *                                                        |
+30 +                                                           +
+   |                                                           |
+   |                                                           |
+   |                                                           |
+20 +                                                           +
+   |                                                           |
+   |                                                           |
+10 +                                                           +
+   |                                                           |
+   |                                                           |
+   |                                                           |
+ 0 +  *****************************************************    +
+   +--+-------------+--------------+-------------+-------------+
+      0           10000          20000         30000            
+[1] "Number of non-zero effects: 36438 (100%)"
+[1] "Scatter plot of the observed and predicted phenotypes"
+   +-----+--------------+---------------+---------------+------+
+   |                                         *                 |
+   |                                                           |
+35 +                                                           +
+   |                 *                                         |
+   |  *                               *                        |
+   |                                                      * *  |
+30 +               *             *          *   *              +
+   |                *  *            *                          |
+   |                  *          *        * *                  |
+25 +                                            *              +
+   |                 *                                         |
+   |                                                           |
+   |                       *                                   |
+20 +-----+--------------+---------------+---------------+------+
+         0             20              40              60       
+[1] "Mean bias error (mbe) = 3.7597968427777"
+[1] "Mean absolute error (mae) = 13.867047970947"
+[1] "Root mean square error (rmse) = 17.350468819163"
+[1] "Coefficient of determination (r2) = -0.00407576418998556"
+[1] "Power to identify top 10 (power_t10) = 3.7597968427777"
+[1] "Power to identify bottom 10 (power_b10) = 0"
+[1] "Pearson's correlation (corr) = 0.208850407772648"
+[1] "Variance of predicted phenotypes (var_pred) = 16.934999985387 (estimator of additive genetic variance)"
+[1] "Variance of observed phenotypes (var_true) = 314.093775522401 (estimator of total phenotypic variance)"
+[1] "Narrow-sense heritability estimate (h2) = 0.2581609456"
+[1] "Performance:"
+  rep fold model pop_training pop_validation n_training n_validation
+1   1    2 ridge        pop_1          pop_1         86           22
+  duration_mins n_non_zero_effects      mbe      mae     rmse         r2
+1     0.3827623              36438 4.538421 18.30024 24.05704 0.03967055
+       corr power_t10 power_b10 var_pred var_true       h2
+1 0.2745137       0.5         0 35.06334  631.346 0.202312
+[1] "Output file names:"
+[1] "    - outdir/within-pop_1-metrics-rep_1-fold_2-model_ridge-1717649226323251.tsv"
+[1] "    - outdir/within-pop_1-y_pred-rep_1-fold_2-model_ridge-1717649226323251.tsv"
+[1] "Performance:"
+  rep fold model pop_training pop_validation n_training n_validation
+1   1    1 ridge        pop_1          pop_1         86           22
+  duration_mins n_non_zero_effects      mbe      mae     rmse           r2
+1     0.3904828              36438 3.759797 13.86705 17.35047 -0.004075764
+       corr power_t10 power_b10 var_pred var_true        h2
+1 0.2088504         0         0   16.935 314.0938 0.2581609
+[1] "Output file names:"
+[1] "    - outdir/within-pop_1-metrics-rep_1-fold_1-model_ridge-1717649226173564.tsv"
+[1] "    - outdir/within-pop_1-y_pred-rep_1-fold_1-model_ridge-1717649226173564.tsv"
+[1] "Allele effects distribution:"
+80 +--+-----------+-----------+-----------+-----------+--------+
+   |  *                                                        |
+   |                                                           |
+60 +                                                           +
+   |                                                           |
+   |                                                           |
+   |                                                           |
+40 +  *                                                        +
+   |                                                           |
+   |                                                           |
+20 +                                                           +
+   |  *                                                        |
+   |                                                           |
+ 0 +  *******************************************************  +
+   +--+-----------+-----------+-----------+-----------+--------+
+      0          10          20          30          40         
+[1] "Relative posisitions of allele effects across the genome:"
+   +--+-------------+--------------+-------------+-------------+
+   |  *                                                        |
+40 +                                                           +
+   |                                                           |
+   |                                                           |
+30 +                                                           +
+   |                                                           |
+   |                                                           |
+20 +                                                           +
+   |                                                           |
+   |                                                           |
+10 +                                                           +
+   |                                                           |
+ 0 +  *****************************************************    +
+   +--+-------------+--------------+-------------+-------------+
+      0           10000          20000         30000            
+[1] "Number of non-zero effects: 36438 (100%)"
+[1] "Scatter plot of the observed and predicted phenotypes"
+   +------+----------------+----------------+----------------+-+
+   |                        *                                  |
+55 +                                                           +
+   |                                                           |
+50 +                                                           +
+   |                                                           |
+45 +                  *                                        +
+   |                      *                                    |
+40 +                                                           +
+   |  *                                                        |
+35 +                         * *      *                        +
+   |                             *           *          *      |
+   |              *          *  *           *               *  |
+30 +     *        *   * *  *        *                          +
+   +------+----------------+----------------+----------------+-+
+          0               20               40               60  
+[1] "Mean bias error (mbe) = -11.225338849879"
+[1] "Mean absolute error (mae) = 17.3975120722969"
+[1] "Root mean square error (rmse) = 20.8451814951376"
+[1] "Coefficient of determination (r2) = -0.819511228656466"
+[1] "Power to identify top 10 (power_t10) = -11.225338849879"
+[1] "Power to identify bottom 10 (power_b10) = 0"
+[1] "Pearson's correlation (corr) = -0.110265973747405"
+[1] "Variance of predicted phenotypes (var_pred) = 46.6506864150655 (estimator of additive genetic variance)"
+[1] "Variance of observed phenotypes (var_true) = 250.752874704918 (estimator of total phenotypic variance)"
+[1] "Narrow-sense heritability estimate (h2) = NA"
+[1] "Performance:"
+  rep fold model pop_training pop_validation n_training n_validation
+1   1    3 ridge        pop_1          pop_1         87           21
+  duration_mins n_non_zero_effects       mbe      mae     rmse         r2
+1     0.4018509              36438 -11.22534 17.39751 20.84518 -0.8195112
+       corr power_t10 power_b10 var_pred var_true h2
+1 -0.110266         0         0 46.65069 250.7529 NA
+[1] "Output file names:"
+[1] "    - outdir/within-pop_1-metrics-rep_1-fold_3-model_ridge-1717649227402002.tsv"
+[1] "    - outdir/within-pop_1-y_pred-rep_1-fold_3-model_ridge-1717649227402002.tsv"
+[1] "Allele effects distribution:"
+    +--+-------------+--------------+-------------+------------+
+150 +  *                                                       +
+    |                                                          |
+    |                                                          |
+    |                                                          |
+100 +                                                          +
+    |                                                          |
+    |                                                          |
+    |                                                          |
+ 50 +  *                                                       +
+    |                                                          |
+    |                                                          |
+    |                                                          |
+  0 +  ******************************************************  +
+    +--+-------------+--------------+-------------+------------+
+       0            10             20            30             
+[1] "Relative posisitions of allele effects across the genome:"
+   +--+-------------+--------------+-------------+-------------+
+   |  *                                                        |
+   |                                                           |
+30 +                                                           +
+   |                                                           |
+   |                                                           |
+   |                                                           |
+20 +                                                           +
+   |                                                           |
+   |                                                           |
+10 +                                                           +
+   |                                                           |
+   |                                                           |
+ 0 +  *****************************************************    +
+   +--+-------------+--------------+-------------+-------------+
+      0           10000          20000         30000            
+[1] "Number of non-zero effects: 36438 (100%)"
+[1] "Scatter plot of the observed and predicted phenotypes"
+   +---------+----------+----------+----------+-----------+----+
+45 +                                                        *  +
+   |                                                           |
+   |             *                           *                 |
+40 +                             *                             +
+   |                                                           |
+   |                                                           |
+35 +                       *               *                   +
+   |                                      **                   |
+   |                            *           *                  |
+30 +  *             *                            *             +
+   |             *          **                          *      |
+   |                   *                                       |
+25 +                   *  *                                    +
+   +---------+----------+----------+----------+-----------+----+
+             0         20         40         60          80     
+[1] "Mean bias error (mbe) = 3.09048110195587"
+[1] "Mean absolute error (mae) = 17.5517123365478"
+[1] "Root mean square error (rmse) = 22.9215961537342"
+[1] "Coefficient of determination (r2) = 0.0970856001864627"
+[1] "Power to identify top 10 (power_t10) = 3.09048110195587"
+[1] "Power to identify bottom 10 (power_b10) = 0"
+[1] "Pearson's correlation (corr) = 0.360093231532401"
+[1] "Variance of predicted phenotypes (var_pred) = 31.1416976059739 (estimator of additive genetic variance)"
+[1] "Variance of observed phenotypes (var_true) = 609.602192082208 (estimator of total phenotypic variance)"
+[1] "Narrow-sense heritability estimate (h2) = 0.1418668105"
+[1] "Performance:"
+  rep fold model pop_training pop_validation n_training n_validation
+1   1    5 ridge        pop_1          pop_1         86           22
+  duration_mins n_non_zero_effects      mbe      mae    rmse        r2
+1     0.4043589              36438 3.090481 17.55171 22.9216 0.0970856
+       corr power_t10 power_b10 var_pred var_true        h2
+1 0.3600932       0.5         0  31.1417 609.6022 0.1418668
+[1] "Output file names:"
+[1] "    - outdir/within-pop_1-metrics-rep_1-fold_5-model_ridge-1717649227374254.tsv"
+[1] "    - outdir/within-pop_1-y_pred-rep_1-fold_5-model_ridge-1717649227374254.tsv"

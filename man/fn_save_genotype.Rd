@@ -31,8 +31,10 @@ Names of the samples, entries, or pools in the header line can be any unique str
 \item{verbose}{show genotype saving messages? (Default=FALSE)}
 }
 \value{
-Ok: file name of the output file
-Err: gpError
+\itemize{
+\item Ok: file name of the output file
+\item Err: gpError
+}
 }
 \description{
 Save numeric genotype matrix into a file
@@ -40,6 +42,6 @@ Save numeric genotype matrix into a file
 \examples{
 list_sim = fn_simulate_data(verbose=TRUE)
 G = fn_load_genotype(list_sim$fname_geno_vcf, min_depth=42, max_depth=750)
-fn_save_genotype(G=G, fname="test.Rds", file_type="Rds", verbose=TRUE)
-fn_save_genotype(G=G, fname="test.tsv", file_type="tsv", verbose=TRUE)
+fn_save_genotype(G=G, fname=tempfile(fileext=".Rds"), file_type="Rds", verbose=TRUE)
+fn_save_genotype(G=G, fname=tempfile(fileext=".tsv"), file_type="tsv", verbose=TRUE)
 }

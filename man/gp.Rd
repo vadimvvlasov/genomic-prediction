@@ -8,189 +8,270 @@ gp(args)
 }
 \arguments{
 \item{args}{list of arguments or inputs
-$fname_geno: filename of the input genotype file (see ?fn_load_genotype for details)
-$fname_pheno: filename of the input phenotype file (see ?fn_load_phenotype for details)
-$population: names of the population to used in within population k-fold cross-validation
-$fname_covar: filename of the covariate data (TODO: implement fn_load_covariate)
-$dir_output: output directory into which all temporary and final output files will be written
-$geno_fname_snp_list: filename of the SNP list for filtering the genotype data
+\itemize{
+\item $fname_geno: filename of the input genotype file (see ?fn_load_genotype for details)
+\item $fname_pheno: filename of the input phenotype file (see ?fn_load_phenotype for details)
+\item $population: names of the population to used in within population k-fold cross-validation
+\item $fname_covar: filename of the covariate data (TODO: implement fn_load_covariate)
+\item $dir_output: output directory into which all temporary and final output files will be written
+\item $geno_fname_snp_list: filename of the SNP list for filtering the genotype data
 (see ?fn_filter_genotype for details)
-$geno_ploidy: expected ploidy level of the genotype file (see ?fn_load_genotype for details)
-$geno_bool_force_biallelic: force all loci including multi-allelic ones to be biallelic?
+\item $geno_ploidy: expected ploidy level of the genotype file (see ?fn_load_genotype for details)
+\item $geno_bool_force_biallelic: force all loci including multi-allelic ones to be biallelic?
 (see ?fn_load_genotype for details)
-$geno_bool_retain_minus_one_alleles_per_locus: remove the trailing allele per locus?
+\item $geno_bool_retain_minus_one_alleles_per_locus: remove the trailing allele per locus?
 (see ?fn_load_genotype for details)
-$geno_min_depth: minimum depth per allele (see ?fn_load_genotype for details)
-$geno_max_depth: maximum depth per allele (see ?fn_load_genotype for details)
-$geno_maf: minimum allele frequency (see ?fn_filter_genotype for details)
-$geno_sdev_min: minimum allele frequency standard deviation (see ?fn_filter_genotype for details)
-$geno_max_n_alleles: maximum number of alleles per locus (see ?fn_filter_genotype for details)
-$geno_max_sparsity_per_locus: maximum sparsity or fraction of missing data per locus
+\item $geno_min_depth: minimum depth per allele (see ?fn_load_genotype for details)
+\item $geno_max_depth: maximum depth per allele (see ?fn_load_genotype for details)
+\item $geno_maf: minimum allele frequency (see ?fn_filter_genotype for details)
+\item $geno_sdev_min: minimum allele frequency standard deviation (see ?fn_filter_genotype for details)
+\item $geno_max_n_alleles: maximum number of alleles per locus (see ?fn_filter_genotype for details)
+\item $geno_max_sparsity_per_locus: maximum sparsity or fraction of missing data per locus
 (see ?fn_filter_genotype for details)
-$geno_frac_topmost_sparse_loci_to_remove: fraction of the total number of loci from which the
+\item $geno_frac_topmost_sparse_loci_to_remove: fraction of the total number of loci from which the
 top most sparse loci will be removed (see ?fn_filter_genotype for details)
-$geno_n_topmost_sparse_loci_to_remove: number of top most sparse loci to be removed
+\item $geno_n_topmost_sparse_loci_to_remove: number of top most sparse loci to be removed
 (see ?fn_filter_genotype for details)
-$geno_max_sparsity_per_sample:  maximum sparsity or fraction of missing data per sample
+\item $geno_max_sparsity_per_sample:  maximum sparsity or fraction of missing data per sample
 (see ?fn_filter_genotype for details)
-$geno_frac_topmost_sparse_samples_to_remove: fraction of the total number of samples from which
+\item $geno_frac_topmost_sparse_samples_to_remove: fraction of the total number of samples from which
 the top most sparse samples will be removed (see ?fn_filter_genotype for details)
-$geno_n_topmost_sparse_samples_to_remove: number of top most sparse samples to be removed
+\item $geno_n_topmost_sparse_samples_to_remove: number of top most sparse samples to be removed
 (see ?fn_filter_genotype for details)
-$pheno_sep: delimiter used in the phenotype file (see ?fn_load_phenotype for details)
-$pheno_header: does the phenotype file have a header line? (see ?fn_load_phenotype for details)
-$pheno_idx_col_id: column number in the phenotype file corresponding to the sample names
+\item $pheno_sep: delimiter used in the phenotype file (see ?fn_load_phenotype for details)
+\item $pheno_header: does the phenotype file have a header line? (see ?fn_load_phenotype for details)
+\item $pheno_idx_col_id: column number in the phenotype file corresponding to the sample names
 (see ?fn_load_phenotype for details)
-$pheno_idx_col_pop: column number in the phenotype file corresponding to the population/grouping names
+\item $pheno_idx_col_pop: column number in the phenotype file corresponding to the population/grouping names
 (see ?fn_load_phenotype for details)
-$pheno_idx_col_y: column number in the phenotype file corresponding to the numeric phenotype data
+\item $pheno_idx_col_y: column number in the phenotype file corresponding to the numeric phenotype data
 (see ?fn_load_phenotype for details)
-$pheno_na_strings: strings of characters corresponding to missing data in the phenotype file
+\item $pheno_na_strings: strings of characters corresponding to missing data in the phenotype file
 (see ?fn_load_phenotype for details)
-$pheno_bool_remove_NA: remove samples missing phenotype data in the phenotype file?
+\item $pheno_bool_remove_NA: remove samples missing phenotype data in the phenotype file?
 (see ?fn_load_phenotype for details)
-$bool_within: perform within population k-fold cross-validation?
+\item $bool_within: perform within population k-fold cross-validation?
 (see ?fn_cross_validation_within_population for details)
-$bool_across: perform across populations cross-validations?
+\item $bool_across: perform across populations cross-validations?
 (see ?fn_cross_validation_across_populations_bulk,
 ?fn_cross_validation_across_populations_bulk,
 ?fn_cross_validation_across_populations_pairwise, and
 ?fn_cross_validation_across_populations_lopo for details)
-$n_folds: number of folds or training and validation sets for within population k-fold cross validation
+\item $n_folds: number of folds or training and validation sets for within population k-fold cross validation
 (see ?fn_cross_validation_within_population for details)
-$n_reps: number of replications of random shuffling samples for each k-fold cross-validation
+\item $n_reps: number of replications of random shuffling samples for each k-fold cross-validation
 in within population cross-validation (see ?fn_cross_validation_within_population for details)
-$vec_models_to_test:
-$bool_parallel:
-$max_mem_Gb:
-$n_threads:
-$verbose: show messages?}
+\item $vec_models_to_test: genomic prediction models to use
+(see ?fn_cross_validation_preparation for details, as well as the individual models:
+?fn_ridge, ?fn_lasso, ?fn_elastic_net, ?fn_Bayes_A, ?fn_Bayes_B, ?fn_Bayes_C, and ?fn_gBLUP)
+\item $bool_parallel: run the cross-validations in parallel (see the following functions for details:
+?fn_cross_validation_within_population,
+?fn_cross_validation_across_populations_bulk,
+?fn_cross_validation_across_populations_pairwise, and
+?fn_cross_validation_across_populations_lopo)
+\item $max_mem_Gb: maximum amount of memory available in gigabytes
+(see ?fn_estimate_memory_footprint for details)
+\item $n_threads: maximum number of computing threads available
+(see ?fn_estimate_memory_footprint for details)
+\item $verbose: show messages?
+}}
 }
 \value{
-Ok:
-$TRAIT_NAME: name of the phenotype or trait used to fit single-trait genomic prediction models (multi-trait models will be implemented in genomic_breeding)
-$POPULATION: name of the population used in within population genomic prediction k-fold cross-validation
-$METRICS_WITHIN_POP (row-binded df_metrics across populations, reps, folds, and models):
-$rep: replication number
-$fold: fold number
-$model: genomic prediction model name
-$pop_training: population/s used in the training set (separated by commas if more than 1)
-$pop_validation: population/s used in the validation set (separated by commas if more than 1)
-$duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
-$n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
-$mbe: mean bias error
-$mae: mean absolute error
-$rmse: root mean squared error
-$r2: coefficient of determination
-$corr: Pearson's product moment correlation
-$power_t10: fraction of observed top 10 phenotype values correctly predicted
-$power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-$var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-$var_true: variance of observed phenotype values (estimator of total phenotypic variance)
-$h2: narrow-sense heritability estimate
-$YPRED_WITHIN_POP (row-binded df_y_validation across populations, reps, folds, and models):
-$rep: replication number
-$fold: fold number
-$model: genomic prediction model name
-$pop_training: population/s used in the training set (separated by commas if more than 1)
-$id: names of the samples/entries/pools,
-$pop_validation: population from which the sample/entry/pool belongs to
-$y_true: observed phenotype values
-$y_pred: predicted phenotype values
-$METRICS_ACROSS_POP_BULK:
-$rep: replication number
-$fold: fold number
-$model: genomic prediction model name
-$pop_training: population/s used in the training set (separated by commas if more than 1)
-$pop_validation: population/s used in the validation set (separated by commas if more than 1)
-$duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
-$n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
-$mbe: mean bias error
-$mae: mean absolute error
-$rmse: root mean squared error
-$r2: coefficient of determination
-$corr: Pearson's product moment correlation
-$power_t10: fraction of observed top 10 phenotype values correctly predicted
-$power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-$var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-$var_true: variance of observed phenotype values (estimator of total phenotypic variance)
-$h2: narrow-sense heritability estimate
-$YPRED_ACROSS_POP_BULK:
-$rep: replication number
-$fold: fold number
-$model: genomic prediction model name
-$pop_training: population/s used in the training set (separated by commas if more than 1)
-$id: names of the samples/entries/pools,
-$pop_validation: population from which the sample/entry/pool belongs to
-$y_true: observed phenotype values
-$y_pred: predicted phenotype values
-$METRICS_ACROSS_POP_PAIRWISE:
-$rep: replication number
-$fold: fold number
-$model: genomic prediction model name
-$pop_training: population/s used in the training set (separated by commas if more than 1)
-$pop_validation: population/s used in the validation set (separated by commas if more than 1)
-$duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
-$n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
-$mbe: mean bias error
-$mae: mean absolute error
-$rmse: root mean squared error
-$r2: coefficient of determination
-$corr: Pearson's product moment correlation
-$power_t10: fraction of observed top 10 phenotype values correctly predicted
-$power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-$var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-$var_true: variance of observed phenotype values (estimator of total phenotypic variance)
-$h2: narrow-sense heritability estimate
-$YPRED_ACROSS_POP_PAIRWISE:
-$rep: replication number
-$fold: fold number
-$model: genomic prediction model name
-$pop_training: population/s used in the training set (separated by commas if more than 1)
-$id: names of the samples/entries/pools,
-$pop_validation: population from which the sample/entry/pool belongs to
-$y_true: observed phenotype values
-$y_pred: predicted phenotype values
-$METRICS_ACROSS_POP_LOPO:
-$rep: replication number
-$fold: fold number
-$model: genomic prediction model name
-$pop_training: population/s used in the training set (separated by commas if more than 1)
-$pop_validation: population/s used in the validation set (separated by commas if more than 1)
-$duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
-$n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
-$mbe: mean bias error
-$mae: mean absolute error
-$rmse: root mean squared error
-$r2: coefficient of determination
-$corr: Pearson's product moment correlation
-$power_t10: fraction of observed top 10 phenotype values correctly predicted
-$power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-$var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-$var_true: variance of observed phenotype values (estimator of total phenotypic variance)
-$h2: narrow-sense heritability estimate
-$YPRED_ACROSS_POP_LOPO:
-$rep: replication number
-$fold: fold number
-$model: genomic prediction model name
-$pop_training: population/s used in the training set (separated by commas if more than 1)
-$id: names of the samples/entries/pools,
-$pop_validation: population from which the sample/entry/pool belongs to
-$y_true: observed phenotype values
-$y_pred: predicted phenotype values
-$GENOMIC_PREDICTIONS
-$id: names of the samples/entries/pools which has genotype data but missing or outlying phenotype data
-$pop: population or grouping the samples/entries/pools belong to
-$y_true: missing observed phenotype data
-$y_pred: predicted phenotype data using the best performing genomic prediction model
-$model: best performing model based on within population cross-validation used to predict the missing phenotype data
-$ADDITIVE_GENETIC_EFFECTS
-$b: named numeric vector of SNP effects (or genotype effects for gBLUP),
+\itemize{
+\item Ok:
+\itemize{
+\item $TRAIT_NAME: name of the phenotype or trait used to fit single-trait genomic prediction models
+(multi-trait models will be implemented in genomic_breeding)
+\item $POPULATION: name of the population used in within population genomic prediction k-fold cross-validation
+\item $METRICS_WITHIN_POP (row-binded df_metrics across populations, reps, folds, and models):
+\itemize{
+\item $rep: replication number
+\item $fold: fold number
+\item $model: genomic prediction model name
+\item $pop_training: population/s used in the training set (separated by commas if more than 1)
+\item $pop_validation: population/s used in the validation set (separated by commas if more than 1)
+\item $duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
+\item $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+\item $mbe: mean bias error
+\item $mae: mean absolute error
+\item $rmse: root mean squared error
+\item $r2: coefficient of determination
+\item $corr: Pearson's product moment correlation
+\item $power_t10: fraction of observed top 10 phenotype values correctly predicted
+\item $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+\item $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+\item $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+\item $h2: narrow-sense heritability estimate
+}
+\item $YPRED_WITHIN_POP (row-binded df_y_validation across populations, reps, folds, and models):
+\itemize{
+\item $rep: replication number
+\item $fold: fold number
+\item $model: genomic prediction model name
+\item $pop_training: population/s used in the training set (separated by commas if more than 1)
+\item $id: names of the samples/entries/pools,
+\item $pop_validation: population from which the sample/entry/pool belongs to
+\item $y_true: observed phenotype values
+\item $y_pred: predicted phenotype values
+}
+\item $METRICS_ACROSS_POP_BULK:
+\itemize{
+\item $rep: replication number
+\item $fold: fold number
+\item $model: genomic prediction model name
+\item $pop_training: population/s used in the training set (separated by commas if more than 1)
+\item $pop_validation: population/s used in the validation set (separated by commas if more than 1)
+\item $duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
+\item $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+\item $mbe: mean bias error
+\item $mae: mean absolute error
+\item $rmse: root mean squared error
+\item $r2: coefficient of determination
+\item $corr: Pearson's product moment correlation
+\item $power_t10: fraction of observed top 10 phenotype values correctly predicted
+\item $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+\item $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+\item $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+\item $h2: narrow-sense heritability estimate
+}
+\item $YPRED_ACROSS_POP_BULK:
+\itemize{
+\item $rep: replication number
+\item $fold: fold number
+\item $model: genomic prediction model name
+\item $pop_training: population/s used in the training set (separated by commas if more than 1)
+\item $id: names of the samples/entries/pools,
+\item $pop_validation: population from which the sample/entry/pool belongs to
+\item $y_true: observed phenotype values
+\item $y_pred: predicted phenotype values
+}
+\item $METRICS_ACROSS_POP_PAIRWISE:
+\itemize{
+\item $rep: replication number
+\item $fold: fold number
+\item $model: genomic prediction model name
+\item $pop_training: population/s used in the training set (separated by commas if more than 1)
+\item $pop_validation: population/s used in the validation set (separated by commas if more than 1)
+\item $duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
+\item $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+\item $mbe: mean bias error
+\item $mae: mean absolute error
+\item $rmse: root mean squared error
+\item $r2: coefficient of determination
+\item $corr: Pearson's product moment correlation
+\item $power_t10: fraction of observed top 10 phenotype values correctly predicted
+\item $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+\item $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+\item $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+\item $h2: narrow-sense heritability estimate
+}
+\item $YPRED_ACROSS_POP_PAIRWISE:
+\itemize{
+\item $rep: replication number
+\item $fold: fold number
+\item $model: genomic prediction model name
+\item $pop_training: population/s used in the training set (separated by commas if more than 1)
+\item $id: names of the samples/entries/pools,
+\item $pop_validation: population from which the sample/entry/pool belongs to
+\item $y_true: observed phenotype values
+\item $y_pred: predicted phenotype values
+}
+\item $METRICS_ACROSS_POP_LOPO:
+\itemize{
+\item $rep: replication number
+\item $fold: fold number
+\item $model: genomic prediction model name
+\item $pop_training: population/s used in the training set (separated by commas if more than 1)
+\item $pop_validation: population/s used in the validation set (separated by commas if more than 1)
+\item $duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
+\item $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+\item $mbe: mean bias error
+\item $mae: mean absolute error
+\item $rmse: root mean squared error
+\item $r2: coefficient of determination
+\item $corr: Pearson's product moment correlation
+\item $power_t10: fraction of observed top 10 phenotype values correctly predicted
+\item $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
+\item $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
+\item $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+\item $h2: narrow-sense heritability estimate
+}
+\item $YPRED_ACROSS_POP_LOPO:
+\itemize{
+\item $rep: replication number
+\item $fold: fold number
+\item $model: genomic prediction model name
+\item $pop_training: population/s used in the training set (separated by commas if more than 1)
+\item $id: names of the samples/entries/pools,
+\item $pop_validation: population from which the sample/entry/pool belongs to
+\item $y_true: observed phenotype values
+\item $y_pred: predicted phenotype values
+}
+\item $GENOMIC_PREDICTIONS
+\itemize{
+\item $id: names of the samples/entries/pools which has genotype data but missing or outlying phenotype data
+\item $pop: population or grouping the samples/entries/pools belong to
+\item $y_true: missing observed phenotype data
+\item $y_pred: predicted phenotype data using the best performing genomic prediction model
+\item $model: best performing model based on within population cross-validation used to predict the missing phenotype data
+}
+\item $ADDITIVE_GENETIC_EFFECTS
+\itemize{
+\item $b: named numeric vector of SNP effects (or genotype effects for gBLUP),
 where the names consist of tab-delimited chromosome/scaffold, position and if present, alleles.
-$model: best performing genomic prediction model based on within population cross-validation
+\item $model: best performing genomic prediction model based on within population cross-validation
 which yielded these effects.
-Err: gpError
+_ Err: gpError
+}
+}
+}
 }
 \description{
 Main genomic prediction cross-validation within and across populations
+}
+\examples{
+list_sim = fn_simulate_data(n=300, n_pop=3, verbose=TRUE)
+df_pheno = read.delim(list_sim$fname_pheno_tsv, header=TRUE)
+df_pheno$trait[which(df_pheno$pop=="pop_1")[1:3]] = NA
+write.table(df_pheno, file=list_sim$fname_pheno_tsv,
+    row.names=FALSE, col.names=TRUE, quote=FALSE, sep="\t")
+args = list(
+    fname_geno=list_sim$fname_geno_vcf,
+    fname_pheno=list_sim$fname_pheno_tsv,
+    population="pop_1",
+    fname_covar=NULL,
+    dir_output=NULL,
+    geno_fname_snp_list=NULL,
+    geno_ploidy=NULL,
+    geno_bool_force_biallelic=TRUE,
+    geno_bool_retain_minus_one_alleles_per_locus=TRUE,
+    geno_min_depth=0,
+    geno_max_depth=.Machine$integer.max,
+    geno_maf=0.01,
+    geno_sdev_min=0.0001,
+    geno_max_n_alleles=NULL,
+    geno_max_sparsity_per_locus=NULL,
+    geno_frac_topmost_sparse_loci_to_remove=NULL,
+    geno_n_topmost_sparse_loci_to_remove=NULL,
+    geno_max_sparsity_per_sample=NULL,
+    geno_frac_topmost_sparse_samples_to_remove=NULL,
+    geno_n_topmost_sparse_samples_to_remove=NULL,
+    pheno_sep="\t",
+    pheno_header=TRUE,
+    pheno_idx_col_id=1,
+    pheno_idx_col_pop=2,
+    pheno_idx_col_y=3,
+    pheno_na_strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING"),
+    pheno_bool_remove_NA=FALSE,
+    bool_within=TRUE,
+    bool_across=TRUE,
+    n_folds=2,
+    n_reps=2,
+    vec_models_to_test=c("ridge","lasso"),
+    bool_parallel=TRUE,
+    max_mem_Gb=15,
+    n_threads=2,
+    verbose=TRUE
+)
+fname_out_Rds = gp(args=args)
 }

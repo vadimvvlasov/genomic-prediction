@@ -1,0 +1,2 @@
+rep	fold	model	pop_training	pop_validation	n_training	n_validation	duration_mins	n_non_zero_effects	mbe	mae	rmse	r2	corr	power_t10	power_b10	var_pred	var_true	h2
+1	4	gBLUP	pop_1	pop_1	87	21	0.0251463731129964	113	30.0178547523604	31.2546216284074	39.3607077780301	-1.30368399631709	0.365488396518325	0.5	0	1.96531720264796	706.142242263919	0.0076149467

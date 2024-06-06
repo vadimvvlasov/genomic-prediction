@@ -33,11 +33,15 @@ fn_load_phenotype(
 \item{verbose}{show phenotype loading messages? (Default=FALSE)}
 }
 \value{
-Ok:
-$y: named vector of numeric phenotype data
-$pop: population or groupings corresponding to each element of y
-$trait_name: name of the trait
-Err: gpError
+\itemize{
+\item Ok:
+\itemize{
+\item $y: named vector of numeric phenotype data
+\item $pop: population or groupings corresponding to each element of y
+\item $trait_name: name of the trait
+}
+\item Err: gpError
+}
 }
 \description{
 Load phenotype data from a text-delimited file

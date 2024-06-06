@@ -1,4 +1,5 @@
-suppressPackageStartupMessages(library("gp"))
+devtools::load_all()
+# suppressPackageStartupMessages(library("gp"))
 suppressPackageStartupMessages(library("argparse"))
 parser = ArgumentParser(description="Genomic prediction cross-validation within and across populations. Please find the documentation within and interactive R session.")
 parser$add_argument("-g", "--fname-geno",                                dest="fname_geno",                                      type="character")
@@ -68,7 +69,8 @@ print("-----------------------------------------------------------")
 print(paste0("End time: ", time_fin))
 print(paste0(" Finished after ", time_duration_minutes, " minutes"))
 if (methods::is(fname_out_Rds, "gpError")) {
-    print(paste0(" ERROR: ", fname_out_Rds))
+    print("ERROR:")
+    print(fname_out_Rds)
 } else {
     print(paste0(" Output Rds file: ", fname_out_Rds))
 }

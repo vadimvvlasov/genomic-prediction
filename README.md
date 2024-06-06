@@ -16,17 +16,20 @@ devtools::install_github("jeffersonfparil/gp")
 
 ## Architecture
 
-See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for details.
-
 ```shell
 R/
 └── main.R
-    ├── load.R
+    ├── io.R
     └── cross_validation.R
         └── models.R
             └── metrics.R
-
 ```
+
+1. main.R - main function
+2. io.R - input, output, filtering, and simulation
+3. cross_validation.R - k-fold cross validation within and across populations, pairwise-cross-validation, and leave-one-population-out cross-validation
+4. models.R - genomic prediction models with the consistent signatures
+5. metrics.R - genomic prediction accuracy metrics
 
 ## Models
 
@@ -39,14 +42,6 @@ R/
 7. [gBLUP](https://link.springer.com/protocol/10.1007/978-1-62703-447-0_13): genotype best linear unbiased prediction (gBLUP) using genomic relationship matrix to predict missing breeding values via Direct-Inversion Newton-Raphson or Average Information (via the [sommer R package](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4894563/)).
 
 The best models are identified through k-fold cross-fold validation (within populations), and leave-one-population-out cross-validation (across populations) using Pearson's correlation as the primary genomic prediction accuracy metric. If there are samples with known genotype data but missing phenotype data, their phenotypes will be predicted. The genomic prediction model used depends on the population the samples are part of. If the samples are part of a population with known genotype and phenotype data, the best model for that population is used, otherwise the best overall model is used.
-
-## Execution function
-
-Open the [`main function's`](./src/main.R) the documentation:
-
-```shell
-Rscript src/main.R -h
-```
 
 ## Input data
 
@@ -92,38 +87,15 @@ Rscript src/main.R -h
 
 ## Output data
 
-Rds file containing a list of lists each corresponding to a trait requested by `--phenotype-column-data`. Each list or trait consists of:
+Rds file containing a list:
 
 1. `TRAIT_NAME`: name of the trait
-2. `SUMMARY`: table of the best models per population (Field names: *pop* (population names), *model* (top model), *corr* (mean correlation), *corr_sd* (standard deviation of the correlation))
+2. `POPUlATION`: table of the best models per population (Field names: *pop* (population names), *model* (top model), *corr* (mean correlation), *corr_sd* (standard deviation of the correlation))
 3. `METRICS_WITHIN_POP`: table of genomic prediction accuracy metrics across replications, folds, and models per population
 4. `YPRED_WITHIN_POP`: table of predicted and expected phenotypes across samples, replications and models per population.
 5. `METRICS_ACROSS_POP`: table of genomic prediction accuracy metrics across 1 replication, 1 fold, and all models per validation population, i.e., via leave-one-population-out cross-validation **(present if there are at least 2 populations)**.
 6. `YPRED_ACROSS_POP`: table of predicted and expected phenotypes across samples, 1 replication and all models per validation population, i.e., via leave-one-population-out cross-validation **(present if there are at least 2 populations)**.
 7. `GENOMIC_PREDICTIONS`: table of predicted phenotypes of samples with known genotype and missing phenotypes **(present if there are samples with known genotype and unknown phenotype data)**. Note that if you have samples missing phenotypes which belong to a population without known phenotype data and wish to use the overall best model to predict their GEBVs then please do not use [`00_gs_slurm_job_wrapper.sh`](./00_gs_slurm_job_wrapper.sh) because it runs per trait per population. Instead, run [`src/main.R`](./src/main.R) separately using `--populations-to-include="all"`.
-
-
-These dataframes have the following fields:
-
-`SUMMARY` fields:
-| pop | model | corr | corr_sd |
-|:---:|:-----:|:----:|:-------:|
-|:---:|:-----:|:----:|:-------:|
-
-`METRICS_*_POP` fields:
-| r | k | model | mbe | mae | rmse | r2 | corr | n_non_zero | duration_mins | pop (within) or validation_pop (across) |
-|:-:|:-:|:-----:|:---:|:---:|:----:|:--:|:----:|:----------:|:-------------:|:---------------------------------------:|
-|:-:|:-:|:-----:|:---:|:---:|:----:|:--:|:----:|:----------:|:-------------:|:---------------------------------------:|
-
-`YPRED_*_POP` fields:
-| entry | rep | model | y_pred | y_true |
-|:-----:|:---:|:-----:|:------:|:------:|
-|:-----:|:---:|:-----:|:------:|:------:|
-
-`GENOMIC_PREDICTIONS` fields:
-| pop | entry | y_pred | top_model | corr_from_kfoldcv |
-|:---:|:-----:|:------:|:---------:|:-----------------:|
-|:---:|:-----:|:------:|:---------:|:-----------------:|
 
 These fields are defined as:
 
@@ -181,7 +153,7 @@ Value modularity and write tests for each function definition.
 See the main tests function and each Rscript for individual unit tests:
 
 ```R
-devtools::check()
+devtools::test()
 ```
 
 Or per module as:
@@ -195,4 +167,8 @@ source("tests/testthat/test-univariate_gx1.R")
 source("tests/testthat/test-univariate_gxe.R")
 ```
 
-Test new models in [`tests/testthat/test-helpers.R`](tests/testthat/test-helpers.R) and adjust parsing accordingly via: [`R/helpers.R::fn_henderson_vs_newtonraphson_fit()`](R/helpers.R).
+Or check the entire library:
+
+```R
+devtools::check()
+```

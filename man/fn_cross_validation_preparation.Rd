@@ -18,16 +18,20 @@ fn_cross_validation_preparation(
 }
 \arguments{
 \item{list_merged}{list of merged genotype matrix, and phenotype vector, as well as an optional covariate matrix
-$G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+\itemize{
+\item $G: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 Row names can be any string of characters which identify the sample or entry or pool names.
 Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name,
 the second should be numeric which refers to the position in the chromosome/scaffold, and
 subsequent elements are optional which may refer to the allele identifier and other identifiers.
-$list_pheno:
-$y: named vector of numeric phenotype data
-$pop: population or groupings corresponding to each element of y
-$trait_name: name of the trait
-$COVAR: numeric n samples x k covariates matrix with non-null row and column names.}
+\item $list_pheno:
+\itemize{
+\item $y: named vector of numeric phenotype data
+\item $pop: population or groupings corresponding to each element of y
+\item $trait_name: name of the trait
+}
+\item $COVAR: numeric n samples x k covariates matrix with non-null row and column names.
+}}
 
 \item{cv_type}{(Default=1)
 \itemize{
@@ -71,17 +75,21 @@ https://link.springer.com/protocol/10.1007/978-1-62703-447-0_13
 \item{verbose}{show cross-validation parameter preparation messages? (Default=FALSE)}
 }
 \value{
-Ok:
-$df_params: data frame containing all possible or just a defined non-exhaustive combinations of:
-$rep: replication number
-$fold: fold number
-$model: model name
-$mat_idx_shuffle numeric: n sample x r replications matrix of sample/entry/pool index shuffling where
+\itemize{
+\item Ok:
+\item $df_params: data frame containing all possible or just a defined non-exhaustive combinations of:
+\itemize{
+\item $rep: replication number
+\item $fold: fold number
+\item $model: model name
+}
+\item $mat_idx_shuffle numeric: n sample x r replications matrix of sample/entry/pool index shuffling where
 each column refer to a random shuffling of samples/entry/pool from which the identities of the
 training and validation sets will be sourced from
-$vec_set_partition_groupings vector of numeric partitioning indexes where each index refer to the
+\item $vec_set_partition_groupings vector of numeric partitioning indexes where each index refer to the
 fold which will serve as the validation population
-Err: gpError
+\item Err: gpError
+}
 }
 \description{
 Define the type of cross-validation scheme including the models, partitioning, and shuffling,

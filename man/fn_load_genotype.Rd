@@ -18,7 +18,8 @@ fn_load_genotype(
 \arguments{
 \item{fname_geno}{filename of the genotype file
 This may be in 1 of 3 formats:
-- VCF format,
+- VCF format with AD (allele depth) and/or GT (genotype), and DP (depth) fields,
+where multi-allelic loci are split into separate rows,
 - allele frequency table saved as a tab-delimited file with a header line and the first 3 columns refer to the
 chromosome (chr), position (pos), and allele (allele),
 with subsequent columns referring to the allele frequencies of a sample, entry or pool.
@@ -46,12 +47,14 @@ followed by \code{bcftools -m - ...} to  split mult-iallelic sites into bialleli
 \item{verbose}{show genotype loading messages? (Default=FALSE)}
 }
 \value{
-Ok: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+\itemize{
+\item Ok: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
 Row names can be any string of characters which identify the sample or entry or pool names.
 Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name,
 the second should be numeric which refers to the position in the chromosome/scaffold, and
 subsequent elements are optional which may refer to the allele identifier and other identifiers.
-Err: gpError
+\item Err: gpError
+}
 }
 \description{
 Load genotype data as an allele frequency matrix
