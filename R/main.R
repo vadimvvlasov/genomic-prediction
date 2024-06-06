@@ -473,7 +473,7 @@ gp = function(args) {
             GENOMIC_PREDICTIONS = NA
         } else {
             ### Find the best model in the args$population
-            df_agg = aggregate(corr ~ model, data=METRICS_WITHIN_POP, FUN=mean, na.rm=TRUE)
+            df_agg = stats::aggregate(corr ~ model, data=METRICS_WITHIN_POP, FUN=mean, na.rm=TRUE)
             idx = which(df_agg$corr == max(df_agg$corr, na.rm=TRUE))[1]
             model = df_agg$model[idx]
             ### Define additional model input/s

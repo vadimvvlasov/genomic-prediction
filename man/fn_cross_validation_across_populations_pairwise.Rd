@@ -75,6 +75,8 @@ https://link.springer.com/protocol/10.1007/978-1-62703-447-0_13
 \item $model: genomic prediction model name
 \item $pop_training: population/s used in the training set (separated by commas if more than 1)
 \item $pop_validation: population/s used in the validation set (separated by commas if more than 1)
+\item $n_training: number of samples/entries/pools in the training set
+\item $n_validation: number of samples/entries/pools in the validation set
 \item $duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
 \item $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
 \item $mbe: mean bias error

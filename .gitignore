@@ -50,3 +50,4 @@ rsconnect/
 
 # Test files
 exec/tests/outdir/
+exec/tests/logfile
