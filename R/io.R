@@ -599,7 +599,7 @@ fn_G_to_vcf = function(G, min_depth=100, max_depth=1000, verbose=FALSE) {
 #' vcf = fn_G_to_vcf(G=G, verbose=TRUE)
 #' G_back = fn_vcf_to_G(vcf=vcf, verbose=TRUE)
 #' @export
-fn_vcf_to_G = function(vcf, min_depth=0, max_depth=Inf, force_biallelic=TRUE, retain_minus_one_alleles_per_locus=TRUE, verbose=FALSE) {
+fn_vcf_to_G = function(vcf, min_depth=0, max_depth=.Machine$integer.max, force_biallelic=TRUE, retain_minus_one_alleles_per_locus=TRUE, verbose=FALSE) {
     ###################################################
     ### TEST
     # G = simquantgen::fn_simulate_genotypes(verbose=TRUE)
@@ -1022,7 +1022,7 @@ fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, m
 #'  followed by `bcftools -m - ...` to  split mult-iallelic sites into biallelic records (-) (Default=TRUE)
 #' @param retain_minus_one_alleles_per_locus omit the alternative or trailing allele per locus? (Default=TRUE)
 #' @param min_depth if input is a VCF file: minimum depth per locus beyond which will be set to missing data (Default=0)
-#' @param max_depth if input is a VCF file: maximum depth per locus beyond which will be set to missing data (Default=Inf)
+#' @param max_depth if input is a VCF file: maximum depth per locus beyond which will be set to missing data (Default=.Machine$integer.max)
 #' @param verbose show genotype loading messages? (Default=FALSE)
 #' @returns
 #' Ok: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
@@ -1039,7 +1039,7 @@ fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, m
 #' G_rds = fn_load_genotype(fname_geno=list_sim$fname_geno_rds, verbose=TRUE)
 #' @export
 fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retain_minus_one_alleles_per_locus=TRUE, 
-    min_depth=0, max_depth=Inf, verbose=FALSE) 
+    min_depth=0, max_depth=.Machine$integer.max, verbose=FALSE) 
 {
     ###################################################
     ### TEST
@@ -1191,7 +1191,7 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
 #'  numeric positions (e.g. 12345 & 100001), and 
 #'  reference-alternative allele strings separated by a comma (e.g. 'A,T' & 'C,G') (Default=NULL)
 #' @param max_n_alleles maximum number of alleles per locus. Note that at max_n_alleles=1, we are assuming 
-#' retain_minus_one_alleles_per_locus=TRUE in fn_load_genotype(...), and not that we want fixed - one allele per locus sites. (Default=NULL)
+#' retain_minus_one_alleles_per_locus=TRUE in fn_load_genotype(...), and not that we want fixed - one allele per locus or site. (Default=NULL)
 #' @param max_sparsity_per_locus maximum mean sparsity per locus, e.g. 0.1 or 0.5 (Default=NULL)
 #' @param frac_topmost_sparse_loci_to_remove fraction of the top-most sparse loci to remove, e.g. 0.01 or 0.25 (Default=NULL)
 #' @param n_topmost_sparse_loci_to_remove number of top-most sparse loci to remove, e.g. 100 or 1000 (Default=NULL)
@@ -1488,13 +1488,14 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
                 )))
             return(error)
         }
-        vec_loci_names = paste0(list_ids_chr_pos_all$vec_chr, "-", list_ids_chr_pos_all$vec_pos)
+        vec_loci_names = paste0(list_ids_chr_pos_all$vec_chr, "\t", list_ids_chr_pos_all$vec_pos)
         vec_allele_counts = table(vec_loci_names)
         if (verbose) {
             print("Distribution of the number of alleles per locus:")
             txtplot::txtdensity(vec_allele_counts)
         }
-        vec_idx = which(vec_allele_counts <= max_n_alleles)
+        vec_loci_names_passed = names(vec_allele_counts)[vec_allele_counts <= max_n_alleles]
+        vec_idx = which(vec_loci_names %in% vec_loci_names_passed)
         if (length(vec_idx) == 0) {
             error = methods::new("gpError",
                 code=000,
@@ -1767,7 +1768,7 @@ fn_save_genotype = function(G, fname, file_type=c("RDS", "TSV")[1], verbose=FALS
 #' @param idx_col_id which column correspond to the sample/entry/pool/genotype names? (Default=1)
 #' @param idx_col_pop which column correspond to the population groupings? (Default=2)
 #' @param idx_col_y which column correspond to the phenotype data? (Default=3)
-#' @param na.strings vector of string corresponding to missing data in the phenotype column (Default=c("", "-", "NA", "na", "NaN", "missing", "MISSING"))
+#' @param na_strings vector of string corresponding to missing data in the phenotype column (Default=c("", "-", "NA", "na", "NaN", "missing", "MISSING"))
 #' @param verbose show phenotype loading messages? (Default=FALSE)
 #' @returns
 #' Ok:
@@ -1781,7 +1782,7 @@ fn_save_genotype = function(G, fname, file_type=c("RDS", "TSV")[1], verbose=FALS
 #' @export
 fn_load_phenotype = function(fname_pheno, sep="\t", header=TRUE, 
     idx_col_id=1, idx_col_pop=2, idx_col_y=3, 
-    na.strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING"), verbose=FALSE)
+    na_strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING"), verbose=FALSE)
 {
     ###################################################
     ### TEST
@@ -1792,10 +1793,10 @@ fn_load_phenotype = function(fname_pheno, sep="\t", header=TRUE,
     # idx_col_id=1
     # idx_col_pop=2
     # idx_col_y=3
-    # na.strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING")
+    # na_strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING")
     # verbose = TRUE
     ###################################################
-    df = utils::read.table(fname_pheno, sep=sep, header=header, na.strings=na.strings)
+    df = utils::read.table(fname_pheno, sep=sep, header=header, na.strings=na_strings)
     if (max(c(idx_col_y, idx_col_id, idx_col_pop)) > ncol(df)) {
         error = methods::new("gpError",
             code=000,
@@ -1840,7 +1841,7 @@ fn_load_phenotype = function(fname_pheno, sep="\t", header=TRUE,
     return(list(y=y, pop=pop, trait_name=trait_name))
 }
 
-#' Filter phenotype data by removing outliers and optionally excluding missing data
+#' Filter phenotype data by converting outliers into missing data and optionally excluding missing data
 #'
 #' @param list_pheno list with 3 elements: 
 #'  (1) $y: a named vector of numeric phenotype data, 
@@ -1895,8 +1896,8 @@ fn_filter_phenotype = function(list_pheno, remove_NA=FALSE, verbose=FALSE) {
     }
     ### Identify outliers with graphics::boxplot, i.e. values beyond -2.698 standard deviations (definition of R::graphics::boxplot whiskers)
     b = graphics::boxplot(list_pheno$y, plot=FALSE)
-    vec_idx = which(!(list_pheno$y %in% b$out))
-    if (length(vec_idx) == n) {
+    vec_idx = which(list_pheno$y %in% b$out)
+    if (length(vec_idx) == 0) {
         if (verbose) {"The phenotype data do not have any outliers."}
     } else {
         if (verbose) {
@@ -1904,8 +1905,7 @@ fn_filter_phenotype = function(list_pheno, remove_NA=FALSE, verbose=FALSE) {
             print(paste0("n=", n))
             txtplot::txtdensity(list_pheno$y[!is.na(list_pheno$y) & !is.infinite(list_pheno$y)])
         }
-        list_pheno$y = list_pheno$y[vec_idx]
-        list_pheno$pop = list_pheno$pop[vec_idx]
+        list_pheno$y[vec_idx] = NA
         if (verbose) {
             print("After removing outlier/s:")
             print(paste0("n=", length(list_pheno$y)))

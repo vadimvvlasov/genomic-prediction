@@ -7,7 +7,7 @@
 fn_vcf_to_G(
   vcf,
   min_depth = 0,
-  max_depth = Inf,
+  max_depth = .Machine$integer.max,
   force_biallelic = TRUE,
   retain_minus_one_alleles_per_locus = TRUE,
   verbose = FALSE

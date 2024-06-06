@@ -44,7 +44,7 @@ numeric positions (e.g. 12345 & 100001), and
 reference-alternative allele strings separated by a comma (e.g. 'A,T' & 'C,G') (Default=NULL)}
 
 \item{max_n_alleles}{maximum number of alleles per locus. Note that at max_n_alleles=1, we are assuming
-retain_minus_one_alleles_per_locus=TRUE in fn_load_genotype(...), and not that we want fixed - one allele per locus sites. (Default=NULL)}
+retain_minus_one_alleles_per_locus=TRUE in fn_load_genotype(...), and not that we want fixed - one allele per locus or site. (Default=NULL)}
 
 \item{max_sparsity_per_locus}{maximum mean sparsity per locus, e.g. 0.1 or 0.5 (Default=NULL)}
 

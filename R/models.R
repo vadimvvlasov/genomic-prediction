@@ -744,7 +744,7 @@ fn_Bayes_A = function(list_merged, vec_idx_training, vec_idx_validation,
     list_perf = fn_prediction_performance_metrics(y_true=df_y_validation$y_true, y_pred=df_y_validation$y_pred, verbose=verbose)
     ### Clean-up temporary files
     for (f in list.files(dirname(other_params$out_prefix), pattern=basename(other_params$out_prefix))) {
-        file.remove(f)    
+        file.remove(file.path(dirname(other_params$out_prefix), f))
     }
     ### Output
     return(list(
@@ -886,7 +886,7 @@ fn_Bayes_B = function(list_merged, vec_idx_training, vec_idx_validation,
     list_perf = fn_prediction_performance_metrics(y_true=df_y_validation$y_true, y_pred=df_y_validation$y_pred, verbose=verbose)
     ### Clean-up temporary files
     for (f in list.files(dirname(other_params$out_prefix), pattern=basename(other_params$out_prefix))) {
-        file.remove(f)    
+        file.remove(file.path(dirname(other_params$out_prefix), f))
     }
     ### Output
     return(list(
@@ -1028,7 +1028,7 @@ fn_Bayes_C = function(list_merged, vec_idx_training, vec_idx_validation,
     list_perf = fn_prediction_performance_metrics(y_true=df_y_validation$y_true, y_pred=df_y_validation$y_pred, verbose=verbose)
     ### Clean-up temporary files
     for (f in list.files(dirname(other_params$out_prefix), pattern=basename(other_params$out_prefix))) {
-        file.remove(f)    
+        file.remove(file.path(dirname(other_params$out_prefix), f))
     }
     ### Output
     return(list(

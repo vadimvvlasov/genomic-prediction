@@ -11,7 +11,7 @@ fn_load_genotype(
   force_biallelic = TRUE,
   retain_minus_one_alleles_per_locus = TRUE,
   min_depth = 0,
-  max_depth = Inf,
+  max_depth = .Machine$integer.max,
   verbose = FALSE
 )
 }
@@ -41,7 +41,7 @@ followed by \code{bcftools -m - ...} to  split mult-iallelic sites into bialleli
 
 \item{min_depth}{if input is a VCF file: minimum depth per locus beyond which will be set to missing data (Default=0)}
 
-\item{max_depth}{if input is a VCF file: maximum depth per locus beyond which will be set to missing data (Default=Inf)}
+\item{max_depth}{if input is a VCF file: maximum depth per locus beyond which will be set to missing data (Default=.Machine$integer.max)}
 
 \item{verbose}{show genotype loading messages? (Default=FALSE)}
 }

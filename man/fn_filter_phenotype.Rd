@@ -2,7 +2,7 @@
 % Please edit documentation in R/io.R
 \name{fn_filter_phenotype}
 \alias{fn_filter_phenotype}
-\title{Filter phenotype data by removing outliers and optionally excluding missing data}
+\title{Filter phenotype data by converting outliers into missing data and optionally excluding missing data}
 \usage{
 fn_filter_phenotype(list_pheno, remove_NA = FALSE, verbose = FALSE)
 }
@@ -25,7 +25,7 @@ $trait_name: name of the trait
 Err: gpError
 }
 \description{
-Filter phenotype data by removing outliers and optionally excluding missing data
+Filter phenotype data by converting outliers into missing data and optionally excluding missing data
 }
 \examples{
 list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)

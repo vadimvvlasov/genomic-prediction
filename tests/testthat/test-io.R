@@ -235,7 +235,7 @@ test_that("fn_filter_phenotype", {
     list_pheno$y[1] = Inf
     list_pheno$y[2] = NA
     list_pheno_filtered = fn_filter_phenotype(list_pheno, remove_NA=TRUE, verbose=TRUE)
-    expect_equal(length(list_pheno_filtered$y), 98)
+    expect_equal(sum(!is.na(list_pheno_filtered$y)), 98)
     unlink(list_sim$fname_geno_vcf)
     unlink(list_sim$fname_pheno_tsv)
 })

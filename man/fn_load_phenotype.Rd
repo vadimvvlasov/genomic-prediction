@@ -11,7 +11,7 @@ fn_load_phenotype(
   idx_col_id = 1,
   idx_col_pop = 2,
   idx_col_y = 3,
-  na.strings = c("", "-", "NA", "na", "NaN", "missing", "MISSING"),
+  na_strings = c("", "-", "NA", "na", "NaN", "missing", "MISSING"),
   verbose = FALSE
 )
 }
@@ -28,7 +28,7 @@ fn_load_phenotype(
 
 \item{idx_col_y}{which column correspond to the phenotype data? (Default=3)}
 
-\item{na.strings}{vector of string corresponding to missing data in the phenotype column (Default=c("", "-", "NA", "na", "NaN", "missing", "MISSING"))}
+\item{na_strings}{vector of string corresponding to missing data in the phenotype column (Default=c("", "-", "NA", "na", "NaN", "missing", "MISSING"))}
 
 \item{verbose}{show phenotype loading messages? (Default=FALSE)}
 }
