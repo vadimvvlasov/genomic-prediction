@@ -29,10 +29,12 @@ cd $DIR
 fname_geno='/group/pasture/Jeff/ryegrass/workdir/STR_NUE_WUE_HS-1717536141.3435302.3200855812-IMPUTED.tsv'
 fname_pheno='/group/pasture/Jeff/ryegrass/workdir/Lucerne_PhenomicsDB_2024-05-27-Biomass.tsv'
 n_traits=$(head -n1 $fname_pheno | awk '{print NF}')
-touch logfile
+mkdir outdir/
+touch outdir/logfile
 time \
 for idx_pheno in $(seq 3 $n_traits)
 do
+    # idx_pheno=4
     time \
     Rscript ../gp.R \
         --fname-geno $fname_geno \
@@ -47,10 +49,10 @@ do
         --bool-parallel TRUE \
         --max-mem-Gb 60 \
         --n-threads 32 \
-        --verbose TRUE >> logfile
+        --verbose TRUE >> outdir/logfile
 done
-tail logfile
-grep -A1 "ERROR:" logfile
+tail outdir/logfile
+grep -A1 "ERROR:" outdir/logfile
 ls -lhtr outdir/*.Rds
 
 
