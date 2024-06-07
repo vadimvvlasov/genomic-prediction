@@ -1,2 +1,4 @@
 .github/
 exec/
+_libs/
+shell.nix

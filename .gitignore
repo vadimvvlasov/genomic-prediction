@@ -51,6 +51,9 @@ rsconnect/
 # Vscode
 .vscode
 
+# Nix stuff
+_libs/
+
 # Test files
 exec/slurm-*.out
 exec/output/
