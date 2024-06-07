@@ -102,16 +102,16 @@ fn_ols = function(list_merged, vec_idx_training, vec_idx_validation, other_param
                     nrow(list_merged$G), ")."))
             return(error)
     }
-    X_training = list_merged$G[vec_idx_training, ]
+    X_training = list_merged$G[vec_idx_training, , drop=FALSE]
     y_training = list_merged$list_pheno$y[vec_idx_training]
-    X_training = X_training[!is.na(y_training), ] ### Remove missing phenotype data from the training set
+    X_training = X_training[!is.na(y_training), , drop=FALSE] ### Remove missing phenotype data from the training set
     y_training = y_training[!is.na(y_training)] ### Remove missing phenotype data from the training set
-    X_validation = list_merged$G[vec_idx_validation, ]
+    X_validation = list_merged$G[vec_idx_validation, , drop=FALSE]
     y_validation = list_merged$list_pheno$y[vec_idx_validation]
     ### Adding covariate to explanatory matrix
     if (!is.null(list_merged$COVAR)) {
-        X_training = cbind(list_merged$COVAR[vec_idx_training, ], X_training)
-        X_validation = cbind(list_merged$COVAR[vec_idx_validation, ], X_validation)
+        X_training = cbind(list_merged$COVAR[vec_idx_training, , drop=FALSE], X_training)
+        X_validation = cbind(list_merged$COVAR[vec_idx_validation, , drop=FALSE], X_validation)
     }
     ### Solve the least squares equations
     n = nrow(X_training)
@@ -275,24 +275,25 @@ fn_ridge = function(list_merged, vec_idx_training, vec_idx_validation, other_par
                     nrow(list_merged$G), ")."))
             return(error)
     }
-    X_training = list_merged$G[vec_idx_training, ]
+    X_training = list_merged$G[vec_idx_training, , drop=FALSE]
     y_training = list_merged$list_pheno$y[vec_idx_training]
-    X_training = X_training[!is.na(y_training), ] ### Remove missing phenotype data from the training set
+    X_training = X_training[!is.na(y_training), , drop=FALSE] ### Remove missing phenotype data from the training set
     y_training = y_training[!is.na(y_training)] ### Remove missing phenotype data from the training set
-    X_validation = list_merged$G[vec_idx_validation, ]
+    X_validation = list_merged$G[vec_idx_validation, , drop=FALSE]
     y_validation = list_merged$list_pheno$y[vec_idx_validation]
     ### Adding covariate to explanatory matrix
     if (!is.null(list_merged$COVAR)) {
-        X_training = cbind(list_merged$COVAR[vec_idx_training, ], X_training)
-        X_validation = cbind(list_merged$COVAR[vec_idx_validation, ], X_validation)
+        X_training = cbind(list_merged$COVAR[vec_idx_training, , drop=FALSE], X_training)
+        X_validation = cbind(list_merged$COVAR[vec_idx_validation, , drop=FALSE], X_validation)
     }
     ### Solve via ridge regularisation
     sol = glmnet::cv.glmnet(x=X_training, y=y_training, alpha=0, nfolds=other_params$n_folds, parallel=FALSE) ### Ridge -> alpha = 0.0
     ### Find the first lambda with the lowest squared error (deviance) while having non-zero SNP effects
     vec_idx_decreasing_deviance = order(sol$glmnet.fit$dev.ratio, decreasing=FALSE)
-    idx_start = which(sol$lambda == sol$lambda.min)
+    idx_start = which(sol$lambda == sol$lambda.min)[1]
     idx_start_vec_idx_decreasing_deviance = which(vec_idx_decreasing_deviance == idx_start)
     vec_idx_decreasing_deviance = vec_idx_decreasing_deviance[idx_start_vec_idx_decreasing_deviance:length(vec_idx_decreasing_deviance)]
+    vec_idx_decreasing_deviance = vec_idx_decreasing_deviance[!is.na(vec_idx_decreasing_deviance)]
     for (i in vec_idx_decreasing_deviance) {
         # i = idx_start
         b_hat = c(sol$glmnet.fit$a0[i], sol$glmnet.fit$beta[, i])
@@ -418,24 +419,25 @@ fn_lasso = function(list_merged, vec_idx_training, vec_idx_validation, other_par
                     nrow(list_merged$G), ")."))
             return(error)
     }
-    X_training = list_merged$G[vec_idx_training, ]
+    X_training = list_merged$G[vec_idx_training, , drop=FALSE]
     y_training = list_merged$list_pheno$y[vec_idx_training]
-    X_training = X_training[!is.na(y_training), ] ### Remove missing phenotype data from the training set
+    X_training = X_training[!is.na(y_training), , drop=FALSE] ### Remove missing phenotype data from the training set
     y_training = y_training[!is.na(y_training)] ### Remove missing phenotype data from the training set
-    X_validation = list_merged$G[vec_idx_validation, ]
+    X_validation = list_merged$G[vec_idx_validation, , drop=FALSE]
     y_validation = list_merged$list_pheno$y[vec_idx_validation]
     ### Adding covariate to explanatory matrix
     if (!is.null(list_merged$COVAR)) {
-        X_training = cbind(list_merged$COVAR[vec_idx_training, ], X_training)
-        X_validation = cbind(list_merged$COVAR[vec_idx_validation, ], X_validation)
+        X_training = cbind(list_merged$COVAR[vec_idx_training, , drop=FALSE], X_training)
+        X_validation = cbind(list_merged$COVAR[vec_idx_validation, , drop=FALSE], X_validation)
     }
-    ### Solve via Least absolute shkinakge selection operator (Lasso) regularisation
+    ### Solve via Least absolute shrinkage selection operator (Lasso) regularisation
     sol = glmnet::cv.glmnet(x=X_training, y=y_training, alpha=1, nfolds=other_params$n_folds, parallel=FALSE) ### Lasso -> alpha = 1.0
     ### Find the first lambda with the lowest squared error (deviance) while having non-zero SNP effects
     vec_idx_decreasing_deviance = order(sol$glmnet.fit$dev.ratio, decreasing=FALSE)
-    idx_start = which(sol$lambda == sol$lambda.min)
+    idx_start = which(sol$lambda == sol$lambda.min)[1]
     idx_start_vec_idx_decreasing_deviance = which(vec_idx_decreasing_deviance == idx_start)
     vec_idx_decreasing_deviance = vec_idx_decreasing_deviance[idx_start_vec_idx_decreasing_deviance:length(vec_idx_decreasing_deviance)]
+    vec_idx_decreasing_deviance = vec_idx_decreasing_deviance[!is.na(vec_idx_decreasing_deviance)]
     for (i in vec_idx_decreasing_deviance) {
         # i = idx_start
         b_hat = c(sol$glmnet.fit$a0[i], sol$glmnet.fit$beta[, i])
@@ -561,24 +563,25 @@ fn_elastic_net = function(list_merged, vec_idx_training, vec_idx_validation, oth
                     nrow(list_merged$G), ")."))
             return(error)
     }
-    X_training = list_merged$G[vec_idx_training, ]
+    X_training = list_merged$G[vec_idx_training, , drop=FALSE]
     y_training = list_merged$list_pheno$y[vec_idx_training]
-    X_training = X_training[!is.na(y_training), ] ### Remove missing phenotype data from the training set
+    X_training = X_training[!is.na(y_training), , drop=FALSE] ### Remove missing phenotype data from the training set
     y_training = y_training[!is.na(y_training)] ### Remove missing phenotype data from the training set
-    X_validation = list_merged$G[vec_idx_validation, ]
+    X_validation = list_merged$G[vec_idx_validation, , drop=FALSE]
     y_validation = list_merged$list_pheno$y[vec_idx_validation]
     ### Adding covariate to explanatory matrix
     if (!is.null(list_merged$COVAR)) {
-        X_training = cbind(list_merged$COVAR[vec_idx_training, ], X_training)
-        X_validation = cbind(list_merged$COVAR[vec_idx_validation, ], X_validation)
+        X_training = cbind(list_merged$COVAR[vec_idx_training, , drop=FALSE], X_training)
+        X_validation = cbind(list_merged$COVAR[vec_idx_validation, , drop=FALSE], X_validation)
     }
     ### Solve via Elastic-net regularisation
     sol = glmnet::cv.glmnet(x=X_training, y=y_training) ### Elastic-net -> alpha is optimised
     ### Find the first lambda with the lowest squared error (deviance) while having non-zero SNP effects
     vec_idx_decreasing_deviance = order(sol$glmnet.fit$dev.ratio, decreasing=FALSE)
-    idx_start = which(sol$lambda == sol$lambda.min)
+    idx_start = which(sol$lambda == sol$lambda.min)[1]
     idx_start_vec_idx_decreasing_deviance = which(vec_idx_decreasing_deviance == idx_start)
     vec_idx_decreasing_deviance = vec_idx_decreasing_deviance[idx_start_vec_idx_decreasing_deviance:length(vec_idx_decreasing_deviance)]
+    vec_idx_decreasing_deviance = vec_idx_decreasing_deviance[!is.na(vec_idx_decreasing_deviance)]
     for (i in vec_idx_decreasing_deviance) {
         # i = idx_start
         b_hat = c(sol$glmnet.fit$a0[i], sol$glmnet.fit$beta[, i])
@@ -723,8 +726,8 @@ fn_Bayes_A = function(list_merged, vec_idx_training, vec_idx_validation,
     }
     ### Attempt at preventing overwrites to the running Gibbs samplers in parallel
     other_params$out_prefix = gsub(":", ".", gsub(" ", "-", paste(other_params$out_prefix, Sys.time(), stats::runif(1), sep="-")))
-    ### Solve via Bayes A
-    sol = BGLR::BGLR(y=yNA, ETA=ETA, nIter=other_params$nIter, burnIn=other_params$burnIn, saveAt=other_params$out_prefix, verbose=FALSE)
+    ### Solve via Bayes A (a priori assume heritability at 50%, i.e. R2=0.5 below)
+    sol = BGLR::BGLR(y=yNA, ETA=ETA, R2=0.5, nIter=other_params$nIter, burnIn=other_params$burnIn, saveAt=other_params$out_prefix, verbose=FALSE)
     ### Extract effects
     b_hat = sol$ETA$MRK$b
     n_non_zero = sum(abs(b_hat) >= .Machine$double.eps)
@@ -865,8 +868,8 @@ fn_Bayes_B = function(list_merged, vec_idx_training, vec_idx_validation,
     }
     ### Attempt at preventing overwrites to the running Gibbs samplers in parallel
     other_params$out_prefix = gsub(":", ".", gsub(" ", "-", paste(other_params$out_prefix, Sys.time(), stats::runif(1), sep="-")))
-    ### Solve via Bayes B
-    sol = BGLR::BGLR(y=yNA, ETA=ETA, nIter=other_params$nIter, burnIn=other_params$burnIn, saveAt=other_params$out_prefix, verbose=FALSE)
+    ### Solve via Bayes B (a priori assume heritability at 50%, i.e. R2=0.5 below)
+    sol = BGLR::BGLR(y=yNA, ETA=ETA, R2=0.5, nIter=other_params$nIter, burnIn=other_params$burnIn, saveAt=other_params$out_prefix, verbose=FALSE)
     ### Extract effects
     b_hat = sol$ETA$MRK$b
     n_non_zero = sum(abs(b_hat) >= .Machine$double.eps)
@@ -1007,8 +1010,8 @@ fn_Bayes_C = function(list_merged, vec_idx_training, vec_idx_validation,
     }
     ### Attempt at preventing overwrites to the running Gibbs samplers in parallel
     other_params$out_prefix = gsub(":", ".", gsub(" ", "-", paste(other_params$out_prefix, Sys.time(), stats::runif(1), sep="-")))
-    ### Solve via Bayes C
-    sol = BGLR::BGLR(y=yNA, ETA=ETA, nIter=other_params$nIter, burnIn=other_params$burnIn, saveAt=other_params$out_prefix, verbose=FALSE)
+    ### Solve via Bayes C (a priori assume heritability at 50%, i.e. R2=0.5 below)
+    sol = BGLR::BGLR(y=yNA, ETA=ETA, R2=0.5, nIter=other_params$nIter, burnIn=other_params$burnIn, saveAt=other_params$out_prefix, verbose=FALSE)
     ### Extract effects
     b_hat = sol$ETA$MRK$b
     n_non_zero = sum(abs(b_hat) >= .Machine$double.eps)

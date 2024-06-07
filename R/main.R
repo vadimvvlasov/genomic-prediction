@@ -81,6 +81,7 @@
 #'          - $n_validation: number of samples/entries/pools in the validation set
 #'          - $duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
 #'          - $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+#'          - $n_total_features: total number of zero and non-zero effects, i.e. total number of SNPs/alleles/features
 #'          - $mbe: mean bias error
 #'          - $mae: mean absolute error
 #'          - $rmse: root mean squared error
@@ -110,6 +111,7 @@
 #'          - $n_validation: number of samples/entries/pools in the validation set
 #'          - $duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
 #'          - $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+#'          - $n_total_features: total number of zero and non-zero effects, i.e. total number of SNPs/alleles/features
 #'          - $mbe: mean bias error
 #'          - $mae: mean absolute error
 #'          - $rmse: root mean squared error
@@ -139,6 +141,7 @@
 #'          - $n_validation: number of samples/entries/pools in the validation set
 #'          - $duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
 #'          - $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+#'          - $n_total_features: total number of zero and non-zero effects, i.e. total number of SNPs/alleles/features
 #'          - $mbe: mean bias error
 #'          - $mae: mean absolute error
 #'          - $rmse: root mean squared error
@@ -168,6 +171,7 @@
 #'          - $n_validation: number of samples/entries/pools in the validation set
 #'          - $duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
 #'          - $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+#'          - $n_total_features: total number of zero and non-zero effects, i.e. total number of SNPs/alleles/features
 #'          - $mbe: mean bias error
 #'          - $mae: mean absolute error
 #'          - $rmse: root mean squared error
@@ -334,12 +338,14 @@ gp = function(args) {
         verbose=args$verbose
     )
     if (methods::is(G, "gpError")) {return(G)}
+    gc()
     list_pheno = fn_filter_phenotype(
-        list_pheno,
+        list_pheno=list_pheno,
         remove_NA=args$pheno_bool_remove_NA,
         verbose=args$verbose
     )
     if (methods::is(list_pheno, "gpError")) {return(list_pheno)}
+    gc()
     ### Merge filtered genotype, phenotype and covariate data
     list_merged = fn_merge_genotype_and_phenotype(
         G=G,
@@ -349,9 +355,9 @@ gp = function(args) {
     )
     if (methods::is(list_merged, "gpError")) {return(list_merged)}
     ### Clean-up
-    G = NULL
-    list_pheno = NULL
-    gc()
+    rm("G")
+    rm("list_pheno")
+    gc(); gc(); gc(); gc(); gc(); gc(); gc(); gc()
     ### Extract the trait name
     trait_name = list_merged$list_pheno$trait_name
     ### Start with across population cross-validation using the full dataset
@@ -429,10 +435,46 @@ gp = function(args) {
         list_merged = fn_subset_merged_genotype_and_phenotype(
             list_merged=list_merged,
             vec_idx=which(list_merged$list_pheno$pop==args$population),
-            verbose=FALSE
+            verbose=args$verbose
         )
         if (methods::is(list_merged, "gpError")) {return(list_merged)}
+        gc(); gc(); gc(); gc(); gc(); gc(); gc(); gc()
+        ### Filter subsetted genotype and phenotype data
+        G = fn_filter_genotype(
+            G=list_merged$G,
+            maf=args$geno_maf,
+            sdev_min=args$geno_sdev_min,
+            fname_snp_list=args$geno_fname_snp_list,
+            max_n_alleles=args$geno_max_n_alleles,
+            max_sparsity_per_locus=args$geno_max_sparsity_per_locus,
+            frac_topmost_sparse_loci_to_remove=args$geno_frac_topmost_sparse_loci_to_remove,
+            n_topmost_sparse_loci_to_remove=args$geno_n_topmost_sparse_loci_to_remove,
+            max_sparsity_per_sample=args$geno_max_sparsity_per_sample,
+            frac_topmost_sparse_samples_to_remove=args$geno_frac_topmost_sparse_samples_to_remove,
+            n_topmost_sparse_samples_to_remove=args$geno_n_topmost_sparse_samples_to_remove,
+            verbose=args$verbose
+        )
+        if (methods::is(G, "gpError")) {return(G)}
         gc()
+        list_pheno = fn_filter_phenotype(
+            list_pheno=list_merged$list_pheno,
+            remove_NA=args$pheno_bool_remove_NA,
+            verbose=args$verbose
+        )
+        if (methods::is(list_pheno, "gpError")) {return(list_pheno)}
+        gc()
+        ### Merge filtered genotype, phenotype and covariate data
+        list_merged = fn_merge_genotype_and_phenotype(
+            G=G,
+            list_pheno=list_pheno,
+            COVAR=NULL,
+            verbose=args$verbose
+        )
+        if (methods::is(list_merged, "gpError")) {return(list_merged)}
+        ### Clean-up
+        rm("G")
+        rm("list_pheno")
+        gc(); gc(); gc(); gc(); gc(); gc(); gc(); gc()
     }
     ### Genomic prediction cross-validation
     if (args$bool_within) {
@@ -457,7 +499,6 @@ gp = function(args) {
             METRICS_WITHIN_POP = list_within$METRICS_WITHIN_POP
             YPRED_WITHIN_POP = list_within$YPRED_WITHIN_POP
         }
-
     } else {
         METRICS_WITHIN_POP = NA
         YPRED_WITHIN_POP = NA
@@ -483,7 +524,7 @@ gp = function(args) {
                 if (is.null(args$dir_output)) {
                     args$dir_output = dirname(tempfile())
                 }
-                other_params = list(nIter=12e3, burnIn=2e3, h2=0.5, out_prefix=file.path(args$dir_output, paste0("bglr_", model)))
+                other_params = list(nIter=12e3, burnIn=2e3, out_prefix=file.path(args$dir_output, paste0("bglr_", model)))
             } else {
                 other_params = list(n_folds=10)
             }
@@ -496,7 +537,7 @@ gp = function(args) {
         GENOMIC_PREDICTIONS = NA
     }
     ### Clean-up
-    list_merged = NULL
+    rm("list_merged")
     gc()
     ### Output
     if (is.null(args$dir_output)) {

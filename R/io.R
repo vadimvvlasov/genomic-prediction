@@ -1056,6 +1056,11 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
     # max_depth = 100
     # verbose = TRUE
     ###################################################
+    if (verbose) {
+        print("##########################")
+        print("### Load genotype data ###")
+        print("##########################")
+    }
     ### Load the genotype matrix (n x p)
     ### TryCatch Rds, vcf, then tsv
     G = tryCatch({
@@ -1076,7 +1081,7 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
             }
         }
         if (verbose) {print("Genotype loaded from an RDS file.")}
-        return(G)
+        G
     }, 
     error=function(e) {
         tryCatch({
@@ -1094,7 +1099,8 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
                 return(error)
             } else {
                 if (verbose) {print("Genotype loaded from a VCF file.")}
-                vcf = NULL
+                rm("vcf")
+                gc()
                 return(G)
             }
         }, 
@@ -1121,7 +1127,8 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
             rownames(G) = vec_entries
             colnames(G) = vec_loci_names
             if (verbose) {print("Genotype loaded from a tab-delimited allele frequency table file.")}
-            df = NULL
+            rm("df")
+            gc()
             return(G)
         })
     })
@@ -1141,7 +1148,8 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
             return(error)
         }
         G = list_G_G_alt$G
-        list_G_G_alt = NULL
+        rm("list_G_G_alt")
+        gc()
     }
     ### Bin allele frequencies
     if (!is.null(ploidy)) {
@@ -1160,10 +1168,9 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
     if (verbose) {
         print(paste0("Genotype data has ", nrow(G), " samples/entries/pools genotyped across ", ncol(G), " loci/alleles/SNPs."))
         print("Distribution of allele frequencies")
-        vec_idx_row_sample = sample(1:nrow(G), size=100)
-        vec_idx_col_sample = sample(1:ncol(G), size=100)
-        G_for_plotting = G[vec_idx_row_sample, vec_idx_col_sample]
-        txtplot::txtdensity(G_for_plotting[!is.na(G_for_plotting)])
+        vec_freqs_sample = sample(G, size=min(c(prod(dim(G)), 1e4)))
+        vec_freqs_sample = vec_freqs_sample[!is.na(vec_freqs_sample)]
+        txtplot::txtdensity(c(vec_freqs_sample, 1-vec_freqs_sample))
         print("Distribution of mean sparsity per locus")
         mat_sparsity = is.na(G)
         vec_sparsity_per_locus = colMeans(mat_sparsity, na.rm=TRUE)
@@ -1171,10 +1178,10 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
         txtplot::txtdensity(vec_sparsity_per_locus[!is.na(vec_sparsity_per_locus)])
         print("Distribution of mean sparsity per sample")
         txtplot::txtdensity(vec_sparsity_per_sample[!is.na(vec_sparsity_per_sample)])
-        G_for_plotting = NULL
-        mat_sparsity = NULL
-        vec_sparsity_per_locus = NULL
-        vec_sparsity_per_sample = NULL
+        rm("mat_sparsity")
+        rm("vec_sparsity_per_locus")
+        rm("vec_sparsity_per_sample")
+        gc()
     }
     gc()
     return(G)
@@ -1277,6 +1284,11 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
     # utils::write.table(df_snp_list, file=fname_snp_list, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
     # verbose = TRUE
     ###################################################
+    if (verbose) {
+        print("############################")
+        print("### Filter genotype data ###")
+        print("############################")
+    }
     ### Input sanity check
     if (methods::is(G, "gpError")) {
         error = chain(G, methods::new("gpError",
@@ -1409,6 +1421,9 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
         (vec_freqs >= maf) &
         (vec_freqs <= (1-maf)) &
         (vec_sdevs >= sdev_min))
+    rm("vec_freqs")
+    rm("vec_sdevs")
+    gc()
     if (length(vec_idx) == 0) {
         error = methods::new("gpError",
             code=000,
@@ -1522,6 +1537,8 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
         } else {
             if (verbose) {print(paste0("All loci have a maximum number of alleles per locus of ", max_n_alleles, "."))}
         }
+        rm("list_ids_chr_pos_all")
+        gc()
     }
     ### Filtering by sparsity below only works if the input genotype data have NA
     ### Define the sparsity matrix
@@ -1676,8 +1693,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
         vec_freqs_per_locus = vec_freqs_per_locus[!is.na(vec_freqs_per_locus)]
         print(paste0("Mean allele frequencies per locus range from ", min(vec_freqs_per_locus), " to ", max(vec_freqs_per_locus)))
     }
-    ### Cleanup
-    list_ids_chr_pos_all = NULL
+    ### Clean-up
     gc()
     ### Return filtered allele frequency matrix
     return(G)
@@ -1808,6 +1824,11 @@ fn_load_phenotype = function(fname_pheno, sep="\t", header=TRUE,
     # na_strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING")
     # verbose = TRUE
     ###################################################
+    if (verbose) {
+        print("###########################")
+        print("### Load phenotype data ###")
+        print("###########################")
+    }
     df = utils::read.table(fname_pheno, sep=sep, header=header, na.strings=na_strings)
     if (max(c(idx_col_y, idx_col_id, idx_col_pop)) > ncol(df)) {
         error = methods::new("gpError",
@@ -1882,6 +1903,11 @@ fn_filter_phenotype = function(list_pheno, remove_NA=FALSE, verbose=FALSE) {
     # list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
     # verbose = TRUE
     ###################################################
+    if (verbose) {
+        print("############################")
+        print("### Filter genotype data ###")
+        print("############################")
+    }
     if (methods::is(list_pheno, "gpError")) {
         error = chain(list_pheno,
             methods::new("gpError", 
@@ -2059,6 +2085,11 @@ fn_merge_genotype_and_phenotype = function(G, list_pheno, COVAR=NULL, verbose=FA
     # rownames(COVAR) = rownames(G); colnames(COVAR) = paste0("covariate_", 1:ncol(COVAR))
     # verbose = TRUE
     ###################################################
+    if (verbose) {
+        print("###########################################")
+        print("### Merging genotype and phenotype data ###")
+        print("###########################################")
+    }
     ### All samples with genotype data will be included and samples without phenotype data will be set to NA (all.x=TRUE)
     ### Samples with phenotype but without genotype data are omitted.
     M = merge(
@@ -2106,12 +2137,16 @@ fn_merge_genotype_and_phenotype = function(G, list_pheno, COVAR=NULL, verbose=FA
     names(y) = M$id
     pop = M$pop
     trait_name = list_pheno$trait_name
+    ### Clean-up
+    rm("M")
+    gc()
     if (verbose) {
-        print("Genotype distribution:")
-        print(paste0("p=", ncol(G)))
-        txtplot::txtdensity(G)
+        print(paste0("n=", nrow(G), "; p=", ncol(G)))
+        print("Allele frequency distribution: ")
+        vec_freqs_sample = sample(G, size=min(c(prod(dim(G)), 1e4)))
+        vec_freqs_sample = vec_freqs_sample[!is.na(vec_freqs_sample)]
+        txtplot::txtdensity(c(vec_freqs_sample, 1-vec_freqs_sample))
         print("Phenotype distribution:")
-        print(paste0("n=", length(y)))
         txtplot::txtdensity(y[!is.na(y)])
         if (!is.null(COVAR)) {
             print("Covariate distribution:")
@@ -2131,9 +2166,6 @@ fn_merge_genotype_and_phenotype = function(G, list_pheno, COVAR=NULL, verbose=FA
             print("Covariate is null.")
         }
     }
-    ### Cleanup
-    M = NULL
-    gc()
     ### Output
     return(list(G=G, list_pheno=list(y=y, pop=pop, trait_name=trait_name), COVAR=COVAR))
 }
@@ -2224,8 +2256,8 @@ fn_subset_merged_genotype_and_phenotype = function(list_merged, vec_idx, verbose
     } else {
         COVAR = NULL
     }
-    ### Cleanup
-    list_merged = NULL
+    ### Clean-up
+    rm("list_merged")
     gc()
     ### Output
     return(list(
