@@ -2276,7 +2276,7 @@ fn_subset_merged_genotype_and_phenotype = function(list_merged, vec_idx, verbose
 #' @param n_folds number of cross-validation folds (Default=10)
 #' @param n_reps number of cross-validation replication (Default=10)
 #' @param memory_requested_Gb memory requested or available for use (Default=400)
-#' @param memory_multiplier estimated memory usage multiplier (Default=40)
+#' @param memory_multiplier estimated memory usage multiplier (Default=50)
 #' @param verbose show memory usage estimation messages? (Default=FALSE)
 #' @returns
 #'  - Ok:
@@ -2288,7 +2288,8 @@ fn_subset_merged_genotype_and_phenotype = function(list_merged, vec_idx, verbose
 #' list_mem = fn_estimate_memory_footprint(X=rnorm(10000), verbose=TRUE)
 #' @export
 fn_estimate_memory_footprint = function(X, n_models=7, n_folds=10, n_reps=10, 
-    memory_requested_Gb=400, memory_multiplier=40, verbose=FALSE) {
+    memory_requested_Gb=400, memory_multiplier=50, verbose=FALSE)
+{
     ###################################################
     ### TEST
     # X = matrix(0.0, nrow=492, ncol=455255)
@@ -2296,7 +2297,7 @@ fn_estimate_memory_footprint = function(X, n_models=7, n_folds=10, n_reps=10,
     # n_reps = 10
     # n_folds = 10
     # memory_requested_Gb = 400
-    # memory_multiplier = 40
+    # memory_multiplier = 50
     # verbose = TRUE
     ###################################################
     if ((as.numeric(utils::object.size(X)) == 0) | (n_models <= 0) | (n_folds <= 0) | (n_reps <= 0) | (memory_requested_Gb <= 0) | (memory_multiplier <= 0)) {

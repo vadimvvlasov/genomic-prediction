@@ -424,7 +424,6 @@ fn_cross_validation_preparation = function(list_merged, cv_type=1, n_folds=10, n
             n_folds=n_folds,
             n_reps=n_reps, 
             memory_requested_Gb=max_mem_Gb,
-            memory_multiplier=40,
             verbose=verbose)
     } else if (cv_type == 2) {
         ############################################
@@ -455,7 +454,6 @@ fn_cross_validation_preparation = function(list_merged, cv_type=1, n_folds=10, n
             n_folds=n_folds,
             n_reps=1, 
             memory_requested_Gb=max_mem_Gb,
-            memory_multiplier=40,
             verbose=verbose)
     } else if (cv_type == 3) {
         #################################################
@@ -486,7 +484,6 @@ fn_cross_validation_preparation = function(list_merged, cv_type=1, n_folds=10, n
             n_folds=n_folds,
             n_reps=1, 
             memory_requested_Gb=max_mem_Gb,
-            memory_multiplier=40,
             verbose=verbose)
     } else {
         error = methods::new("gpError",
