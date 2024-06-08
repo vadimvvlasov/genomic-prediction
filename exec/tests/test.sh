@@ -24,6 +24,8 @@ grep "gpError" output/output-*/job_info-*.log
 grep -A10 "Finished after" output/job_info-*.log
 # head -n51 output/output-*/job_info-*.log | bat --wrap never
 # bat --wrap never output/output-*/job_info-*.log
+# grep "SLURM_ARRAY_TASK_ID = 36" output/output-*/job_info-*.log
+# grep "SLURM_ARRAY_TASK_ID = 120" output/job_info-*.log
 
 ########################################
 ### COMPLETE SET OF INPUT PARAMETERS ###

@@ -313,5 +313,5 @@ test_that("fn_estimate_memory_footprint", {
     list_mem = fn_estimate_memory_footprint(X=X, verbose=TRUE)
     expect_equal(list_mem$size_X, object.size(X))
     expect_equal(list_mem$size_total > list_mem$size_X, TRUE)
-    expect_equal(list_mem$n_threads, 4)
+    expect_equal(list_mem$n_threads, 5)
 })
