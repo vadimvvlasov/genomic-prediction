@@ -5,7 +5,7 @@
 
 test_that("fn_ols", {
     set.seed(123)
-    list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    list_sim = fn_simulate_data(verbose=TRUE)
     G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
     list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
     list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, verbose=TRUE)
@@ -21,7 +21,7 @@ test_that("fn_ols", {
 
 test_that("fn_ridge", {
     set.seed(123)
-    list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    list_sim = fn_simulate_data(verbose=TRUE)
     G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
     list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
     list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, verbose=TRUE)
@@ -38,7 +38,7 @@ test_that("fn_ridge", {
 
 test_that("fn_lasso", {
     set.seed(123)
-    list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    list_sim = fn_simulate_data(verbose=TRUE)
     G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
     list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
     list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, verbose=TRUE)
@@ -55,7 +55,7 @@ test_that("fn_lasso", {
 
 test_that("fn_elastic_net", {
     set.seed(123)
-    list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    list_sim = fn_simulate_data(verbose=TRUE)
     G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
     list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
     list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, verbose=TRUE)
@@ -72,7 +72,7 @@ test_that("fn_elastic_net", {
 
 test_that("fn_Bayes_A", {
     set.seed(123)
-    list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    list_sim = fn_simulate_data(verbose=TRUE)
     G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
     list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
     list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, verbose=TRUE)
@@ -89,7 +89,7 @@ test_that("fn_Bayes_A", {
 
 test_that("fn_Bayes_B", {
     set.seed(123)
-    list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    list_sim = fn_simulate_data(verbose=TRUE)
     G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
     list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
     list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, verbose=TRUE)
@@ -106,7 +106,7 @@ test_that("fn_Bayes_B", {
 
 test_that("fn_Bayes_C", {
     set.seed(123)
-    list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    list_sim = fn_simulate_data(verbose=TRUE)
     G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
     list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
     list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, verbose=TRUE)
@@ -123,7 +123,7 @@ test_that("fn_Bayes_C", {
 
 test_that("fn_gBLUP", {
     set.seed(123)
-    list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    list_sim = fn_simulate_data(verbose=TRUE)
     G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
     list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
     list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, verbose=TRUE)

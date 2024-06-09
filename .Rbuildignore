@@ -1,4 +1,5 @@
 .github/
+.vscode/
 exec/
 _libs/
 shell.nix

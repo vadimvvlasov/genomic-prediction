@@ -89,6 +89,7 @@ https://link.springer.com/protocol/10.1007/978-1-62703-447-0_13
 \item $n_validation: number of samples/entries/pools in the validation set
 \item $duration_mins: time taken in minutes to fit the genomic prediction model and assess the prediction accuracies
 \item $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
+\item $n_total_features: total number of zero and non-zero effects, i.e. total number of SNPs/alleles/features
 \item $mbe: mean bias error
 \item $mae: mean absolute error
 \item $rmse: root mean squared error

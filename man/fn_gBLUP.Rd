@@ -79,7 +79,7 @@ and not to estimate the additive effects of each SNP/locus/allele which differen
 The genotypic value of each sample/entry/pool is estimated as the best linear unbiased predictors or BLUPs.)
 }
 \examples{
-list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+list_sim = fn_simulate_data(verbose=TRUE)
 G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
 list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
 list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, verbose=TRUE)

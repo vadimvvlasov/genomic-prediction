@@ -53,7 +53,7 @@ suppressWarnings(suppressPackageStartupMessages(library(sommer)))
 #'      + $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
 #'  - Err: gpError
 #' @examples
-#' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+#' list_sim = fn_simulate_data(verbose=TRUE)
 #' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
 #' list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
 #' list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, verbose=TRUE)
@@ -65,7 +65,7 @@ suppressWarnings(suppressPackageStartupMessages(library(sommer)))
 fn_ols = function(list_merged, vec_idx_training, vec_idx_validation, other_params=list(diag_inflate=1e-4), verbose=FALSE) {
     ###################################################
     ### TEST
-    # list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    # list_sim = fn_simulate_data(verbose=TRUE)
     # G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
     # list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
     # COVAR = G %*% t(G); # rownames(COVAR) = NULL
@@ -226,7 +226,7 @@ fn_ols = function(list_merged, vec_idx_training, vec_idx_validation, other_param
 #'      + $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
 #'  - Err: gpError
 #' @examples
-#' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+#' list_sim = fn_simulate_data(verbose=TRUE)
 #' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
 #' list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
 #' list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, verbose=TRUE)
@@ -238,7 +238,7 @@ fn_ols = function(list_merged, vec_idx_training, vec_idx_validation, other_param
 fn_ridge = function(list_merged, vec_idx_training, vec_idx_validation, other_params=list(n_folds=10), verbose=FALSE) {
     ###################################################
     ### TEST
-    # list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    # list_sim = fn_simulate_data(verbose=TRUE)
     # G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
     # list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
     # COVAR = G %*% t(G); # rownames(COVAR) = NULL
@@ -370,7 +370,7 @@ fn_ridge = function(list_merged, vec_idx_training, vec_idx_validation, other_par
 #'      + $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
 #'  - Err: gpError
 #' @examples
-#' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+#' list_sim = fn_simulate_data(verbose=TRUE)
 #' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
 #' list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
 #' list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, verbose=TRUE)
@@ -382,7 +382,7 @@ fn_ridge = function(list_merged, vec_idx_training, vec_idx_validation, other_par
 fn_lasso = function(list_merged, vec_idx_training, vec_idx_validation, other_params=list(n_folds=10), verbose=FALSE) {
     ###################################################
     ### TEST
-    # list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    # list_sim = fn_simulate_data(verbose=TRUE)
     # G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
     # list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
     # COVAR = G %*% t(G); # rownames(COVAR) = NULL
@@ -514,7 +514,7 @@ fn_lasso = function(list_merged, vec_idx_training, vec_idx_validation, other_par
 #'      + $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
 #'  - Err: gpError
 #' @examples
-#' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+#' list_sim = fn_simulate_data(verbose=TRUE)
 #' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
 #' list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
 #' list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, verbose=TRUE)
@@ -526,7 +526,7 @@ fn_lasso = function(list_merged, vec_idx_training, vec_idx_validation, other_par
 fn_elastic_net = function(list_merged, vec_idx_training, vec_idx_validation, other_params=list(n_folds=10), verbose=FALSE) {
     ###################################################
     ### TEST
-    # list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    # list_sim = fn_simulate_data(verbose=TRUE)
     # G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
     # list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
     # COVAR = G %*% t(G); # rownames(COVAR) = NULL
@@ -660,7 +660,7 @@ fn_elastic_net = function(list_merged, vec_idx_training, vec_idx_validation, oth
 #'      + $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
 #'  - Err: gpError
 #' @examples
-#' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+#' list_sim = fn_simulate_data(verbose=TRUE)
 #' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
 #' list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
 #' list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, verbose=TRUE)
@@ -673,7 +673,7 @@ fn_Bayes_A = function(list_merged, vec_idx_training, vec_idx_validation,
     other_params=list(nIter=12e3, burnIn=2e3, out_prefix="bglr_bayesA-"), verbose=FALSE) {
     ###################################################
     ### TEST
-    # list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    # list_sim = fn_simulate_data(verbose=TRUE)
     # G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
     # list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
     # COVAR = G %*% t(G); # rownames(COVAR) = NULL
@@ -802,7 +802,7 @@ fn_Bayes_A = function(list_merged, vec_idx_training, vec_idx_validation,
 #'      + $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
 #'  - Err: gpError
 #' @examples
-#' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+#' list_sim = fn_simulate_data(verbose=TRUE)
 #' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
 #' list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
 #' list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, verbose=TRUE)
@@ -815,7 +815,7 @@ fn_Bayes_B = function(list_merged, vec_idx_training, vec_idx_validation,
     other_params=list(nIter=12e3, burnIn=2e3, out_prefix="bglr_bayesB-"), verbose=FALSE) {
     ###################################################
     ### TEST
-    # list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    # list_sim = fn_simulate_data(verbose=TRUE)
     # G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
     # list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
     # COVAR = G %*% t(G); # rownames(COVAR) = NULL
@@ -944,7 +944,7 @@ fn_Bayes_B = function(list_merged, vec_idx_training, vec_idx_validation,
 #'      + $n_non_zero: number of non-zero estimated effects (effects greater than machine epsilon ~2.2e-16)
 #'  - Err: gpError
 #' @examples
-#' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+#' list_sim = fn_simulate_data(verbose=TRUE)
 #' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
 #' list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
 #' list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, verbose=TRUE)
@@ -957,7 +957,7 @@ fn_Bayes_C = function(list_merged, vec_idx_training, vec_idx_validation,
     other_params=list(nIter=12e3, burnIn=2e3, out_prefix="bglr_bayesC-"), verbose=FALSE) {
     ###################################################
     ### TEST
-    # list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    # list_sim = fn_simulate_data(verbose=TRUE)
     # G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
     # list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
     # COVAR = G %*% t(G); # rownames(COVAR) = NULL
@@ -1085,7 +1085,7 @@ fn_Bayes_C = function(list_merged, vec_idx_training, vec_idx_validation,
 #'           effects (effects greater than machine epsilon ~2.2e-16)
 #'  - Err: gpError
 #' @examples
-#' list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+#' list_sim = fn_simulate_data(verbose=TRUE)
 #' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
 #' list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
 #' list_merged = fn_merge_genotype_and_phenotype(G=G, list_pheno=list_pheno, verbose=TRUE)
@@ -1097,7 +1097,7 @@ fn_Bayes_C = function(list_merged, vec_idx_training, vec_idx_validation,
 fn_gBLUP = function(list_merged, vec_idx_training, vec_idx_validation, other_params=list(), verbose=FALSE) {
     ###################################################
     ### TEST
-    # list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
+    # list_sim = fn_simulate_data(verbose=TRUE)
     # G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
     # list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
     # COVAR = G %*% t(G); # rownames(COVAR) = NULL
@@ -1156,10 +1156,8 @@ fn_gBLUP = function(list_merged, vec_idx_training, vec_idx_validation, other_par
         covariates_string = paste(paste0("covariate_", 1:ncol(X)), collapse="+")
         eval(parse(text=paste0("mod = sommer::mmer(y ~ 1 + ", covariates_string, ", random= ~vsr(id, Gu=A ), rcov= ~vsr(units), data=df_training, dateWarning=FALSE, verbose=FALSE)")))
     } else {
-        mod = sommer::mmer(y ~ 1, random= ~vsr(id, Gu=A ), rcov= ~vsr(units), data=df_training, dateWarning=FALSE, verbose=FALSE)
+        mod = sommer::mmer(y ~ 1, random= ~vsr(id, Gu=A), rcov= ~vsr(units), data=df_training, dateWarning=FALSE, verbose=FALSE)
     }
-
-
     ### Extract effects
     b_hat = mod$Beta$Estimate; names(b_hat) = mod$Beta$Effect
     u_hat = mod$U$`u:id`$y
