@@ -83,8 +83,8 @@ test_that("fn_Bayes_A", {
     expect_equal(list_Bayes_A$list_perf$corr < 0.9, TRUE)
     expect_equal(list_Bayes_A$list_perf$corr, cor(list_Bayes_A$df_y_validation$y_true, list_Bayes_A$df_y_validation$y_pred))
     expect_equal(nrow(list_Bayes_A$df_y_validation), length(vec_idx_validation))
-    expect_equal(sum(list_Bayes_A$vec_effects != 0.0), ncol(G))
-    expect_equal(list_Bayes_A$n_non_zero, ncol(G))
+    expect_equal(sum(list_Bayes_A$vec_effects != 0.0), 1+ncol(G))
+    expect_equal(list_Bayes_A$n_non_zero, 1+ncol(G))
 })
 
 test_that("fn_Bayes_B", {
@@ -100,8 +100,8 @@ test_that("fn_Bayes_B", {
     expect_equal(list_Bayes_B$list_perf$corr < 0.9, TRUE)
     expect_equal(list_Bayes_B$list_perf$corr, cor(list_Bayes_B$df_y_validation$y_true, list_Bayes_B$df_y_validation$y_pred))
     expect_equal(nrow(list_Bayes_B$df_y_validation), length(vec_idx_validation))
-    expect_equal(sum(list_Bayes_B$vec_effects != 0.0), ncol(G))
-    expect_equal(list_Bayes_B$n_non_zero, ncol(G))
+    expect_equal(sum(list_Bayes_B$vec_effects != 0.0), 1+ncol(G))
+    expect_equal(list_Bayes_B$n_non_zero, 1+ncol(G))
 })
 
 test_that("fn_Bayes_C", {
@@ -117,8 +117,8 @@ test_that("fn_Bayes_C", {
     expect_equal(list_Bayes_C$list_perf$corr < 0.9, TRUE)
     expect_equal(list_Bayes_C$list_perf$corr, cor(list_Bayes_C$df_y_validation$y_true, list_Bayes_C$df_y_validation$y_pred))
     expect_equal(nrow(list_Bayes_C$df_y_validation), length(vec_idx_validation))
-    expect_equal(sum(list_Bayes_C$vec_effects != 0.0), ncol(G))
-    expect_equal(list_Bayes_C$n_non_zero, ncol(G))
+    expect_equal(sum(list_Bayes_C$vec_effects != 0.0), 1+ncol(G))
+    expect_equal(list_Bayes_C$n_non_zero, 1+ncol(G))
 })
 
 test_that("fn_gBLUP", {

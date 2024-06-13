@@ -770,6 +770,18 @@ fn_cross_validation_within_population = function(list_merged, n_folds=10, n_reps
         df_y_validation = NULL
         for (list_perf in list_list_perf) {
             # list_perf = list_list_perf[[1]]
+            if (methods::is(list_perf, "gpError")) {
+                error = chain(list_perf, methods::new("gpError",
+                    code=000,
+                    message=paste0(
+                        "Error in cross_validation::fn_cross_validation_within_population(...). ",
+                        "Error running cross-validation for population: ", population, " at ",
+                        "rep: ", list_cv_params$df_params$rep[i], ", ",
+                        "fold: ", list_cv_params$df_params$fold[i], ", and ",
+                        "model: ", list_cv_params$df_params$model[i], "."
+                    )))
+                return(error)
+            }
             if (is.null(df_metrics) & is.null(df_y_validation)) {
                 df_metrics = list_perf$df_metrics
                 df_y_validation = list_perf$df_y_validation

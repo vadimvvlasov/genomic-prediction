@@ -722,14 +722,19 @@ fn_Bayes_A = function(list_merged, vec_idx_training, vec_idx_validation,
         ETA = list(MRK=list(X=list_merged$G, model="BayesA"),
                        list(X=list_merged$COVAR, model="FIXED"))
     } else {
-        ETA = list(MRK=list(X=list_merged$G, model="BayesA"))
+        ETA = list(MRK=list(X=list_merged$G, model="BayesA", saveEffects=TRUE))
     }
     ### Attempt at preventing overwrites to the running Gibbs samplers in parallel
     other_params$out_prefix = gsub(":", ".", gsub(" ", "-", paste(other_params$out_prefix, Sys.time(), stats::runif(1), sep="-")))
     ### Solve via Bayes A (a priori assume heritability at 50%, i.e. R2=0.5 below)
     sol = BGLR::BGLR(y=yNA, ETA=ETA, R2=0.5, nIter=other_params$nIter, burnIn=other_params$burnIn, saveAt=other_params$out_prefix, verbose=FALSE)
-    ### Extract effects
-    b_hat = sol$ETA$MRK$b
+    ### Extract effects including the intercept and fixed effects
+    if (!is.null(list_merged$COVAR)) {
+        b_hat = c(sol$mu, sol$ETA[[2]]$b, sol$ETA$MRK$b)
+    } else {
+        b_hat = c(sol$mu, sol$ETA$MRK$b)
+    }
+    names(b_hat)[1] = "intercept"
     n_non_zero = sum(abs(b_hat) >= .Machine$double.eps)
     if (verbose) {
         p = ncol(list_merged$G)
@@ -870,8 +875,13 @@ fn_Bayes_B = function(list_merged, vec_idx_training, vec_idx_validation,
     other_params$out_prefix = gsub(":", ".", gsub(" ", "-", paste(other_params$out_prefix, Sys.time(), stats::runif(1), sep="-")))
     ### Solve via Bayes B (a priori assume heritability at 50%, i.e. R2=0.5 below)
     sol = BGLR::BGLR(y=yNA, ETA=ETA, R2=0.5, nIter=other_params$nIter, burnIn=other_params$burnIn, saveAt=other_params$out_prefix, verbose=FALSE)
-    ### Extract effects
-    b_hat = sol$ETA$MRK$b
+    ### Extract effects including the intercept and fixed effects
+    if (!is.null(list_merged$COVAR)) {
+        b_hat = c(sol$mu, sol$ETA[[2]]$b, sol$ETA$MRK$b)
+    } else {
+        b_hat = c(sol$mu, sol$ETA$MRK$b)
+    }
+    names(b_hat)[1] = "intercept"
     n_non_zero = sum(abs(b_hat) >= .Machine$double.eps)
     if (verbose) {
         p = ncol(list_merged$G)
@@ -1012,8 +1022,13 @@ fn_Bayes_C = function(list_merged, vec_idx_training, vec_idx_validation,
     other_params$out_prefix = gsub(":", ".", gsub(" ", "-", paste(other_params$out_prefix, Sys.time(), stats::runif(1), sep="-")))
     ### Solve via Bayes C (a priori assume heritability at 50%, i.e. R2=0.5 below)
     sol = BGLR::BGLR(y=yNA, ETA=ETA, R2=0.5, nIter=other_params$nIter, burnIn=other_params$burnIn, saveAt=other_params$out_prefix, verbose=FALSE)
-    ### Extract effects
-    b_hat = sol$ETA$MRK$b
+    ### Extract effects including the intercept and fixed effects
+    if (!is.null(list_merged$COVAR)) {
+        b_hat = c(sol$mu, sol$ETA[[2]]$b, sol$ETA$MRK$b)
+    } else {
+        b_hat = c(sol$mu, sol$ETA$MRK$b)
+    }
+    names(b_hat)[1] = "intercept"
     n_non_zero = sum(abs(b_hat) >= .Machine$double.eps)
     if (verbose) {
         p = ncol(list_merged$G)
