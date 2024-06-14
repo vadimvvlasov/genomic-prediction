@@ -41,7 +41,8 @@ ui <- page_fillable(
         shinyWidgets::pickerInput(inputId="model", label="Filter by model:", choices="", multiple=TRUE, options=list(`live-search`=TRUE, `actions-box`=TRUE)),
         shinyWidgets::pickerInput(inputId="metric", label="Use the genomic prediction accuracy metric:", choices="", multiple=FALSE, options=list(`live-search`=TRUE, `actions-box`=TRUE)),
         shinyWidgets::pickerInput(inputId="group_by", label="Group by:", choices=c("trait", "pop_training", "model"), selected=c("trait", "pop", "model"), multiple=TRUE, options=list(`live-search`=TRUE, `actions-box`=TRUE)),
-        shinyWidgets::pickerInput(inputId="sort_by", label="Sort by:", choices=c("increasing_mean", "decreasing_mean", "increasing_median", "decreasing_median", "alphabetical"), selected="increasing_mean", multiple=FALSE, options=list(`live-search`=TRUE, `actions-box`=TRUE))
+        shinyWidgets::pickerInput(inputId="sort_by", label="Sort by:", choices=c("increasing_mean", "decreasing_mean", "increasing_median", "decreasing_median", "alphabetical"), selected="increasing_mean", multiple=FALSE, options=list(`live-search`=TRUE, `actions-box`=TRUE)),
+        shinyWidgets::materialSwitch(inputId="within_box_with_labels", label="Mean-labelled boxplot", value=FALSE, status="primary", right=FALSE)
       ),
       mainPanel(
         width=750,
@@ -484,14 +485,37 @@ server <- function(input, output, session) {
       df$grouping = factor(df$grouping, levels=as.character(df_agg$grouping[order(df_agg$metric, decreasing=TRUE)]))
     }
     ### Plot
-    p = plot_ly(data=df,
-      y=~metric,
-      x=~grouping,
-      type='violin',
-      box=list(visible=TRUE),
-      meanline = list(visible=TRUE),
-      split=~grouping
-    )
+    if (!input$within_box_with_labels) {
+      p = plot_ly(data=df,
+        y=~metric,
+        x=~grouping,
+        type='violin',
+        box=list(visible=TRUE),
+        meanline = list(visible=TRUE),
+        split=~grouping
+      )
+    } else {
+      list_bp = boxplot(metric ~ grouping, data=df, plot=FALSE)
+      n_groups = ncol(list_bp$stats)
+      df_agg = aggregate(metric ~ grouping, data=df, FUN=mean, na.rm=TRUE)
+      colnames(df_agg)[2] = "metric_mean"
+      df = merge(merge(df, df_agg, sort=FALSE, by="grouping"),
+        data.frame(grouping=list_bp$names, pos_x=seq(0, n_groups+1, length=n_groups+1)[1:n_groups], pos_y=1.05*min(df$metric, na.rm=TRUE)),
+        sort=FALSE, by="grouping")
+      p = plot_ly(data=df,
+        y=~metric,
+        x=~grouping,
+        type='box',
+        boxmean=TRUE,
+        split=~grouping
+      )
+      p = p %>% add_annotations(
+        x=~grouping,
+        y=~pos_y, 
+        text=~round(metric_mean, 4),
+        showarrow=FALSE
+      )
+    }
     p = p %>% layout(
       title=title,
       yaxis=list(title=input$metric),
@@ -668,7 +692,7 @@ server <- function(input, output, session) {
       p = plotly::plot_ly(data=df, x=~x, y=~y, type="scatter", mode='markers', text=~ID)
     } else {
       ### Prepare pop_validation x model matrix of GP metric data
-      vec_lopo_pop = sort(unique(df_metrics_across_pop$pop_validation))
+      vec_lopo_pop = sort(input$lopo_pop)
       n = length(vec_lopo_pop)
       m = length(input$lopo_model)
       M = matrix(NA, nrow=n, ncol=m)

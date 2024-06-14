@@ -315,7 +315,7 @@ fn_ridge = function(list_merged, vec_idx_training, vec_idx_validation, other_par
         txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)])
         print(paste0("Number of non-zero effects: ", n_non_zero, " (", round(100*n_non_zero/p), "%)"))
     }
-    ### Evalute prediction performance
+    ### Evaluate prediction performance
     df_y_validation = merge(
         data.frame(id=names(y_validation), pop=list_merged$list_pheno$pop[vec_idx_validation], y_true=y_validation), 
         data.frame(id=rownames(y_pred), y_pred=y_pred),
@@ -459,7 +459,7 @@ fn_lasso = function(list_merged, vec_idx_training, vec_idx_validation, other_par
         txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)])
         print(paste0("Number of non-zero effects: ", n_non_zero, " (", round(100*n_non_zero/p), "%)"))
     }
-    ### Evalute prediction performance
+    ### Evaluate prediction performance
     df_y_validation = merge(
         data.frame(id=names(y_validation), pop=list_merged$list_pheno$pop[vec_idx_validation], y_true=y_validation), 
         data.frame(id=rownames(y_pred), y_pred=y_pred),
@@ -603,7 +603,7 @@ fn_elastic_net = function(list_merged, vec_idx_training, vec_idx_validation, oth
         txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)])
         print(paste0("Number of non-zero effects: ", n_non_zero, " (", round(100*n_non_zero/p), "%)"))
     }
-    ### Evalute prediction performance
+    ### Evaluate prediction performance
     df_y_validation = merge(
         data.frame(id=names(y_validation), pop=list_merged$list_pheno$pop[vec_idx_validation], y_true=y_validation), 
         data.frame(id=rownames(y_pred), y_pred=y_pred),
@@ -744,7 +744,7 @@ fn_Bayes_A = function(list_merged, vec_idx_training, vec_idx_validation,
         txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)])
         print(paste0("Number of non-zero effects: ", n_non_zero, " (", round(100*n_non_zero/p), "%)"))
     }
-    ### Evalute prediction performance
+    ### Evaluate prediction performance
     df_y_validation = merge(
         data.frame(id=names(list_merged$list_pheno$y[vec_idx_validation]), pop=list_merged$list_pheno$pop[vec_idx_validation], y_true=list_merged$list_pheno$y[vec_idx_validation]), 
         data.frame(id=names(yNA)[vec_idx_validation], y_pred=sol$yHat[vec_idx_validation]),
@@ -891,7 +891,7 @@ fn_Bayes_B = function(list_merged, vec_idx_training, vec_idx_validation,
         txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)])
         print(paste0("Number of non-zero effects: ", n_non_zero, " (", round(100*n_non_zero/p), "%)"))
     }
-    ### Evalute prediction performance
+    ### Evaluate prediction performance
     df_y_validation = merge(
         data.frame(id=names(list_merged$list_pheno$y[vec_idx_validation]), pop=list_merged$list_pheno$pop[vec_idx_validation], y_true=list_merged$list_pheno$y[vec_idx_validation]), 
         data.frame(id=names(yNA)[vec_idx_validation], y_pred=sol$yHat[vec_idx_validation]),
@@ -1038,7 +1038,7 @@ fn_Bayes_C = function(list_merged, vec_idx_training, vec_idx_validation,
         txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)])
         print(paste0("Number of non-zero effects: ", n_non_zero, " (", round(100*n_non_zero/p), "%)"))
     }
-    ### Evalute prediction performance
+    ### Evaluate prediction performance
     df_y_validation = merge(
         data.frame(id=names(list_merged$list_pheno$y[vec_idx_validation]), pop=list_merged$list_pheno$pop[vec_idx_validation], y_true=list_merged$list_pheno$y[vec_idx_validation]), 
         data.frame(id=names(yNA)[vec_idx_validation], y_pred=sol$yHat[vec_idx_validation]),
@@ -1190,7 +1190,7 @@ fn_gBLUP = function(list_merged, vec_idx_training, vec_idx_validation, other_par
         txtplot::txtdensity(u_hat[!is.na(u_hat) & !is.infinite(u_hat)])
         print(paste0("Number of non-zero effects: ", n_non_zero, " (", round(100*n_non_zero/p), "%)"))
     }
-    ### Evalute prediction performance
+    ### Evaluate prediction performance
     df_y_validation = merge(
         data.frame(id=names(list_merged$list_pheno$y[vec_idx_validation]), pop=list_merged$list_pheno$pop[vec_idx_validation], y_true=list_merged$list_pheno$y[vec_idx_validation]), 
         data.frame(id=names(mod$U$`u:id`$y), y_pred=unlist(mod$U)),

@@ -40,27 +40,52 @@ grep -A10 "Finished after" output/job_info-*.log
 # vec_correlations = c()
 # for (fname in vec_fnames_Rds) {
 #     # fname = vec_fnames_Rds[1]
-#     list_output = readRDS(fname, check.names=FALSE)
+#     list_output = readRDS(fname)
 #     vec_traits = c(vec_traits, list_output$TRAIT_NAME)
 #     vec_populations = c(vec_populations, unique(list_output$METRICS_WITHIN_POP$pop_training))
 #     vec_training_size = c(vec_training_size, mean(list_output$METRICS_WITHIN_POP$n_training))
 #     vec_validation_size = c(vec_validation_size, mean(list_output$METRICS_WITHIN_POP$n_validation, na.rm=TRUE))
 #     vec_n_folds = c(vec_n_folds, max(list_output$METRICS_WITHIN_POP$fold, na.rm=TRUE))
 #     vec_n_reps = c(vec_n_reps, max(list_output$METRICS_WITHIN_POP$rep, na.rm=TRUE))
-#     vec_correlations = c(vec_correlations, mean(list_output$METRICS_WITHIN_POP$corr, na.rm=TRUE))
+#     vec_idx = which(list_output$METRICS_WITHIN_POP$model == "Bayes_A")
+#     vec_correlations = c(vec_correlations, mean(list_output$METRICS_WITHIN_POP$corr[vec_idx], na.rm=TRUE))
 # }
 # df = data.frame(
 #     trait=vec_traits,
 #     population=vec_populations,
-#     training_siz=vec_training_size,
-#     validation_siz=vec_validation_size,
+#     training_size=vec_training_size,
+#     validation_size=vec_validation_size,
 #     n_fold=vec_n_folds,
 #     n_rep=vec_n_reps,
 #     correlation=vec_correlations)
 # df = df[order(df$trait), ]
 # vec_idx_sort_by_trait_name_length = unlist(lapply(df$trait, FUN=function(x){length(unlist(strsplit(x, "")))}))
 # df = df[order(vec_idx_sort_by_trait_name_length, decreasing=FALSE), ]
-# write.table(df, file="SUMMARY_WITHIN_POP_CORRELATIONS.tsv", sep="\t", quote=FALSE, row.names=FALSE, col.names=TRUE)
+# write.table(df, file="SUMMARY_WITHIN_POP_CORRELATIONS-Bayes_A.tsv", sep="\t", quote=FALSE, row.names=FALSE, col.names=TRUE)
+
+# ### Extract lucerne additive effects for Bayes B in traits: 
+# cd output/
+# R
+# vec_fnames_Rds = list.files(path=".", pattern="*.Rds")
+# vec_requested_dates = c(
+#     "biomass_SUM_2024a_20240213",
+#     "biomass_AUT_2024_20240312",
+#     "biomass_LSP_2023_20231023")
+
+# for (date in vec_requested_dates) {
+#     # date = vec_requested_dates[1]
+#     vec_idx = which(grepl(date, vec_fnames_Rds))
+#     for (idx in vec_idx) {
+#         # idx = vec_idx[1]
+#         list_output = readRDS(vec_fnames_Rds[idx])
+#         if (!is.na(list_output$ADDITIVE_GENETIC_EFFECTS[1])[1]) {
+#             df = data.frame(loc=names(list_output$ADDITIVE_GENETIC_EFFECTS$b), b=list_output$ADDITIVE_GENETIC_EFFECTS$b)
+#             trait_pop = paste(rev(rev(unlist(strsplit(vec_fnames_Rds[idx], "-"))[-1])[-1]), collapse="-")
+#             fname_out = paste0("MARKER_EFFECTS-", list_output$ADDITIVE_GENETIC_EFFECTS$model, "-", trait_pop, ".tsv")
+#             write.table(df, file=fname_out, sep="\t", quote=FALSE, row.names=FALSE, col.names=TRUE)
+#         }
+#     }
+# }
 
 ########################################
 ### COMPLETE SET OF INPUT PARAMETERS ###

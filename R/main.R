@@ -511,7 +511,6 @@ gp = function(args) {
         vec_idx_validation = which(is.na(list_merged$list_pheno$y))
         vec_idx_training = which(!is.na(list_merged$list_pheno$y))
         if (length(vec_idx_validation)==0) {
-            ADDITIVE_GENETIC_EFFECTS = NA
             GENOMIC_PREDICTIONS = NA
         } else {
             ### Find the best model in the args$population
@@ -529,12 +528,39 @@ gp = function(args) {
                 other_params = list(n_folds=10)
             }
             perf = eval(parse(text=paste0("fn_", model, "(list_merged=list_merged, vec_idx_training=vec_idx_training, vec_idx_validation=vec_idx_validation, other_params=other_params, verbose=args$verbose)")))
-            ADDITIVE_GENETIC_EFFECTS = list(b=perf$vec_effects, model=model)
             GENOMIC_PREDICTIONS = data.frame(perf$df_y_validation, model=model)
         }
     } else {
-        ADDITIVE_GENETIC_EFFECTS = NA
         GENOMIC_PREDICTIONS = NA
+    }
+    ###############################################################################
+    ### EXTRACT WITHIN POPULATION ADDITIVE GENETIC EFFECTS OF EACH MODEL TESTED ###
+    ###############################################################################
+    ### Extract the additive genetic effects from penalised and Bayesian regression models, and sample BLUPs from gBLUP
+    if (args$bool_within) {
+        vec_idx_training = which(!is.na(list_merged$list_pheno$y))
+        ADDITIVE_GENETIC_EFFECTS = NULL
+        for (model in args$vec_models_to_test) {
+            # model = args$vec_models_to_test[1]
+            if ((grepl("Bayes", model)==TRUE) | (grepl("gBLUP", model)==TRUE)) {
+                if (is.null(args$dir_output)) {
+                    args$dir_output = dirname(tempfile())
+                }
+                vec_idx_validation = c()
+                other_params = list(nIter=12e3, burnIn=2e3, out_prefix=file.path(args$dir_output, paste0("bglr_", model)))
+            } else {
+                vec_idx_validation = vec_idx_training
+                other_params = list(n_folds=10)
+            }
+            perf = eval(parse(text=paste0("fn_", model, "(list_merged=list_merged, vec_idx_training=vec_idx_training, vec_idx_validation=vec_idx_validation, other_params=other_params, verbose=FALSE)")))
+            if (is.null(ADDITIVE_GENETIC_EFFECTS)) {
+                ADDITIVE_GENETIC_EFFECTS = eval(parse(text=paste0("list(`", model, "`=list(b=perf$vec_effects))")))
+            } else {
+                eval(parse(text=paste0("ADDITIVE_GENETIC_EFFECTS$`", model, "`=list(b=perf$vec_effects)")))
+            }
+        }
+    } else {
+        ADDITIVE_GENETIC_EFFECTS = NA
     }
     ### Clean-up
     rm("list_merged")
