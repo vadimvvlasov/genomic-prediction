@@ -78,12 +78,10 @@ grep -A10 "Finished after" output/job_info-*.log
 #     for (idx in vec_idx) {
 #         # idx = vec_idx[1]
 #         list_output = readRDS(vec_fnames_Rds[idx])
-#         if (!is.na(list_output$ADDITIVE_GENETIC_EFFECTS[1])[1]) {
-#             df = data.frame(loc=names(list_output$ADDITIVE_GENETIC_EFFECTS$b), b=list_output$ADDITIVE_GENETIC_EFFECTS$b)
-#             trait_pop = paste(rev(rev(unlist(strsplit(vec_fnames_Rds[idx], "-"))[-1])[-1]), collapse="-")
-#             fname_out = paste0("MARKER_EFFECTS-", list_output$ADDITIVE_GENETIC_EFFECTS$model, "-", trait_pop, ".tsv")
-#             write.table(df, file=fname_out, sep="\t", quote=FALSE, row.names=FALSE, col.names=TRUE)
-#         }
+#         df = data.frame(loc=gsub("\t", "|", names(list_output$ADDITIVE_GENETIC_EFFECTS$Bayes_B$b)), b=list_output$ADDITIVE_GENETIC_EFFECTS$Bayes_B$b)
+#         trait_pop = paste(rev(rev(unlist(strsplit(vec_fnames_Rds[idx], "-"))[-1])[-1]), collapse="-")
+#         fname_out = paste0("MARKER_EFFECTS-Bayes_B-", trait_pop, ".tsv")
+#         write.table(df, file=fname_out, sep="\t", quote=FALSE, row.names=FALSE, col.names=TRUE)
 #     }
 # }
 
