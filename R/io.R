@@ -588,16 +588,20 @@ fn_G_to_vcf = function(G, min_depth=100, max_depth=1000, verbose=FALSE) {
 #' @param retain_minus_one_alleles_per_locus omit the alternative or trailing allele per locus? (Default=TRUE)
 #' @param verbose show vcf to allele frequency genotype matrix conversion messages? (Default=FALSE)
 #' @returns
-#'  - Ok: named n samples x p biallelic loci matrix.
-#'  Row names can be any string of characters.
-#'  Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
-#'  the second should be numeric which refers to the position in the chromosome/scaffold, and 
-#'  subsequent elements are optional which may refer to the allele identifier and other identifiers.
+#'  - Ok: 
+#'      + G: named n samples x p biallelic loci matrix of allele frequencies.
+#'      Row names can be any string of characters.
+#'      Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
+#'      the second should be numeric which refers to the position in the chromosome/scaffold, and 
+#'      subsequent elements are optional which may refer to the allele identifier and other identifiers.
+#'      + D: named n samples x p biallelic loci matrix of sequencing depth per locus with the same
+#'      row and column naming conventions as G but only includes the names of the reference alleles per locus.
 #'  - Err: gpError
 #' @examples
 #' G = simquantgen::fn_simulate_genotypes(verbose=TRUE)
 #' vcf = fn_G_to_vcf(G=G, verbose=TRUE)
-#' G_back = fn_vcf_to_G(vcf=vcf, verbose=TRUE)
+#' list_G_D = fn_vcf_to_G(vcf=vcf, verbose=TRUE)
+#' G_back = list_G_D$G
 #' @export
 fn_vcf_to_G = function(vcf, min_depth=0, max_depth=.Machine$integer.max, force_biallelic=TRUE, retain_minus_one_alleles_per_locus=TRUE, verbose=FALSE) {
     ###################################################
@@ -606,6 +610,7 @@ fn_vcf_to_G = function(vcf, min_depth=0, max_depth=.Machine$integer.max, force_b
     # vcf = fn_G_to_vcf(G=G, verbose=TRUE)
     # min_depth = 10
     # max_depth = 500
+    # force_biallelic = TRUE
     # retain_minus_one_alleles_per_locus = TRUE
     # verbose = TRUE
     ###################################################
@@ -682,7 +687,8 @@ fn_vcf_to_G = function(vcf, min_depth=0, max_depth=.Machine$integer.max, force_b
     mat_depth = vcfR::extract.gt(vcf, element="DP", as.numeric=TRUE)
     if (verbose) {
         print("Distribution of allele depths:")
-        txtplot::txtdensity(mat_depth[!is.na(mat_depth)])
+        vec_sample_depths = sample(mat_depth, size=min(1e4, c(prod(dim(mat_depth)))))
+        txtplot::txtdensity(vec_sample_depths[!is.na(vec_sample_depths)])
     }
     mat_idx = (mat_depth < min_depth) | ((mat_depth > max_depth))
     if (sum(mat_idx, na.rm=TRUE) > 0) {
@@ -691,12 +697,13 @@ fn_vcf_to_G = function(vcf, min_depth=0, max_depth=.Machine$integer.max, force_b
             print(vcf)
         }
         vcf@gt[, -1][mat_idx] = NA
+        mat_depth = vcfR::extract.gt(vcf, element="DP", as.numeric=TRUE)
         if (verbose) {
             print(paste0("After defining missing data by minimum and maximum depths:"))
             print(vcf)
             print("Distribution of allele depths after defining missing data by minimum and maximum depths:")
-            mat_depth = vcfR::extract.gt(vcf, element="DP", as.numeric=TRUE)
-            txtplot::txtdensity(mat_depth[!is.na(mat_depth)])
+            vec_sample_depths = sample(mat_depth, size=min(1e4, c(prod(dim(mat_depth)))))
+            txtplot::txtdensity(vec_sample_depths[!is.na(vec_sample_depths)])
         }
     }
     ### Extract genotype data where the AD field takes precedence over the GT field
@@ -759,8 +766,12 @@ fn_vcf_to_G = function(vcf, min_depth=0, max_depth=.Machine$integer.max, force_b
         print(paste0(c("q_min=", "q_max="), round(range(G, na.rm=TRUE), 4)))
         txtplot::txtdensity(G[!is.na(G)])
     }
-    ### Output n x p matrix of allele frequencies
-    return(t(G))
+    ### Output n x p matrix of allele frequencies and matrix of depths
+    rownames(mat_depth) = vec_loci_ref_names
+    colnames(mat_depth) = vec_pool_names
+    return(list(
+        G=t(G),
+        D=t(mat_depth)))
 }
 
 #' Classify or bin allele frequencies into genotype classes.
@@ -1089,7 +1100,8 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
             ### VCF file ###
             ################
             vcf = vcfR::read.vcfR(fname_geno, verbose=TRUE)
-            G = fn_vcf_to_G(vcf, force_biallelic=force_biallelic, retain_minus_one_alleles_per_locus=retain_minus_one_alleles_per_locus, min_depth=min_depth, max_depth=max_depth, verbose=verbose)
+            list_G_D = fn_vcf_to_G(vcf, force_biallelic=force_biallelic, retain_minus_one_alleles_per_locus=retain_minus_one_alleles_per_locus, min_depth=min_depth, max_depth=max_depth, verbose=verbose)
+            G = list_G_D$G
             if (methods::is(G, "gpError")) {
                 error = chain(G, methods::new("gpError",
                     code=000,
@@ -1100,6 +1112,7 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
             } else {
                 if (verbose) {print("Genotype loaded from a VCF file.")}
                 rm("vcf")
+                rm("list_G_D")
                 gc()
                 return(G)
             }
@@ -1861,6 +1874,16 @@ fn_load_phenotype = function(fname_pheno, sep="\t", header=TRUE,
                 "These too: ", paste(utils::tail(y), collapse=", "), "?"))
         return(error)
     }
+    ### Emit an error if there is no phenotypic variance
+    if (stats::var(y, na.rm=TRUE) < .Machine$double.eps) {
+        error = methods::new("gpError",
+            code=000,
+            message=paste0(
+                "Error in io::fn_load_phenotype(...). ",
+                "No variance in phenotype data. ",
+                "We require variance because without it, we are lost in the dark without even a match to guide us out."))
+        return(error)
+    }
     names(y) = entry
     if (verbose) {
         print("Distribution of phenotype data:")
@@ -1880,6 +1903,8 @@ fn_load_phenotype = function(fname_pheno, sep="\t", header=TRUE,
 #'  (1) $y: a named vector of numeric phenotype data, 
 #'  (2) $pop: population or groupings corresponding to each element of y, and
 #'  (3) $trait_name: name of the trait.
+#' @param remove_outliers remove missing data in the y vector? 
+#'  If true, this removes the corresponding element/s in the pop vector. (Default=TRUE)
 #' @param remove_NA remove missing data in the y vector? 
 #'  If true, this removes the corresponding element/s in the pop vector. (Default=FALSE)
 #' @param verbose show phenotype filtering messages? (Default=FALSE)
@@ -1896,7 +1921,7 @@ fn_load_phenotype = function(fname_pheno, sep="\t", header=TRUE,
 #' list_pheno$y[2] = NA
 #' list_pheno_filtered = fn_filter_phenotype(list_pheno, remove_NA=TRUE, verbose=TRUE)
 #' @export
-fn_filter_phenotype = function(list_pheno, remove_NA=FALSE, verbose=FALSE) {
+fn_filter_phenotype = function(list_pheno, remove_outliers=TRUE, remove_NA=FALSE, verbose=FALSE) {
     ###################################################
     ### TEST
     # list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)
@@ -1933,21 +1958,23 @@ fn_filter_phenotype = function(list_pheno, remove_NA=FALSE, verbose=FALSE) {
         return(error)
     }
     ### Identify outliers with graphics::boxplot, i.e. values beyond -2.698 standard deviations (definition of R::graphics::boxplot whiskers)
-    b = graphics::boxplot(list_pheno$y, plot=FALSE)
-    vec_idx = which(list_pheno$y %in% b$out)
-    if (length(vec_idx) == 0) {
-        if (verbose) {"The phenotype data do not have any outliers."}
-    } else {
-        if (verbose) {
-            print("Before removing outlier/s:")
-            print(paste0("n=", n))
-            txtplot::txtdensity(list_pheno$y[!is.na(list_pheno$y) & !is.infinite(list_pheno$y)])
-        }
-        list_pheno$y[vec_idx] = NA
-        if (verbose) {
-            print("After removing outlier/s:")
-            print(paste0("n=", length(list_pheno$y)))
-            txtplot::txtdensity(list_pheno$y[!is.na(list_pheno$y) & !is.infinite(list_pheno$y)])
+    if (remove_outliers) {
+        b = graphics::boxplot(list_pheno$y, plot=FALSE)
+        vec_idx = which(list_pheno$y %in% b$out)
+        if (length(vec_idx) == 0) {
+            if (verbose) {"The phenotype data do not have any outliers."}
+        } else {
+            if (verbose) {
+                print("Before removing outlier/s:")
+                print(paste0("n=", n))
+                txtplot::txtdensity(list_pheno$y[!is.na(list_pheno$y) & !is.infinite(list_pheno$y)])
+            }
+            list_pheno$y[vec_idx] = NA
+            if (verbose) {
+                print("After removing outlier/s:")
+                print(paste0("n=", length(list_pheno$y)))
+                txtplot::txtdensity(list_pheno$y[!is.na(list_pheno$y) & !is.infinite(list_pheno$y)])
+            }
         }
     }
     ### Removing missing data
@@ -1969,6 +1996,16 @@ fn_filter_phenotype = function(list_pheno, remove_NA=FALSE, verbose=FALSE) {
                 txtplot::txtdensity(list_pheno$y[!is.na(list_pheno$y) & !is.infinite(list_pheno$y)])
             }
         }
+    }
+    ### Emit an error if there is no phenotypic variance after filtering
+    if (stats::var(list_pheno$y, na.rm=TRUE) < .Machine$double.eps) {
+        error = methods::new("gpError",
+            code=000,
+            message=paste0(
+                "Error in io::fn_filter_phenotype(...). ",
+                "No variance in phenotype data after filtering. ",
+                "Consider transforming your phenotype data."))
+        return(error)
     }
     return(list_pheno)
 }
@@ -2341,4 +2378,35 @@ fn_estimate_memory_footprint = function(X, n_models=7, n_folds=10, n_reps=10,
         size_X=size_X,
         size_total=size_total,
         n_threads=n_threads))
+}
+
+
+
+
+### Getting frustrated with how the data are stored and labelled.
+### Let's use a proper database for direct I/O in and out of R:
+fn_load_into_database = function() {
+
+    mydb = DBI::dbConnect(RSQLite::SQLite(), "test.sqlite")
+    DBI::dbDisconnect(mydb)
+
+    mydb = DBI::dbConnect(RSQLite::SQLite(), "")
+    DBI::dbWriteTable(mydb, "mtcars", mtcars)
+    DBI::dbWriteTable(mydb, "iris", iris)
+    DBI::dbListTables(mydb)
+
+    DBI::dbGetQuery(mydb, 'SELECT * FROM mtcars LIMIT 5')
+    DBI::dbGetQuery(mydb, 'SELECT * FROM iris WHERE "Sepal.Length" < 4.6')
+    DBI::dbGetQuery(mydb, 'SELECT * FROM iris WHERE "Sepal.Length" < :x', params=list(x=4.6))
+
+    rs = DBI::dbSendQuery(mydb, 'SELECT * FROM mtcars')
+    while (!DBI::dbHasCompleted(rs)) {
+    df = DBI::dbFetch(rs, n=10)
+    print(nrow(df))
+    }
+
+    rs = DBI::dbSendQuery(mydb, 'SELECT * FROM iris WHERE "Sepal.Length" = :x')
+    DBI::dbBind(rs, params=list(x=seq(4, 4.4, by=0.1)))
+    nrow(DBI::dbFetch(rs))
+
 }

@@ -30,11 +30,16 @@ followed by \code{bcftools -m - ...} to  split multi-allelic sites into bialleli
 }
 \value{
 \itemize{
-\item Ok: named n samples x p biallelic loci matrix.
+\item Ok:
+\itemize{
+\item G: named n samples x p biallelic loci matrix of allele frequencies.
 Row names can be any string of characters.
 Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name,
 the second should be numeric which refers to the position in the chromosome/scaffold, and
 subsequent elements are optional which may refer to the allele identifier and other identifiers.
+\item D: named n samples x p biallelic loci matrix of sequencing depth per locus with the same
+row and column naming conventions as G but only includes the names of the reference alleles per locus.
+}
 \item Err: gpError
 }
 }
@@ -44,5 +49,6 @@ Convert biallelic vcf data into allele frequencies where loci beyond minimum and
 \examples{
 G = simquantgen::fn_simulate_genotypes(verbose=TRUE)
 vcf = fn_G_to_vcf(G=G, verbose=TRUE)
-G_back = fn_vcf_to_G(vcf=vcf, verbose=TRUE)
+list_G_D = fn_vcf_to_G(vcf=vcf, verbose=TRUE)
+G_back = list_G_D$G
 }

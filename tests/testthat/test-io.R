@@ -67,7 +67,8 @@ test_that("fn_vcf_to_G", {
     set.seed(123)
     G = simquantgen::fn_simulate_genotypes(verbose=TRUE)
     vcf = fn_G_to_vcf(G=G, min_depth=1000, max_depth=1000, verbose=TRUE)
-    G_back = fn_vcf_to_G(vcf=vcf, verbose=TRUE)
+    list_G_D = fn_vcf_to_G(vcf=vcf, verbose=TRUE)
+    G_back = list_G_D$G
     expect_equal(sum(colnames(G) == colnames(G_back)), ncol(G))
     expect_equal(sum(rownames(G) == rownames(G_back)), nrow(G))
     expect_equal(sum(abs(G_back-G) < 1e-7), prod(dim(G)))
@@ -94,7 +95,8 @@ test_that("fn_simulate_data", {
     unlink(list_sim$fname_geno_vcf)
     unlink(list_sim$fname_pheno_tsv)
     list_sim = fn_simulate_data(min_depth=1000, max_depth=1000, save_geno_vcf=TRUE, save_geno_rds=TRUE, save_geno_tsv=TRUE, save_pheno_tsv=TRUE, verbose=TRUE)
-    G_vcf = fn_vcf_to_G(vcf=vcfR::read.vcfR(list_sim$fname_geno_vcf))
+    list_G_D = fn_vcf_to_G(vcf=vcfR::read.vcfR(list_sim$fname_geno_vcf))
+    G_vcf = list_G_D$G
     df_tsv = utils::read.delim(list_sim$fname_geno_tsv, sep="\t", header=TRUE)
     G_tsv = as.matrix(t(df_tsv[, c(-1,-2,-3)])); rownames(G_tsv) = colnames(df_tsv)[c(-1,-2,-3)]; colnames(G_tsv) = paste(df_tsv$chr, df_tsv$pos, df_tsv$allele, sep="\t")
     G_rds = readRDS(list_sim$fname_geno_rds)

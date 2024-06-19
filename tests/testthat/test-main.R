@@ -32,6 +32,7 @@ test_that("gp", {
         pheno_idx_col_pop=2,
         pheno_idx_col_y=3,
         pheno_na_strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING"),
+        pheno_bool_remove_outliers=TRUE,
         pheno_bool_remove_NA=FALSE,
         bool_within=TRUE,
         bool_across=TRUE,

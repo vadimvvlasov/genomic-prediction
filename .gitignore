@@ -55,8 +55,7 @@ rsconnect/
 _libs/
 
 # Test files
-exec/slurm-*.out
-exec/output/
-exec/tests/outdir/
-exec/tests/output/
-exec/tests/logfile
+exec/
+
+# SQL databases
+*.sqlite

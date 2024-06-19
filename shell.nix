@@ -30,6 +30,8 @@ let
       parallel
       doParallel
       foreach
+      DBI
+      RSQLite
       simquantgen
     ];
   };

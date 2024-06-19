@@ -40,6 +40,7 @@
 #'      (see ?fn_load_phenotype for details)
 #'  - $pheno_na_strings: strings of characters corresponding to missing data in the phenotype file
 #'      (see ?fn_load_phenotype for details)
+#'  - $pheno_bool_remove_outliers: remove outliers from the phenotype file?
 #'  - $pheno_bool_remove_NA: remove samples missing phenotype data in the phenotype file?
 #'      (see ?fn_load_phenotype for details)
 #'  - $bool_within: perform within population k-fold cross-validation?
@@ -236,6 +237,7 @@
 #'     pheno_idx_col_pop=2,
 #'     pheno_idx_col_y=3,
 #'     pheno_na_strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING"),
+#'     pheno_bool_remove_outliers=TRUE,
 #'     pheno_bool_remove_NA=FALSE,
 #'     bool_within=TRUE,
 #'     bool_across=TRUE,
@@ -285,6 +287,7 @@ gp = function(args) {
     #     pheno_idx_col_pop=2,
     #     pheno_idx_col_y=3,
     #     pheno_na_strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING"),
+    #     pheno_bool_remove_outliers=FALSE,
     #     pheno_bool_remove_NA=FALSE,
     #     bool_within=TRUE,
     #     bool_across=TRUE,
@@ -341,6 +344,7 @@ gp = function(args) {
     gc()
     list_pheno = fn_filter_phenotype(
         list_pheno=list_pheno,
+        remove_outliers=args$pheno_bool_remove_outliers,
         remove_NA=args$pheno_bool_remove_NA,
         verbose=args$verbose
     )
@@ -458,6 +462,7 @@ gp = function(args) {
         gc()
         list_pheno = fn_filter_phenotype(
             list_pheno=list_merged$list_pheno,
+            remove_outliers=args$pheno_bool_remove_outliers,
             remove_NA=args$pheno_bool_remove_NA,
             verbose=args$verbose
         )
