@@ -30,6 +30,12 @@ let
       parallel
       doParallel
       foreach
+      shiny
+      shinyWidgets
+      shinyFiles
+      shinycssloaders
+      plotly
+      bslib
       DBI
       RSQLite
       simquantgen

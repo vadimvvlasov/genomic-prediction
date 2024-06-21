@@ -1569,11 +1569,11 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
         if (verbose & (length(vec_idx_loci_to_remove)==ncol(G))) {
             error = methods::new("gpError",
                 code=000,
-                message=paste0("All loci were filtered out. Please increase the max_sparsity_per_locus from ", max_sparsity_per_locus, 
+                message=paste0("All loci were filtered out. Please consider increasing the max_sparsity_per_locus from ", max_sparsity_per_locus, 
                 ", given that the mean sparsity per locus ranges from ", min(vec_sparsity_per_locus, na.rm=TRUE), 
                 " to ", max(vec_sparsity_per_locus, na.rm=TRUE), 
                 " with a mean of ", mean(vec_sparsity_per_locus, na.rm=TRUE), 
-                " and median ", stats::median(vec_sparsity_per_locus, na.rm=TRUE)))
+                " and a median of ", stats::median(vec_sparsity_per_locus, na.rm=TRUE)))
             return(error)
         }
     }
@@ -1587,7 +1587,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
         if (verbose & (length(vec_idx_loci_to_remove)==ncol(G))) {
             error = methods::new("gpError",
                 code=000,
-                message=paste0("All loci were filtered out. Please decrease the frac_topmost_sparse_loci_to_remove from ", frac_topmost_sparse_loci_to_remove, 
+                message=paste0("All loci were filtered out. Please consider decreasing the frac_topmost_sparse_loci_to_remove from ", frac_topmost_sparse_loci_to_remove, 
                 " to something more reasonable."))
             return(error)
         }
@@ -1601,7 +1601,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
         if (verbose & (length(vec_idx_loci_to_remove)==ncol(G))) {
             error = methods::new("gpError",
                 code=000,
-                message=paste0("All loci were filtered out. Please decrease the n_topmost_sparse_loci_to_remove from ", n_topmost_sparse_loci_to_remove, 
+                message=paste0("All loci were filtered out. Please consider decreasing the n_topmost_sparse_loci_to_remove from ", n_topmost_sparse_loci_to_remove, 
                 " to something more reasonable, if it please you m'lady/m'lord."))
             return(error)
         }
@@ -1626,11 +1626,11 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
         if (verbose & (length(vec_idx_samples_to_remove)==nrow(G))) {
             error = methods::new("gpError", 
                 code=000,
-                message=paste0("All samples were filtered out. Please increase the max_sparsity_per_sample from ", max_sparsity_per_sample, 
+                message=paste0("All samples were filtered out. Please consider increasing the max_sparsity_per_sample from ", max_sparsity_per_sample, 
                 ", given that the mean sparsity per sample ranges from ", min(vec_sparsity_per_sample, na.rm=TRUE), 
                 " to ", max(vec_sparsity_per_sample, na.rm=TRUE), 
                 " with a mean of ", mean(vec_sparsity_per_sample, na.rm=TRUE), 
-                " and median ", stats::median(vec_sparsity_per_sample, na.rm=TRUE)))
+                " and a median of ", stats::median(vec_sparsity_per_sample, na.rm=TRUE)))
             return(error)
         }
     }
@@ -1644,7 +1644,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
         if (verbose & (length(vec_idx_samples_to_remove)==nrow(G))) {
             error = methods::new("gpError", 
                 code=000,
-                message=paste0("All samples were filtered out. Please decrease the frac_topmost_sparse_samples_to_remove from ", frac_topmost_sparse_samples_to_remove, 
+                message=paste0("All samples were filtered out. Please consider decreasing the frac_topmost_sparse_samples_to_remove from ", frac_topmost_sparse_samples_to_remove, 
                 " to something more reasonable."))
             return(error)
         }
@@ -1658,7 +1658,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
         if (verbose & (length(vec_idx_samples_to_remove)==nrow(G))) {
             error = methods::new("gpError", 
                 code=000,
-                message=paste0("All samples were filtered out. Please decrease the n_topmost_sparse_samples_to_remove from ", n_topmost_sparse_samples_to_remove, 
+                message=paste0("All samples were filtered out. Please consider decreasing the n_topmost_sparse_samples_to_remove from ", n_topmost_sparse_samples_to_remove, 
                 " to something more reasonable."))
             return(error)
         }
@@ -1803,7 +1803,7 @@ fn_save_genotype = function(G, fname, file_type=c("RDS", "TSV")[1], verbose=FALS
 
 #' Load phenotype data from a text-delimited file
 #'
-#' @param fname_pheno filname of the text-delimited phenotype data
+#' @param fname_pheno filename of the text-delimited phenotype data
 #' @param sep column-delimiter in the phenotype file (Default="\\t")
 #' @param header does the phenotype file have a header line? (Default=TRUE)
 #' @param idx_col_id which column correspond to the sample/entry/pool/genotype names? (Default=1)
@@ -1929,9 +1929,9 @@ fn_filter_phenotype = function(list_pheno, remove_outliers=TRUE, remove_NA=FALSE
     # verbose = TRUE
     ###################################################
     if (verbose) {
-        print("############################")
-        print("### Filter genotype data ###")
-        print("############################")
+        print("#############################")
+        print("### Filter phenotype data ###")
+        print("#############################")
     }
     if (methods::is(list_pheno, "gpError")) {
         error = chain(list_pheno,

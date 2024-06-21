@@ -56,6 +56,12 @@ _libs/
 
 # Test files
 inst/exec_Rscript/gp_*
+inst/exec_Rscript/bglr*
+inst/exec_Rscript/*.vcf
+inst/exec_Rscript/*.vcf.gz
+inst/exec_Rscript/*.tsv
+inst/exec_Rscript/*.Rds
+inst/exec_Rscript/GENOMIC_PREDICTIONS_OUTPUT-*
 inst/exec_Rscript/output/
 
 # SQL databases

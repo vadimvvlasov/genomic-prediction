@@ -24,7 +24,7 @@
 #'      top most sparse loci will be removed (see ?fn_filter_genotype for details)
 #'  - $geno_n_topmost_sparse_loci_to_remove: number of top most sparse loci to be removed
 #'      (see ?fn_filter_genotype for details)
-#'  - $geno_max_sparsity_per_sample:  maximum sparsity or fraction of missing data per sample
+#'  - $geno_max_sparsity_per_sample: maximum sparsity or fraction of missing data per sample
 #'      (see ?fn_filter_genotype for details)
 #'  - $geno_frac_topmost_sparse_samples_to_remove: fraction of the total number of samples from which 
 #'      the top most sparse samples will be removed (see ?fn_filter_genotype for details)
@@ -340,7 +340,17 @@ gp = function(args) {
         n_topmost_sparse_samples_to_remove=args$geno_n_topmost_sparse_samples_to_remove,
         verbose=args$verbose
     )
-    if (methods::is(G, "gpError")) {return(G)}
+    if (methods::is(G, "gpError")) {
+        error = chain(G, methods::new("gpError",
+            code=000,
+            message=paste0(
+                "All loci were filtered out. ",
+                "Please consider reducing --geno-min-depth (", args$geno_min_depth, ") and/or ",
+                "increasing --geno-max-depth (", args$geno_max_depth, ") and/or ",
+                "impute your input genotype data (", args$fname_geno, ")."
+            )))
+        return(error)
+    }
     gc()
     list_pheno = fn_filter_phenotype(
         list_pheno=list_pheno,
@@ -358,6 +368,21 @@ gp = function(args) {
         verbose=args$verbose
     )
     if (methods::is(list_merged, "gpError")) {return(list_merged)}
+    ### Missing values are not allowed in the genotype data
+    if (sum(rowSums(is.na(list_merged$G))) > 0) {
+        error = methods::new("gpError",
+            code=000,
+            message=paste0(
+                "Genotype data has missing values. ",
+                "Please impute the missing data. ",
+                "You may also consider reducing ", 
+                "--geno-min-depth (", args$geno_min_depth, ") and/or increasing ",
+                "--geno-max-depth (", args$geno_max_depth, "), if possible. ",
+                "You may also set the following to zero: --geno-max-sparsity-per-locus (", args$geno_max_sparsity_per_locus, ") and ",
+                "--geno-max-sparsity-per-sample (", args$geno_max_sparsity_per_sample, ")."
+            ))
+        return(error)
+    }
     ### Clean-up
     rm("G")
     rm("list_pheno")
