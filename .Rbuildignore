@@ -1,6 +1,5 @@
 .github/
 .vscode/
-exec/
 inst/
 _libs/
 shell.nix

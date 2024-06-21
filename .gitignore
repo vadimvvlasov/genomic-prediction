@@ -55,7 +55,8 @@ rsconnect/
 _libs/
 
 # Test files
-exec/
+inst/exec_Rscript/output/
+inst/exec_Rscript/tests/
 
 # SQL databases
 *.sqlite
