@@ -55,6 +55,7 @@ rsconnect/
 _libs/
 
 # Test files
+inst/exec_Rscript/*_gp_slurm_job*.sh
 inst/exec_Rscript/output/
 inst/exec_Rscript/tests/
 
