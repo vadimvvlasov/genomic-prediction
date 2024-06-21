@@ -1102,19 +1102,19 @@ fn_across_bulk_table_predictions_server = function(input, list_list_output) {
 ui <- page_fillable(
 	titlePanel("plot(gp)"),
 	bslib::navset_card_underline(
-		bslib::nav_panel("Within population",
+		bslib::nav_panel(h1(strong("WITHIN POPULATION"), style="font-size:15px; text-align:left"),
 			fn_within_violin_ui(),
 			fn_within_scatter_hist_ui()
 		),
-		bslib::nav_panel("Across populations (pairwise)", 
+		bslib::nav_panel(h1(strong("ACROSS POPULATIONS (PAIRWISE)"), style="font-size:15px; text-align:left"),
 			fn_across_pair_barplot_ui(),
 			fn_across_pair_scatter_hist_ui()
 		),
-		bslib::nav_panel("Across populations (leave-one-out)", 
+		bslib::nav_panel(h1(strong("ACROSS POPULATIONS (LEAVE-ONE-OUT)"), style="font-size:15px; text-align:left"),
 			fn_across_lopo_barplot_ui(),
 			fn_across_lopo_scatter_hist_ui()
 		),
-		bslib::nav_panel("Across populations (bulk)", 
+		bslib::nav_panel(h1(strong("ACROSS POPULATIONS (BULK)"), style="font-size:15px; text-align:left"),
 			fn_across_bulk_violin_ui(),
 			fn_across_bulk_scatter_hist_ui()
 		)
