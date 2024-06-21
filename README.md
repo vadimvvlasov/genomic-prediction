@@ -52,10 +52,22 @@ The best models are identified through k-fold cross-fold validation (within popu
         + The rows are expected to have names of the samples corresponding to the names in the phenotype file.
         + The columns are expected to contain the loci names but does need to follow a specific format: chromosome name and position separated by a tab character (`\t`) and an optional allele identifier, e.g. `chr-1\t12345\tallele_A`
     - [Allele frequency table format (`*.tsv`)]
-
-    **TODO**
-
     - It is highly recommended to use genotype data without missing values. Missing data will be naively imputed using mean genotype value per allele/locus.
+
+- VCF format with AD (allele depth) and/or GT (genotype), and DP (depth) fields,
+          where multi-allelic loci are split into separate rows, 
+      - allele frequency table saved as a tab-delimited file with a header line and the first 3 columns refer to the
+          chromosome (chr), position (pos), and allele (allele),
+          with subsequent columns referring to the allele frequencies of a sample, entry or pool.
+          Names of the samples, entries, or pools in the header line can be any unique string of characters.
+      - Rds file containing a single numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+          Row names can be any string of characters which identify the sample or entry or pool names.
+          Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
+          the second should be numeric which refers to the position in the chromosome/scaffold, and 
+          subsequent elements are optional which may refer to the allele identifier and other identifiers.
+ @param ploidy ploidy level which will generate genotype classes instead of continuous allele frequencies.
+
+
 2. Phenotype data in text-delimited format (`-p; --phenotype-file`)
     - e.g. tab-delimited (`*.txt`) and comma-separated (`*.csv`)
     - may or may not have a header line
