@@ -1,34 +1,47 @@
 #!/bin/bash
 
-# ### Load the conda environment
-# module load Miniconda3/22.11.1-1
-# conda init bash
-# source ~/.bashrc
-# conda activate genomic_selection
-echo '
-if (!require("gp", character.only = TRUE)) {
-    install.packages("devtools")
-    devtools::install_github("jeffersonfparil/gp")
-}' > install_gp.R
-Rscript install_gp.R
-rm install_gp.R
+### Full path to the location of the executable Rscript `gp.R`` which should co-locate with this script: `0-checks_and_submission.sh`` as well as `1-gp_slurm_job.sh`.
+DIR=$(dirname $0)
+cd $DIR
+DIR=$(pwd)
+
+##################################
+### Load the conda environment ###
+##################################
+module load Miniconda3/22.11.1-1
+conda init bash
+source ~/.bashrc
+
+if [ $(conda env list | grep "^genomic_selection " | wc -l) -gt 0 ]
+then
+    conda activate genomic_selection
+else
+    conda env create -f ${DIR}/../../conda.yml
+fi
+
+#######################################
+### Install gp if not installed yet ###
+#######################################
+Rscript -e 'if (!require("gp", character.only = TRUE)) {install.packages("devtools", repos="https://cloud.r-project.org"); devtools::install_github("jeffersonfparil/gp")}'
 
 ################################################################
 ### TOP-LEVEL SLURM ARRAY JOB SUBMISSION SCRIPT
 ### Please edit the input variables below to match your dataset:
 ################################################################
-### (1) Full path to the location of the executable Rscript gp.R
-DIR=$(dirname $0)
-cd $DIR
-DIR=$(pwd)
+# ### (1) Full path to the location of the executable Rscript `gp.R`` which should co-locate with this script: `0-checks_and_submission.sh`` as well as `1-gp_slurm_job.sh`.
+# DIR=$(dirname $0)
+# cd $DIR
+# DIR=$(pwd)
 ### Input variables (use the absolute path to files to be precise)
 ### (2) R matrix object with n rows corresponding to samples, and p columns corresponding to the markers or loci. 
-###     Should have no missing data or else will be imputed via mean value imputation.
+###     - The genotype data can be coded as any numeric range of values, e.g. (0,1,2), (-1,0,1), and (0.00,0.25,0.50,0.75,1.00) or as biallelic characters, e.g. for diploids: "AA", "AB", "BB", and for tetraploids: "AAAA", "AAAB", "AABB", "ABBB", and "BBBB".. It is recommended that this data should be filtered and imputed beforehand.
+###     - The rows are expected to have names of the samples corresponding to the names in the phenotype file.
+###     - The columns are expected to contain the loci names but does need to follow a specific format: chromosome name and position separated by a tab character (`\t`) and an optional allele identifier, e.g. `chr-1\t12345\tallele_A`
 GENOTYPE_DATA_RDS=${DIR}/input/test_geno.Rds
 ### (3) Tab-delimited phenotype file where column 1: sample names, column 2: population name, columns 3 and so on refers to the phenotype values of one trait per column.
-###     Headers for the columns should be named appropriately, e.g. ID, POP, TRAIT1, TRAIT2, etc.
-###     Missing values are allowed for samples whose phenotypes will be predicted by the best model identified within the population they belong to.
-###     Missing values may be coded as empty cells, -, NA, na, NaN, missing, and/or MISSING.
+###     - Headers for the columns should be named appropriately, e.g. ID, POP, TRAIT1, TRAIT2, etc.
+###     - Missing values are allowed for samples whose phenotypes will be predicted by the best model identified within the population they belong to.
+###     - Missing values may be coded as empty cells, -, NA, na, NaN, missing, and/or MISSING.
 PHENOTYPE_DATA_TSV=${DIR}/input/test_pheno.tsv
 ### (4) Number of folds for k-fold cross-validation.
 KFOLDS=5
