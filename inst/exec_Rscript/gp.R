@@ -1,5 +1,4 @@
-devtools::load_all()
-# suppressPackageStartupMessages(library("gp"))
+suppressPackageStartupMessages(library("gp"))
 suppressPackageStartupMessages(library("argparse"))
 parser = ArgumentParser(description="Genomic prediction cross-validation within and across populations. Please find the documentation within and interactive R session.")
 parser$add_argument("-g", "--fname-geno",                                dest="fname_geno",                                      type="character",                                                                                  help="Filname of the input genotype data without missing data formatted as VCF with DP field and AD or GT field, RDS file containing an n samples x p loci allele frequency matrix with sample names in the rows and tab-delimited loci names in the column, and a TSV (tab-delimited) file of allele frequencies where the first 3 columns correspond to the chromosome or scaffold names, position, and allele which can be null, and the subsequent columns refer to the allele frequencies per sample where the column names are chr, pos, allele, followed by sample names without tabs.")
