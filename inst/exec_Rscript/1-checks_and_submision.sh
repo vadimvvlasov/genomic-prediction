@@ -1,6 +1,6 @@
 #!/bin/bash
 
-### Full path to the location of the executable Rscript `gp.R`` which should co-locate with this script: `0-checks_and_submission.sh`` as well as `1-gp_slurm_job.sh`.
+### Full path to the location of the executable Rscript `gp.R` which should co-locate with this script: `0-checks_and_submission.sh` as well as `1-gp_slurm_job.sh`.
 DIR_SRC=$(dirname $0)
 cd $DIR_SRC
 DIR_SRC=$(pwd)
@@ -15,15 +15,27 @@ if [ $(conda env list | grep "^genomic_selection " | wc -l) -gt 0 ]
 then
     conda activate genomic_selection
 else
+    if [[ ! -f ${DIR_SRC}/../../conda.yml ]] || [[ ! -f ${DIR_SRC}/gp/conda.yml ]]
+    then
+        echo "Error: The conda configuration file: conda.yml does not exist. Did you run 0-submit.sh in the same directory as the rest of the executable bash scripts and Rscript?"
+        rm $0
+        rm 2-gp_slurm_job.sh
+        exit 100
+    fi
     echo "Installing the conda environment..."
-    conda env create -f ${DIR_SRC}/../../conda.yml
+    if [ ! -f ${DIR_SRC}/../../conda.yml ]
+    then
+        conda env create -f ${DIR_SRC}/../../conda.yml
+    else
+        conda env create -f ${DIR_SRC}/gp/conda.yml
+    fi
     conda activate genomic_selection
 fi
 #######################################
 ### Install gp if not installed yet ###
 #######################################
 echo "Checking if the R library gp exists and installing it, if not..."
-Rscript -e 'if (!require("gp", character.only = TRUE)) {install.packages("devtools", repos="https://cloud.r-project.org"); devtools::install_github("jeffersonfparil/gp")}'
+Rscript -e 'if (!require("gp", character.only = TRUE)) {devtools::install_github("jeffersonfparil/gp", upgrade_dependencies=TRUE)}'
 ################################################################
 ### TOP-LEVEL SLURM ARRAY JOB SUBMISSION SCRIPT
 ### Please edit the input variables below to match your dataset:
@@ -45,7 +57,6 @@ KFOLDS=5
 NREPS=3
 ### (5) Output directory where the output/ folder will be created
 DIR_OUT=${DIR_SRC}
-
 ### Check if the genotype file exists
 if [ ! -f $GENOTYPE_DATA_RDS ]
 then

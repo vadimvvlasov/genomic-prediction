@@ -1,3 +1,15 @@
+GENOTYPE_DATA_RDS=/group/pasture/Jeff/gp/inst/exec_Rscript/input_tmp/test_geno.Rds
+PHENOTYPE_DATA_TSV=/group/pasture/Jeff/gp/inst/exec_Rscript/input_tmp/test_pheno.tsv
+KFOLDS=3
+NREPS=3
+DIR_OUT=/group/pasture/Jeff/gp/inst/exec_Rscript/output_tmp
+SBATCH --job-name="AAA"
+SBATCH --account="dbiopast1"
+SBATCH --ntasks=1
+SBATCH --cpus-per-task=8
+SBATCH --mem=64G
+SBATCH --time=0-2:0:00
+
 GENOTYPE_DATA_RDS=${DIR_SRC}/input/test_geno.Rds
 PHENOTYPE_DATA_TSV=${DIR_SRC}/input/test_pheno.tsv
 KFOLDS=2

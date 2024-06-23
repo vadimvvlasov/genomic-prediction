@@ -11,7 +11,7 @@ A streamlined interface to calculate the breeding values of entries in breeding 
 ## Installation
 
 ```R
-devtools::install_github("jeffersonfparil/gp")
+devtools::install_github("jeffersonfparil/gp", upgrade_dependencies=TRUE)
 ```
 
 ## Architecture
