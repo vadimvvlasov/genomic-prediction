@@ -104,7 +104,7 @@ then
 else
     echo "Passed: You have permission to write in the output directory: $DIR_OUT."
 fi
-### Check if the confighured slurm array job script exists
+### Check if the configured slurm array job script exists
 if [ ! -f ${DIR_SRC}/2-gp_slurm_job.sh ]
 then
     echo "Error: The executable code directory: $DIR_SRC does not contain the script: 2-gp_slurm_job.sh. Are you sure this is the genomic_selection repo directory?"
@@ -113,6 +113,16 @@ then
     exit 107
 else
     echo "Passed: The executable code directory: $DIR_SRC contains the script: 2-gp_slurm_job.sh."
+fi
+### Check if the executable Rscript exists
+if [ ! -f ${DIR_SRC}/gp.R ]
+then
+    echo "Error: The executable code directory: $DIR_SRC does not contain the script: gp.R. Are you sure this is the genomic_selection repo directory?"
+    rm $0
+    rm 2-gp_slurm_job.sh
+    exit 108
+else
+    echo "Passed: The executable Rscript: $DIR_SRC contains the Rscript: gp.R."
 fi
 ### Initialise the output directory which will contain all the output Rds files across populations and traits
 if [ ! -d ${DIR_OUT}/output ]
