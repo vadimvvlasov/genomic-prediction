@@ -122,7 +122,7 @@ then
     rm 2-gp_slurm_job.sh
     exit 108
 else
-    echo "Passed: The executable Rscript: $DIR_SRC contains the Rscript: gp.R."
+    echo "Passed: The executable code directory: $DIR_SRC contains the Rscript: gp.R."
 fi
 ### Initialise the output directory which will contain all the output Rds files across populations and traits
 if [ ! -d ${DIR_OUT}/output ]
