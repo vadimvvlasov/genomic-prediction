@@ -4,3 +4,4 @@ inst/
 _libs/
 shell.nix
 .*sqlite
+.Rprofile

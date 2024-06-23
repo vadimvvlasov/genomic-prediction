@@ -1136,7 +1136,8 @@ server = function(input, output, session) {
 	### EXTRACT DATA AND UPDATE SELECTIONS ###
 	##########################################
 	data = reactive({
-		dirname_root = "/group/pasture/Jeff/gp/inst/exec_Rscript/output"
+		# dirname_root = "/group/pasture/Jeff/gp/inst/exec_Rscript/output"
+		dirname_root = "/"
 		shinyFiles::shinyDirChoose(input, id='dir', roots=c(root=dirname_root), filetypes=c('rds', 'Rds', 'RDS'), session=session)
 		dir = as.character(parseDirPath(c(root=dirname_root), input$dir))
 		list_list_output = fn_io_server(dir=dir)
