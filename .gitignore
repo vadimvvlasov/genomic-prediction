@@ -56,6 +56,7 @@ rsconnect/
 _libs/
 
 # Test files
+inst/exec_Rscript/*RAND*.sh
 inst/exec_Rscript/gp_*
 inst/exec_Rscript/bglr*
 inst/exec_Rscript/*.vcf
