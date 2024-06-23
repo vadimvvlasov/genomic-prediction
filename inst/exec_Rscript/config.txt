@@ -1,8 +1,8 @@
-GENOTYPE_DATA_RDS=${DIR_SRC}/input_tmp/test_geno.RdsX
-PHENOTYPE_DATA_TSV=${DIR_SRC}/input_tmp/test_pheno.tsv
+GENOTYPE_DATA_RDS=${DIR_SRC}/input/test_geno.Rds
+PHENOTYPE_DATA_TSV=${DIR_SRC}/input/test_pheno.tsv
 KFOLDS=2
 NREPS=2
-DIR_OUT=${DIR_SRC}/output_tmp
+DIR_OUT=${DIR_SRC}
 SBATCH --job-name="test"
 SBATCH --account="dbiopast2"
 SBATCH --ntasks=1
