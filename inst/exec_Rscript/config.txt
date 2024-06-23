@@ -1,4 +1,4 @@
-GENOTYPE_DATA_RDS=${DIR_SRC}/input_tmp/test_geno.Rds
+GENOTYPE_DATA_RDS=${DIR_SRC}/input_tmp/test_geno.RdsX
 PHENOTYPE_DATA_TSV=${DIR_SRC}/input_tmp/test_pheno.tsv
 KFOLDS=2
 NREPS=2

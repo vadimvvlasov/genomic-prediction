@@ -50,6 +50,8 @@ DIR_OUT=${DIR_SRC}
 if [ ! -f $GENOTYPE_DATA_RDS ]
 then
     echo "Error: The genotype file: $GENOTYPE_DATA_RDS does not exist. Are you specifying the full path? Is the name correct?"
+    rm $0
+    rm 2-gp_slurm_job.sh
     exit 101
 else
     echo "Passed: The genotype file: $GENOTYPE_DATA_RDS exists."
@@ -58,6 +60,8 @@ fi
 if [ ! -f $PHENOTYPE_DATA_TSV ]
 then
     echo "Error: The phenotype file: $PHENOTYPE_DATA_TSV does not exist. Are you specifying the full path? Is the name correct?"
+    rm $0
+    rm 2-gp_slurm_job.sh
     exit 102
 else
     echo "Passed: The phenotype file: $PHENOTYPE_DATA_TSV exists."
@@ -69,6 +73,8 @@ geno = suppressWarnings(tryCatch(readRDS(args[1]), error=function(e){print("Erro
 if [ $(Rscript test_geno_rds.R $GENOTYPE_DATA_RDS | grep -i "error" | wc -l) -eq 1 ]
 then
     echo "Error: The genotype file: $GENOTYPE_DATA_RDS is not an Rds file."
+    rm $0
+    rm 2-gp_slurm_job.sh
     exit 103
 else
     echo "Passed: The genotype file: $GENOTYPE_DATA_RDS is an Rds file."
@@ -81,6 +87,8 @@ pheno = suppressWarnings(tryCatch(read.delim(args[1], sep="\t", header=TRUE), er
 if [ $(Rscript test_pheno_rds.R $PHENOTYPE_DATA_TSV | grep -i "error" | wc -l) -eq 1 ]
 then
     echo "Error: The phenotype file: $GENOTYPE_DATA_RDS is not formatted according to specifications. It should be tab-delimited and a header line must be present."
+    rm $0
+    rm 2-gp_slurm_job.sh
     exit 104
 else
     echo "Passed: The phenotype file: $GENOTYPE_DATA_RDS is tab-delimited with a header line."
@@ -90,6 +98,8 @@ rm test_pheno_rds.R
 if [ ! -w $DIR_OUT ]
 then
     echo "Error: You do not have permission to write in the output directory: $DIR_OUT. Please use an output directory you have write acess to."
+    rm $0
+    rm 2-gp_slurm_job.sh
     exit 106
 else
     echo "Passed: You have permission to write in the output directory: $DIR_OUT."
@@ -98,6 +108,8 @@ fi
 if [ ! -f ${DIR_SRC}/2-gp_slurm_job.sh ]
 then
     echo "Error: The executable code directory: $DIR_SRC does not contain the script: 2-gp_slurm_job.sh. Are you sure this is the genomic_selection repo directory?"
+    rm $0
+    rm 2-gp_slurm_job.sh
     exit 107
 else
     echo "Passed: The executable code directory: $DIR_SRC contains the script: 2-gp_slurm_job.sh."
