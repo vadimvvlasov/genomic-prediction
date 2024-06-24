@@ -11,7 +11,7 @@ A streamlined interface to calculate the breeding values of entries in breeding 
 ## Installation
 
 ```R
-devtools::install_github("jeffersonfparil/gp", upgrade="always", force=TRUE)
+devtools::install_github("jeffersonfparil/gp")
 ```
 
 ## Architecture
@@ -54,17 +54,6 @@ With Conda: `conda env create -f conda.yml`.
 
 ```R
 devtools::test()
-```
-
-Or per module as:
-
-```R
-devtools::load_all()
-library(sommer)
-library(testthat)
-source("tests/testthat/test-helpers.R")
-source("tests/testthat/test-univariate_gx1.R")
-source("tests/testthat/test-univariate_gxe.R")
 ```
 
 Or check the entire library:
