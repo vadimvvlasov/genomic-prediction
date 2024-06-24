@@ -16,7 +16,7 @@ fn_load_phenotype(
 )
 }
 \arguments{
-\item{fname_pheno}{filname of the text-delimited phenotype data}
+\item{fname_pheno}{filename of the text-delimited phenotype data}
 
 \item{sep}{column-delimiter in the phenotype file (Default="\\t")}
 

@@ -32,7 +32,7 @@ gp(args)
 top most sparse loci will be removed (see ?fn_filter_genotype for details)
 \item $geno_n_topmost_sparse_loci_to_remove: number of top most sparse loci to be removed
 (see ?fn_filter_genotype for details)
-\item $geno_max_sparsity_per_sample:  maximum sparsity or fraction of missing data per sample
+\item $geno_max_sparsity_per_sample: maximum sparsity or fraction of missing data per sample
 (see ?fn_filter_genotype for details)
 \item $geno_frac_topmost_sparse_samples_to_remove: fraction of the total number of samples from which
 the top most sparse samples will be removed (see ?fn_filter_genotype for details)
