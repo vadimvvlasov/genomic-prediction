@@ -8,4 +8,4 @@ SBATCH --account="dbiopast2"
 SBATCH --cpus-per-task=4
 SBATCH --mem=10G
 SBATCH --time=0-0:10:00
-ridge,Bayes_A,Bayes_B,Bayes_C,gBLUP
+ridge,lasso,elastic_net,Bayes_A,Bayes_B,Bayes_C,gBLUP
