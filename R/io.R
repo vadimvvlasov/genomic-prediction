@@ -1843,7 +1843,6 @@ fn_load_phenotype = function(fname_pheno, sep="\t", header=TRUE,
         print("###########################")
     }
     df = utils::read.table(fname_pheno, sep=sep, header=header, na.strings=na_strings)
-    print(str(df))
     if (max(c(idx_col_y, idx_col_id, idx_col_pop)) > ncol(df)) {
         error = methods::new("gpError",
             code=000,
