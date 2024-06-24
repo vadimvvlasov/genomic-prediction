@@ -110,6 +110,7 @@ Rscript ${DIR_SRC}/gp.R \
     --pheno-idx-col-y $COLUMN_ID \
     --bool-within TRUE \
     --bool-across $BOOL_ACROSS \
+    --vec-models-to-test ridge,lasso,elastic_net,Bayes_A,Bayes_B,Bayes_C,gBLUP \
     --n-folds $KFOLDS \
     --n-reps $NREPS \
     --bool-parallel TRUE \

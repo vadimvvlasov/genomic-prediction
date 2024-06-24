@@ -28,7 +28,7 @@ parser$add_argument("--pheno-header",                                    dest="p
 parser$add_argument("--pheno-idx-col-id",                                dest="pheno_idx_col_id",                                type="integer", default=1,                                                                         help="Column number in the phenotype file corresponding to the sample names [default=1].")
 parser$add_argument("--pheno-idx-col-pop",                               dest="pheno_idx_col_pop",                               type="integer", default=2,                                                                         help="Column number in the phenotype file corresponding to the population/grouping names [default=2].")
 parser$add_argument("--pheno-idx-col-y",                                 dest="pheno_idx_col_y",                                 type="integer", default=3,                                                                         help="Column number in the phenotype file corresponding to the numeric phenotype data [default=3].")
-parser$add_argument("--pheno-na-strings",                                dest="pheno_na_strings",                                type="character", default=c("", "-", "NA", "na", "NaN", "missing", "MISSING"),                     help="Strings of characters corresponding to missing data in the phenotype file [default=c('', '-', 'NA', 'na', 'NaN', 'missing', 'MISSING')].")
+parser$add_argument("--pheno-na-strings",                                dest="pheno_vec_na_strings",                                type="character", default=c("", "-", "NA", "na", "NaN", "missing", "MISSING"),                     help="Strings of characters corresponding to missing data in the phenotype file [default=c('', '-', 'NA', 'na', 'NaN', 'missing', 'MISSING')].")
 parser$add_argument("--pheno-bool-remove-outliers",                      dest="pheno_bool_remove_outliers",                      type="logical", default=FALSE,                                                                      help="Remove outliers from the phenotype file [default=FALSE]?")
 parser$add_argument("--pheno-bool-remove-NA",                            dest="pheno_bool_remove_NA",                            type="logical", default=FALSE,                                                                     help="Remove samples missing phenotype data in the phenotype file? [default=FALSE].")
 parser$add_argument("--bool-within",                                     dest="bool_within",                                     type="logical", default=TRUE,                                                                      help="Perform within population k-fold cross-validation? [default=TRUE].")
@@ -63,7 +63,11 @@ print(paste0("     - with a total of ", args$n_threads, " threads available and 
 print(paste0("       a total memory of ", args$max_mem_Gb, " Gb."))
 print(paste0("Start time: ", time_ini))
 print("Input parameters:")
+### Parse input vectors
+args$vec_models_to_test = unlist(strsplit(gsub(" ", "", args$vec_models_to_test), ","))
+args$pheno_na_strings = unlist(strsplit(gsub(" ", "", args$pheno_na_strings), ","))
 print(args)
+### Run
 fname_out_Rds = gp::gp(args=args)
 time_fin = Sys.time()
 time_duration_minutes = as.numeric(difftime(time_fin, time_ini, units="min"))

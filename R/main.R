@@ -38,7 +38,7 @@
 #'      (see ?fn_load_phenotype for details)
 #'  - $pheno_idx_col_y: column number in the phenotype file corresponding to the numeric phenotype data
 #'      (see ?fn_load_phenotype for details)
-#'  - $pheno_na_strings: strings of characters corresponding to missing data in the phenotype file
+#'  - $pheno_vec_na_strings: strings of characters corresponding to missing data in the phenotype file
 #'      (see ?fn_load_phenotype for details)
 #'  - $pheno_bool_remove_outliers: remove outliers from the phenotype file?
 #'  - $pheno_bool_remove_NA: remove samples missing phenotype data in the phenotype file?
@@ -236,7 +236,7 @@
 #'     pheno_idx_col_id=1,
 #'     pheno_idx_col_pop=2,
 #'     pheno_idx_col_y=3,
-#'     pheno_na_strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING"),
+#'     pheno_vec_na_strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING"),
 #'     pheno_bool_remove_outliers=TRUE,
 #'     pheno_bool_remove_NA=FALSE,
 #'     bool_within=TRUE,
@@ -286,7 +286,7 @@ gp = function(args) {
     #     pheno_idx_col_id=1,
     #     pheno_idx_col_pop=2,
     #     pheno_idx_col_y=3,
-    #     pheno_na_strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING"),
+    #     pheno_vec_na_strings=c("", "-", "NA", "na", "NaN", "missing", "MISSING"),
     #     pheno_bool_remove_outliers=FALSE,
     #     pheno_bool_remove_NA=FALSE,
     #     bool_within=TRUE,
@@ -318,7 +318,7 @@ gp = function(args) {
         idx_col_id=args$pheno_idx_col_id,
         idx_col_pop=args$pheno_idx_col_pop,
         idx_col_y=args$pheno_idx_col_y,
-        na_strings=args$pheno_na_strings,
+        na_strings=args$pheno_vec_na_strings,
         verbose=args$verbose
     )
     if (methods::is(list_pheno, "gpError")) {return(list_pheno)}
