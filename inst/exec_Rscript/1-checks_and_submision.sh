@@ -35,7 +35,7 @@ fi
 ### Install gp if not installed yet ###
 #######################################
 echo "Checking if the R library gp exists and installing it, if not..."
-Rscript -e 'if (!require("gp", character.only = TRUE)) {devtools::install_github("jeffersonfparil/gp", upgrade_dependencies=TRUE)}'
+Rscript -e 'if (!require("gp", character.only = TRUE)) {devtools::install_github("jeffersonfparil/gp", upgrade="always", force=TRUE)}'
 ################################################################
 ### TOP-LEVEL SLURM ARRAY JOB SUBMISSION SCRIPT
 ### Please edit the input variables below to match your dataset:
