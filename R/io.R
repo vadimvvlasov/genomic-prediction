@@ -54,7 +54,6 @@ fn_G_extract_names = function(mat_genotypes, verbose=FALSE) {
     p = ncol(mat_genotypes)
     vec_ids = rownames(mat_genotypes)
     vec_loci = colnames(mat_genotypes)
-
     if (sum(duplicated(vec_ids)) > 0) {
         error = methods::new("gpError",
             code=000,
@@ -74,7 +73,6 @@ fn_G_extract_names = function(mat_genotypes, verbose=FALSE) {
                 "Please remove the duplicated loci."))
         return(error)
     }
-
     n_identifiers = length(unlist(strsplit(vec_loci[1], "\t"))) ### Number of loci identifiers where we expect at least 2
     if (n_identifiers < 2) {
         error = methods::new("gpError",
