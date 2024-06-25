@@ -327,6 +327,8 @@ fn_cv_1 = function(i, list_merged, df_params, mat_idx_shuffle, vec_set_partition
 #'      using the sommer R package (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4894563/).
 #'      https://link.springer.com/protocol/10.1007/978-1-62703-447-0_13
 #' @param max_mem_Gb maximum memory in gigabytes available for computation (Default=15)
+#' @param bool_across_pop for across population cross-validation? This will use a data size multiplier of 40 if true,
+#'      otherwise a multiplier of 10 will be used for within population cross-validation (Default=TRUE)
 #' @param verbose show cross-validation parameter preparation messages? (Default=FALSE)
 #' @returns
 #'  - Ok:
@@ -354,7 +356,7 @@ fn_cv_1 = function(i, list_merged, df_params, mat_idx_shuffle, vec_set_partition
 #' @export
 fn_cross_validation_preparation = function(list_merged, cv_type=1, n_folds=10, n_reps=10, 
     vec_models_to_test=c("ridge","lasso","elastic_net","Bayes_A","Bayes_B","Bayes_C","gBLUP"),
-    max_mem_Gb=15, verbose=FALSE)
+    max_mem_Gb=15, bool_across_pop=TRUE, verbose=FALSE)
 {
     ###################################################
     ### TEST
@@ -418,12 +420,18 @@ fn_cross_validation_preparation = function(list_merged, cv_type=1, n_folds=10, n
         df_params = df_params[order(df_params$rep), ]
         df_params = df_params[order(df_params$fold), ]
         ### Estimate the maximum number of threads which can be used without running out of memory
+        if (bool_across_pop) {
+            memory_multiplier = 40
+        } else {
+            memory_multiplier = 10
+        }
         list_mem = fn_estimate_memory_footprint(
             X=list_merged,
             n_models=length(vec_models_to_test),
             n_folds=n_folds,
             n_reps=n_reps, 
             memory_requested_Gb=max_mem_Gb,
+            memory_multiplier=memory_multiplier,
             verbose=verbose)
     } else if (cv_type == 2) {
         ############################################
@@ -693,6 +701,7 @@ fn_cross_validation_within_population = function(list_merged, n_folds=10, n_reps
             n_reps=n_reps, 
             vec_models_to_test=vec_models_to_test,
             max_mem_Gb=max_mem_Gb,
+            bool_across_pop=FALSE,
             verbose=verbose)
         if (methods::is(list_cv_params, "gpError")) {
             error = chain(list_cv_params, methods::new("gpError",
