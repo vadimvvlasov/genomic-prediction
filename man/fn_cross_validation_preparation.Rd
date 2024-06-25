@@ -13,7 +13,6 @@ fn_cross_validation_preparation(
   vec_models_to_test = c("ridge", "lasso", "elastic_net", "Bayes_A", "Bayes_B",
     "Bayes_C", "gBLUP"),
   max_mem_Gb = 15,
-  bool_across_pop = TRUE,
   verbose = FALSE
 )
 }
@@ -72,9 +71,6 @@ https://link.springer.com/protocol/10.1007/978-1-62703-447-0_13
 }}
 
 \item{max_mem_Gb}{maximum memory in gigabytes available for computation (Default=15)}
-
-\item{bool_across_pop}{for across population cross-validation? This will use a data size multiplier of 40 if true,
-otherwise a multiplier of 10 will be used for within population cross-validation (Default=TRUE)}
 
 \item{verbose}{show cross-validation parameter preparation messages? (Default=FALSE)}
 }
