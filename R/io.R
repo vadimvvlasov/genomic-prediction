@@ -2355,7 +2355,7 @@ fn_estimate_memory_footprint = function(X, n_models=7, n_folds=10, n_reps=10,
     size_total = size_X * n_models * n_folds * n_reps * memory_multiplier
     n_threads = floor(as.numeric(gsub(" bytes", "",  size_RAM / (size_X * memory_multiplier))))
     if (verbose) {
-        print(paste0("Dimensions of X: = ", paste(dim(X), collapse=" x ")))
+        print(paste0("Dimensions of G: = ", paste(dim(X$G), collapse=" x ")))
         print(paste0("Size of X: = ", format(size_X, units="b")))
         print(paste0("n_models = ", n_models, "; n_folds = ", n_folds, "; n_reps = ", n_reps))
         print(paste0("Total memory requested = ", 
