@@ -54,6 +54,27 @@ fn_G_extract_names = function(mat_genotypes, verbose=FALSE) {
     p = ncol(mat_genotypes)
     vec_ids = rownames(mat_genotypes)
     vec_loci = colnames(mat_genotypes)
+
+    if (sum(duplicated(vec_ids)) > 0) {
+        error = methods::new("gpError",
+            code=000,
+            message=paste0(
+                "Error in io::fn_G_extract_names(...). ",
+                "The sample names (row names) have duplicates. ",
+                "We expect unique samples in the genotype file. ",
+                "Please remove or generate consensus among duplicated genotypes."))
+        return(error)
+    }
+    if (sum(duplicated(vec_loci)) > 0) {
+        error = methods::new("gpError",
+            code=000,
+            message=paste0(
+                "Error in io::fn_G_extract_names(...). ",
+                "The loci names (column names) have duplicates. ",
+                "Please remove the duplicated loci."))
+        return(error)
+    }
+
     n_identifiers = length(unlist(strsplit(vec_loci[1], "\t"))) ### Number of loci identifiers where we expect at least 2
     if (n_identifiers < 2) {
         error = methods::new("gpError",
