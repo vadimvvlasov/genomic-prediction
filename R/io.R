@@ -863,7 +863,7 @@ fn_classify_allele_frequencies = function(G, ploidy=2, verbose=FALSE) {
     if (verbose) {
         print("Genotype classes distribution:")
         print(paste0(c("q_min=", "q_max="), round(range(G_classes), 4)))
-        txtplot::txtdensity(G_classes)
+        txtplot::txtdensity(G_classes[!is.na(G_classes)])
         print("Genotype classes:")
         print(table(G_classes))
     }
@@ -935,10 +935,10 @@ fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, m
     if (verbose) {
         print("Simulated allele frequency distribution:")
         print(paste0(c("q_min=", "q_max="), round(range(G), 4)))
-        txtplot::txtdensity(G)
+        txtplot::txtdensity(G[!is.na(G)])
         print("Simulated phenotype distribution:")
         print(paste0(c("y_min=", "y_max="), round(range(df$trait), 4)))
-        txtplot::txtdensity(df$trait)
+        txtplot::txtdensity(df$trait[!is.na(df$trait)])
     }
     ### Instantiate output file names
     fname_geno_vcf = NULL
@@ -1548,7 +1548,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
         vec_allele_counts = table(vec_loci_names)
         if (verbose) {
             print("Distribution of the number of alleles per locus:")
-            txtplot::txtdensity(vec_allele_counts)
+            txtplot::txtdensity(vec_allele_counts[!is.na(vec_allele_counts)])
         }
         vec_loci_names_passed = names(vec_allele_counts)[vec_allele_counts <= max_n_alleles]
         vec_idx = which(vec_loci_names %in% vec_loci_names_passed)
@@ -2207,7 +2207,7 @@ fn_merge_genotype_and_phenotype = function(G, list_pheno, COVAR=NULL, verbose=FA
         if (!is.null(COVAR)) {
             print("Covariate distribution:")
             print(paste0("m=", ncol(COVAR)))
-            txtplot::txtdensity(COVAR)
+            txtplot::txtdensity(COVAR[!is.na(COVAR)])
             print("Clustering of the samples/entries/pools based on the covariate matrix (COVAR):")
             if (ncol(COVAR) == 2) {
                 txtplot::txtplot(COVAR[,1], COVAR[,2])
