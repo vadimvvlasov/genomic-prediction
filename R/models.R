@@ -80,7 +80,7 @@ fn_ols = function(list_merged, vec_idx_training, vec_idx_validation, other_param
     if (methods::is(list_merged, "gpError")) {
         error = chain(list_merged, 
             methods::new("gpError",
-                code=000,
+                code=400,
                 message=paste0(
                     "Error in models::fn_ols(...). ",
                     "Input data (list_merged) is an error type."
@@ -92,7 +92,7 @@ fn_ols = function(list_merged, vec_idx_training, vec_idx_validation, other_param
         (min(c(vec_idx_training, vec_idx_training)) < 0) |
         (max(c(vec_idx_training, vec_idx_training)) > nrow(list_merged$G))) {
             error = methods::new("gpError",
-                code=000,
+                code=401,
                 message=paste0(
                     "Error in models::fn_ols(...). ",
                     "Please make sure that the vector of indexes for the training and validation sets are not booleans. ",
@@ -127,7 +127,7 @@ fn_ols = function(list_merged, vec_idx_training, vec_idx_validation, other_param
         })
         if (is.na(A_inv[1])) {
             error = methods::new("gpError",
-                code=000,
+                code=402,
                 message=paste0(
                     "Error in models::fn_ols(...). ",
                     "Failed to compute the inverse of X'X. ",
@@ -150,7 +150,7 @@ fn_ols = function(list_merged, vec_idx_training, vec_idx_validation, other_param
         })
         if (is.na(A_inv[1])) {
             error = methods::new("gpError",
-                code=000,
+                code=403,
                 message=paste0(
                     "Error in models::fn_ols(...). ",
                     "Failed to compute the inverse of XX'. ",
@@ -253,7 +253,7 @@ fn_ridge = function(list_merged, vec_idx_training, vec_idx_validation, other_par
     if (methods::is(list_merged, "gpError")) {
         error = chain(list_merged, 
             methods::new("gpError",
-                code=000,
+                code=404,
                 message=paste0(
                     "Error in models::fn_ridge(...). ",
                     "Input data (list_merged) is an error type."
@@ -265,7 +265,7 @@ fn_ridge = function(list_merged, vec_idx_training, vec_idx_validation, other_par
         (min(c(vec_idx_training, vec_idx_training)) < 0) |
         (max(c(vec_idx_training, vec_idx_training)) > nrow(list_merged$G))) {
             error = methods::new("gpError",
-                code=000,
+                code=405,
                 message=paste0(
                     "Error in models::fn_ridge(...). ",
                     "Please make sure that the vector of indexes for the training and validation sets are not booleans. ",
@@ -397,7 +397,7 @@ fn_lasso = function(list_merged, vec_idx_training, vec_idx_validation, other_par
     if (methods::is(list_merged, "gpError")) {
         error = chain(list_merged, 
             methods::new("gpError",
-                code=000,
+                code=406,
                 message=paste0(
                     "Error in models::fn_lasso(...). ",
                     "Input data (list_merged) is an error type."
@@ -409,7 +409,7 @@ fn_lasso = function(list_merged, vec_idx_training, vec_idx_validation, other_par
         (min(c(vec_idx_training, vec_idx_training)) < 0) |
         (max(c(vec_idx_training, vec_idx_training)) > nrow(list_merged$G))) {
             error = methods::new("gpError",
-                code=000,
+                code=407,
                 message=paste0(
                     "Error in models::fn_lasso(...). ",
                     "Please make sure that the vector of indexes for the training and validation sets are not booleans. ",
@@ -541,7 +541,7 @@ fn_elastic_net = function(list_merged, vec_idx_training, vec_idx_validation, oth
     if (methods::is(list_merged, "gpError")) {
         error = chain(list_merged, 
             methods::new("gpError",
-                code=000,
+                code=408,
                 message=paste0(
                     "Error in models::fn_elastic_net(...). ",
                     "Input data (list_merged) is an error type."
@@ -553,7 +553,7 @@ fn_elastic_net = function(list_merged, vec_idx_training, vec_idx_validation, oth
         (min(c(vec_idx_training, vec_idx_training)) < 0) |
         (max(c(vec_idx_training, vec_idx_training)) > nrow(list_merged$G))) {
             error = methods::new("gpError",
-                code=000,
+                code=409,
                 message=paste0(
                     "Error in models::fn_elastic_net(...). ",
                     "Please make sure that the vector of indexes for the training and validation sets are not booleans. ",
@@ -692,7 +692,7 @@ fn_Bayes_A = function(list_merged, vec_idx_training, vec_idx_validation,
     if (methods::is(list_merged, "gpError")) {
         error = chain(list_merged, 
             methods::new("gpError",
-                code=000,
+                code=410,
                 message=paste0(
                     "Error in models::fn_elastic_net(...). ",
                     "Input data (list_merged) is an error type."
@@ -704,7 +704,7 @@ fn_Bayes_A = function(list_merged, vec_idx_training, vec_idx_validation,
         (min(c(vec_idx_training, vec_idx_training)) < 0) |
         (max(c(vec_idx_training, vec_idx_training)) > nrow(list_merged$G))) {
             error = methods::new("gpError",
-                code=000,
+                code=411,
                 message=paste0(
                     "Error in models::fn_Bayes_A(...). ",
                     "Please make sure that the vector of indexes for the training and validation sets are not booleans. ",
@@ -839,7 +839,7 @@ fn_Bayes_B = function(list_merged, vec_idx_training, vec_idx_validation,
     if (methods::is(list_merged, "gpError")) {
         error = chain(list_merged, 
             methods::new("gpError",
-                code=000,
+                code=412,
                 message=paste0(
                     "Error in models::fn_elastic_net(...). ",
                     "Input data (list_merged) is an error type."
@@ -851,7 +851,7 @@ fn_Bayes_B = function(list_merged, vec_idx_training, vec_idx_validation,
         (min(c(vec_idx_training, vec_idx_training)) < 0) |
         (max(c(vec_idx_training, vec_idx_training)) > nrow(list_merged$G))) {
             error = methods::new("gpError",
-                code=000,
+                code=413,
                 message=paste0(
                     "Error in models::fn_Bayes_B(...). ",
                     "Please make sure that the vector of indexes for the training and validation sets are not booleans. ",
@@ -986,7 +986,7 @@ fn_Bayes_C = function(list_merged, vec_idx_training, vec_idx_validation,
     if (methods::is(list_merged, "gpError")) {
         error = chain(list_merged, 
             methods::new("gpError",
-                code=000,
+                code=414,
                 message=paste0(
                     "Error in models::fn_elastic_net(...). ",
                     "Input data (list_merged) is an error type."
@@ -998,7 +998,7 @@ fn_Bayes_C = function(list_merged, vec_idx_training, vec_idx_validation,
         (min(c(vec_idx_training, vec_idx_training)) < 0) |
         (max(c(vec_idx_training, vec_idx_training)) > nrow(list_merged$G))) {
             error = methods::new("gpError",
-                code=000,
+                code=415,
                 message=paste0(
                     "Error in models::fn_Bayes_C(...). ",
                     "Please make sure that the vector of indexes for the training and validation sets are not booleans. ",
@@ -1127,7 +1127,7 @@ fn_gBLUP = function(list_merged, vec_idx_training, vec_idx_validation, other_par
     if (methods::is(list_merged, "gpError")) {
         error = chain(list_merged, 
             methods::new("gpError",
-                code=000,
+                code=416,
                 message=paste0(
                     "Error in models::fn_elastic_net(...). ",
                     "Input data (list_merged) is an error type."
@@ -1139,7 +1139,7 @@ fn_gBLUP = function(list_merged, vec_idx_training, vec_idx_validation, other_par
         (min(c(vec_idx_training, vec_idx_training)) < 0) |
         (max(c(vec_idx_training, vec_idx_training)) > nrow(list_merged$G))) {
             error = methods::new("gpError",
-                code=000,
+                code=417,
                 message=paste0(
                     "Error in models::fn_Bayes_C(...). ",
                     "Please make sure that the vector of indexes for the training and validation sets are not booleans. ",

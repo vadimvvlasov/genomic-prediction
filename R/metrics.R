@@ -53,7 +53,7 @@ fn_prediction_performance_metrics = function(y_true, y_pred, verbose=FALSE) {
     n = length(y_true)
     if (n != length(y_pred)) {
         error = methods::new("gpError",
-            code=000,
+            code=500,
             message=paste0(
                 "Error in metrics::fn_prediction_performance_metrics(...). ",
                 "The vector of observed phenotypes has a length of ", n,

@@ -380,7 +380,7 @@ gp = function(args) {
     )
     if (methods::is(G, "gpError")) {
         error = chain(G, methods::new("gpError",
-            code=000,
+            code=100,
             message=paste0(
                 "All loci were filtered out. ",
                 "Please consider reducing --geno-min-depth (", args$geno_min_depth, ") and/or ",
@@ -409,7 +409,7 @@ gp = function(args) {
     ### Missing values are not allowed in the genotype data
     if (sum(rowSums(is.na(list_merged$G))) > 0) {
         error = methods::new("gpError",
-            code=000,
+            code=101,
             message=paste0(
                 "Genotype data has missing values. ",
                 "Please impute the missing data. ",

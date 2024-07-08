@@ -56,7 +56,7 @@ fn_G_extract_names = function(mat_genotypes, verbose=FALSE) {
     vec_loci = colnames(mat_genotypes)
     if (sum(duplicated(vec_ids)) > 0) {
         error = methods::new("gpError",
-            code=000,
+            code=200,
             message=paste0(
                 "Error in io::fn_G_extract_names(...). ",
                 "The sample names (row names) have duplicates. ",
@@ -66,7 +66,7 @@ fn_G_extract_names = function(mat_genotypes, verbose=FALSE) {
     }
     if (sum(duplicated(vec_loci)) > 0) {
         error = methods::new("gpError",
-            code=000,
+            code=201,
             message=paste0(
                 "Error in io::fn_G_extract_names(...). ",
                 "The loci names (column names) have duplicates. ",
@@ -76,7 +76,7 @@ fn_G_extract_names = function(mat_genotypes, verbose=FALSE) {
     n_identifiers = length(unlist(strsplit(vec_loci[1], "\t"))) ### Number of loci identifiers where we expect at least 2
     if (n_identifiers < 2) {
         error = methods::new("gpError",
-            code=000,
+            code=202,
             message=paste0(
                 "Error in io::fn_G_extract_names(...). ",
                 "The loci names (column names) are not correctly formatted. ",
@@ -91,7 +91,7 @@ fn_G_extract_names = function(mat_genotypes, verbose=FALSE) {
     vec_pos = as.numeric(mat_loci_ids[,2])
     if (sum(is.na(vec_pos)) > 0) {
         error = methods::new("gpError",
-            code=000,
+            code=203,
             message=paste0(
                 "Error in io::fn_G_extract_names(...). ",
                 "The second element of the tab-delimited loci names should be numeric position."))
@@ -143,7 +143,7 @@ fn_G_split_off_alternative_allele = function(G, verbose=FALSE) {
     ### Input sanity check
     if (methods::is(G, "gpError")) {
         error = chain(G, methods::new("gpError",
-            code=000,
+            code=204,
             message=paste0(
                 "Error in io::fn_G_split_off_alternative_allele(...). ",
                 "Input G is an error type."
@@ -153,7 +153,7 @@ fn_G_split_off_alternative_allele = function(G, verbose=FALSE) {
     ### Make sure G contains allele frequencies
     if (sum(((G < 0) | (G > 1) | is.infinite(G)), na.rm=TRUE) > 0) {
         error = methods::new("gpError",
-            code=000,
+            code=205,
             message=paste0(
                 "Error in io::fn_G_split_off_alternative_allele(...). ",
                 "We are expecting a matrix allele frequencies but ",
@@ -164,7 +164,7 @@ fn_G_split_off_alternative_allele = function(G, verbose=FALSE) {
     list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=G, verbose=verbose)
     if (methods::is(list_ids_chr_pos_all, "gpError")) {
         error = chain(list_ids_chr_pos_all, methods::new("gpError",
-            code=000,
+            code=206,
             message=paste0(
                 "Error in io::fn_G_split_off_alternative_allele(...). ",
                 "Error type returned by list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=G, verbose=verbose)."
@@ -237,7 +237,7 @@ fn_G_numeric_to_non_numeric = function(G, ploidy=2, verbose=FALSE) {
     ### Input sanity check
     if (methods::is(G, "gpError")) {
         error = chain(G, methods::new("gpError",
-            code=000,
+            code=207,
             message=paste0(
                 "Error in io::fn_G_numeric_to_non_numeric(...). ",
                 "Input G is an error type."
@@ -247,7 +247,7 @@ fn_G_numeric_to_non_numeric = function(G, ploidy=2, verbose=FALSE) {
     ### Make sure G contains allele frequencies
     if (sum(((G < 0) | (G > 1) | is.infinite(G)), na.rm=TRUE) > 0) {
         error = methods::new("gpError",
-            code=000,
+            code=208,
             message=paste0(
                 "Error in io::fn_G_numeric_to_non_numeric(...). ",
                 "We are expecting a matrix allele frequencies but ",
@@ -256,7 +256,7 @@ fn_G_numeric_to_non_numeric = function(G, ploidy=2, verbose=FALSE) {
     }
     if (ploidy < 1) {
         error = methods::new("gpError",
-            code=000,
+            code=209,
             message=paste0(
                 "Error in io::fn_G_numeric_to_non_numeric(...). ",
                 "Ploidy cannot be less than 1."))
@@ -264,7 +264,7 @@ fn_G_numeric_to_non_numeric = function(G, ploidy=2, verbose=FALSE) {
     }
     if (ploidy != round(ploidy)) {
         error = methods::new("gpError", 
-            code=000,
+            code=210,
             message=paste0(
                 "Error in io::fn_G_numeric_to_non_numeric(...). ",
                 "Please pick a positive integer as the ploidy instead of ", ploidy, "."))
@@ -274,7 +274,7 @@ fn_G_numeric_to_non_numeric = function(G, ploidy=2, verbose=FALSE) {
     list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=G, verbose=verbose)
     if (methods::is(list_ids_chr_pos_all, "gpError")) {
         error = chain(list_ids_chr_pos_all, methods::new("gpError",
-            code=000,
+            code=211,
             message=paste0(
                 "Error in io::fn_G_numeric_to_non_numeric(...). ",
                 "Error type returned by list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=G, verbose=verbose)."
@@ -362,7 +362,7 @@ fn_G_non_numeric_to_numeric = function(G_non_numeric, retain_minus_one_alleles_p
     ### Input sanity check
     if (methods::is(G_non_numeric, "gpError")) {
         error = chain(G_non_numeric, methods::new("gpError",
-            code=000,
+            code=212,
             message=paste0(
                 "Error in io::fn_G_non_numeric_to_numeric(...). ",
                 "Input G_non_numeric is an error type."
@@ -375,7 +375,7 @@ fn_G_non_numeric_to_numeric = function(G_non_numeric, retain_minus_one_alleles_p
         for (j in sample(1:ncol(G_non_numeric), size=100, replace=FALSE)) {
             if (length(unlist(strsplit(G_non_numeric[i, j], ""))) != ploidy) {
                 error = methods::new("gpError",
-                    code=000,
+                    code=213,
                     message=paste0(
                         "Error in io::fn_G_non_numeric_to_numeric(...). ",
                         "The ploidy level is not consistent across the data set. ",
@@ -427,7 +427,7 @@ fn_G_non_numeric_to_numeric = function(G_non_numeric, retain_minus_one_alleles_p
         list_G_G_alt = fn_G_split_off_alternative_allele(G=G, verbose=verbose)
         if (methods::is(list_G_G_alt, "gpError")) {
             error = chain(list_G_G_alt, methods::new("gpError",
-                code=000,
+                code=214,
                 message=paste0(
                     "Error in io::fn_G_non_numeric_to_numeric(...). ",
                     "Error type returned by list_G_G_alt = fn_G_split_off_alternative_allele(G=G, verbose=verbose)."
@@ -468,7 +468,7 @@ fn_G_to_vcf = function(G, min_depth=100, max_depth=1000, verbose=FALSE) {
     ### Input sanity check
     if (methods::is(G, "gpError")) {
         error = chain(G, methods::new("gpError",
-            code=000,
+            code=215,
             message=paste0(
                 "Error in io::fn_G_to_vcf(...). ",
                 "Input G is an error type."
@@ -478,7 +478,7 @@ fn_G_to_vcf = function(G, min_depth=100, max_depth=1000, verbose=FALSE) {
     ### Make sure G contains allele frequencies
     if (sum(((G < 0) | (G > 1) | is.infinite(G)), na.rm=TRUE) > 0) {
         error = methods::new("gpError",
-            code=000,
+            code=216,
             message=paste0(
                 "Error in io::fn_G_to_vcf(...). ",
                 "We are expecting a matrix allele frequencies but ",
@@ -487,7 +487,7 @@ fn_G_to_vcf = function(G, min_depth=100, max_depth=1000, verbose=FALSE) {
     }
     if (min_depth > max_depth) {
         error = methods::new("gpError",
-            code=000,
+            code=217,
             message=paste0(
                 "Error in io::fn_G_to_vcf(...). ",
                 "Minimum depth (", min_depth, ") cannot be greater than the maximum depth (", max_depth, ")."))
@@ -497,7 +497,7 @@ fn_G_to_vcf = function(G, min_depth=100, max_depth=1000, verbose=FALSE) {
     list_G_G_alt = fn_G_split_off_alternative_allele(G=G, verbose=verbose)
     if (methods::is(list_G_G_alt, "gpError")) {
         error = chain(list_G_G_alt, methods::new("gpError",
-            code=000,
+            code=218,
             message=paste0(
                 "Error in io::fn_G_to_vcf(...). ",
                 "Error type returned by list_G_G_alt = fn_G_split_off_alternative_allele(G=G, verbose=verbose)."
@@ -512,7 +512,7 @@ fn_G_to_vcf = function(G, min_depth=100, max_depth=1000, verbose=FALSE) {
     list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=G, verbose=verbose)
     if (methods::is(list_ids_chr_pos_all, "gpError")) {
         error = chain(list_ids_chr_pos_all, methods::new("gpError",
-            code=000,
+            code=219,
             message=paste0(
                 "Error in io::fn_G_to_vcf(...). ",
                 "Error type returned by list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=G, verbose=verbose)."
@@ -525,7 +525,7 @@ fn_G_to_vcf = function(G, min_depth=100, max_depth=1000, verbose=FALSE) {
     vec_allele_counts_per_locus = table(vec_loci_names)
     if (((sum(vec_allele_counts_per_locus > 2) > 0) & is.null(G_alt)) | ((sum(vec_allele_counts_per_locus >= 2) > 0) & !is.null(G_alt))) {
         error = methods::new("gpError",
-            code=000,
+            code=220,
             message=paste0(
                 "Error in io::fn_G_to_vcf(...). ",
                 "Apologies, as this function at the moment can only convert biallelic allele frequency matrices into VCF format."))
@@ -636,7 +636,7 @@ fn_vcf_to_G = function(vcf, min_depth=0, max_depth=.Machine$integer.max, force_b
     ### Check input type
     if (!methods::is(vcf, "vcfR")) {
         error = methods::new("gpError", 
-            code=000,
+            code=221,
             message="Error in io::fn_vcf_to_G(vcf): vcf is not a vcfR object.")
         return(error)
     }
@@ -650,7 +650,7 @@ fn_vcf_to_G = function(vcf, min_depth=0, max_depth=.Machine$integer.max, force_b
         vec_idx = which(!duplicated(paste(vec_chr, vec_pos, sep="\t")))
         if (length(vec_idx) == 0) {
             error = methods::new("gpError", 
-                code=000,
+                code=222,
                 message=paste0(
                     "Error in io::fn_vcf_to_G(vcf). ",
                     "This is impossible as the first instance of duplicated elements will be included."
@@ -682,7 +682,7 @@ fn_vcf_to_G = function(vcf, min_depth=0, max_depth=.Machine$integer.max, force_b
     bool_consistent_GT = sum(grepl("GT", vec_elements)) == length(vec_elements)
     if (!(bool_consistent_AD | bool_consistent_GT)) {
         error = methods::new("gpError", 
-            code=000,
+            code=223,
             message=paste0(
                 "Error in io::fn_vcf_to_G(vcf): please check the format of your input vcf file. ",
                 "The same fields across loci is required. ",
@@ -694,7 +694,7 @@ fn_vcf_to_G = function(vcf, min_depth=0, max_depth=.Machine$integer.max, force_b
     bool_consistent_DP = sum(grepl("DP", vec_elements)) == length(vec_elements)
     if (!bool_consistent_DP) {
         error = methods::new("gpError", 
-            code=000,
+            code=224,
             message=paste0(
                 "Error in io::fn_vcf_to_G(vcf): please check the format of your input vcf file. ",
                 "Make sure the 'AD' and/or 'GT' and 'DP' fields are present. ",
@@ -730,7 +730,7 @@ fn_vcf_to_G = function(vcf, min_depth=0, max_depth=.Machine$integer.max, force_b
         mat_allele_counts = vcfR::extract.gt(vcf, element="AD")
         if (length(unlist(strsplit(mat_allele_counts[1,1], ","))) > 2) {
             error = methods::new("gpError",
-                code=000,
+                code=225,
                 message=paste0(
                     "Error in io::fn_vcf_to_G(...). ",
                     "Apologies because at the moment we can only convert biallelic VCF files into an allele frequency matrix."))
@@ -759,7 +759,7 @@ fn_vcf_to_G = function(vcf, min_depth=0, max_depth=.Machine$integer.max, force_b
         G[(GT == "0/1") | (GT == "0|1") | (GT == "1|0")] = 0.5
     } else {
         error = methods::new("gpError", 
-            code=000,
+            code=226,
             message="Error in io::fn_vcf_to_G(vcf): vcf needs to have the 'AD' and/or 'GT' fields present.")
         return(error)
     }
@@ -823,7 +823,7 @@ fn_classify_allele_frequencies = function(G, ploidy=2, verbose=FALSE) {
     ### Input sanity check
     if (methods::is(G, "gpError")) {
         error = chain(G, methods::new("gpError",
-            code=000,
+            code=227,
             message=paste0(
                 "Error in io::fn_G_to_vcf(...). ",
                 "Input G is an error type."
@@ -833,7 +833,7 @@ fn_classify_allele_frequencies = function(G, ploidy=2, verbose=FALSE) {
     ### Make sure G contains allele frequencies
     if (sum(((G < 0) | (G > 1) | is.infinite(G)), na.rm=TRUE) > 0) {
         error = methods::new("gpError",
-            code=000,
+            code=228,
             message=paste0(
                 "Error in io::fn_G_to_vcf(...). ",
                 "We are expecting a matrix allele frequencies but ",
@@ -842,7 +842,7 @@ fn_classify_allele_frequencies = function(G, ploidy=2, verbose=FALSE) {
     }
     if (ploidy < 1) {
         error = methods::new("gpError", 
-            code=000,
+            code=229,
             message=paste0(
                 "Error in io::fn_classify_allele_frequencies(...): Are you sure the ploidy is ", ploidy, "X?",
                 "How on this beautiful universe does that work?",
@@ -851,7 +851,7 @@ fn_classify_allele_frequencies = function(G, ploidy=2, verbose=FALSE) {
     }
     if (ploidy != round(ploidy)) {
         error = methods::new("gpError", 
-            code=000,
+            code=230,
             message=paste0(
                 "Error in io::fn_classify_allele_frequencies(...): Are you sure the ploidy is ", ploidy, "X?",
                 "How on this beautiful universe does that work?",
@@ -961,7 +961,7 @@ fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, m
         vcf = fn_G_to_vcf(G=G, min_depth=min_depth, max_depth=max_depth, verbose=verbose)
         if (methods::is(vcf, "gpError")) {
             error = chain(vcf, methods::new("gpError",
-                code=000,
+                code=231,
                 message=paste0(
                     "Error in io::fn_simulate_data(...). ",
                     "Please set n_alleles=2 as we can only convert biallelic loci into VCF format at the moment."
@@ -980,7 +980,7 @@ fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, m
         list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=G, verbose=verbose)
         if (methods::is(list_ids_chr_pos_all, "gpError")) {
             error = chain(list_ids_chr_pos_all, methods::new("gpError",
-                code=000,
+                code=232,
                 message=paste0(
                     "Error in io::fn_simulate_data(...). ",
                     "Error type returned by list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=G, verbose=verbose)."
@@ -1007,7 +1007,7 @@ fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, m
             G_non_numeric = fn_G_numeric_to_non_numeric(G=G, ploidy=ploidy, verbose=verbose)
             if (methods::is(G_non_numeric, "gpError")) {
                 error = chain(G_non_numeric, methods::new("gpError",
-                    code=000,
+                    code=233,
                     message=paste0(
                         "Error in io::fn_simulate_data(...). ",
                         "Error type returned by G_non_numeric = fn_G_numeric_to_non_numeric(G=G, ploidy=ploidy, verbose=verbose)."
@@ -1102,7 +1102,7 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
             G = fn_G_non_numeric_to_numeric(G_non_numeric=G, verbose=verbose)
             if (methods::is(G, "gpError")) {
                 error = chain(G, methods::new("gpError",
-                    code=000,
+                    code=234,
                     message=paste0(
                         "Error in io::fn_load_genotype(...). ",
                         "Error type returned by G = fn_G_non_numeric_to_numeric(G_non_numeric=G, verbose=verbose)."
@@ -1123,7 +1123,7 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
             G = list_G_D$G
             if (methods::is(G, "gpError")) {
                 error = chain(G, methods::new("gpError",
-                    code=000,
+                    code=235,
                                         message=paste0(
                         "Error in io::fn_load_genotype(...).", 
                         "Error loading the vcf file: ", fname_geno, ".")))
@@ -1146,7 +1146,7 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
                   (grepl("allele", colnames(df)[3], ignore.case=TRUE)))
                ) {
                 error = methods::new("gpError", 
-                    code=000,
+                    code=236,
                     message=paste0(
                         "Error in io::fn_load_genotype(...). ",
                         "The file: ", fname_geno, " is not in allele frequency table format as described in the README.md. ",
@@ -1172,7 +1172,7 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
         list_G_G_alt = fn_G_split_off_alternative_allele(G=G, verbose=verbose)
         if (methods::is(list_G_G_alt, "gpError")) {
             error = chain(list_G_G_alt, methods::new("gpError",
-                code=000,
+                code=237,
                 message=paste0(
                     "Error in io::fn_load_genotype(...). ",
                     "Error type returned by list_G_G_alt = fn_G_split_off_alternative_allele(G=G, verbose=verbose)."
@@ -1188,7 +1188,7 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
         G = fn_classify_allele_frequencies(G=G, ploidy=ploidy, verbose=verbose)
         if (methods::is(G, "gpError")) {
             error = chain(G, methods::new("gpError",
-                code=000,
+                code=238,
                 message=paste0(
                     "Error in io::fn_load_genotype(...). ",
                     "Error type returned by G = fn_classify_allele_frequencies(G=G, ploidy=ploidy, verbose=verbose)"
@@ -1324,7 +1324,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
     ### Input sanity check
     if (methods::is(G, "gpError")) {
         error = chain(G, methods::new("gpError",
-            code=000,
+            code=239,
             message=paste0(
                 "Error in io::fn_filter_genotype(...). ",
                 "Input G is an error type."
@@ -1334,7 +1334,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
     ### Make sure G contains allele frequencies
     if (sum(((G < 0) | (G > 1) | is.infinite(G)), na.rm=TRUE) > 0) {
         error = methods::new("gpError",
-            code=000,
+            code=240,
             message=paste0(
                 "Error in io::fn_filter_genotype(...). ",
                 "We are expecting a matrix allele frequencies but ",
@@ -1344,7 +1344,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
     ### Make sure the input thresholds are sensible
     if ((maf < 0.0) | (maf > 1.0)) {
         error = methods::new("gpError",
-            code=000,
+            code=241,
             message=paste0(
                 "Error in io::fn_filter_genotype(...). ",
                 "Please use a minimum allele frequency (maf) between 0 and 1."
@@ -1353,7 +1353,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
     }
     if ((sdev_min < 0.0) | (sdev_min > 1.0)) {
         error = methods::new("gpError",
-            code=000,
+            code=242,
             message=paste0(
                 "Error in io::fn_filter_genotype(...). ",
                 "Please use a minimum standard deviation in allele frequency (sdev_min) between 0 and 1."
@@ -1363,7 +1363,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
     if (!is.null(max_n_alleles)) {
         if (max_n_alleles < 1) {
             error = methods::new("gpError",
-                code=000,
+                code=243,
                 message=paste0(
                     "Error in io::fn_filter_genotype(...). ",
                     "Please use a maximum number of alleles per locus (max_n_alleles) of at least 1. ",
@@ -1376,7 +1376,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
     if (!is.null(max_sparsity_per_locus)) {
         if ((max_sparsity_per_locus < 0.0) | (max_sparsity_per_locus > 1.0)) {
             error = methods::new("gpError",
-                code=000,
+                code=244,
                 message=paste0(
                     "Error in io::fn_filter_genotype(...). ",
                     "Please use a maximum sparsity per locus (max_sparsity_per_locus) between 0 and 1."
@@ -1387,7 +1387,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
     if (!is.null(frac_topmost_sparse_loci_to_remove)) {
         if ((frac_topmost_sparse_loci_to_remove < 0.0) | (frac_topmost_sparse_loci_to_remove > 1.0)) {
             error = methods::new("gpError",
-                code=000,
+                code=245,
                 message=paste0(
                     "Error in io::fn_filter_genotype(...). ",
                     "Please use a fraction of the top-most sparse loci (frac_topmost_sparse_loci_to_remove) between 0 and 1."
@@ -1398,7 +1398,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
     if (!is.null(n_topmost_sparse_loci_to_remove)) {
         if ((n_topmost_sparse_loci_to_remove < 0) | (n_topmost_sparse_loci_to_remove > ncol(G))) {
             error = methods::new("gpError",
-                code=000,
+                code=246,
                 message=paste0(
                     "Error in io::fn_filter_genotype(...). ",
                     "Please use a number of top-most sparse loci to remove (n_topmost_sparse_loci_to_remove) between 0 and ", ncol(G), "."
@@ -1409,7 +1409,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
     if (!is.null(max_sparsity_per_sample)) {
         if ((max_sparsity_per_sample < 0.0) | (max_sparsity_per_sample > 1.0)) {
             error = methods::new("gpError",
-                code=000,
+                code=247,
                 message=paste0(
                     "Error in io::fn_filter_genotype(...). ",
                     "Please use a maximum sparsity per sample (max_sparsity_per_sample) between 0 and 1."
@@ -1420,7 +1420,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
     if (!is.null(frac_topmost_sparse_samples_to_remove)) {
         if ((frac_topmost_sparse_samples_to_remove < 0.0) | (frac_topmost_sparse_samples_to_remove > 1.0)) {
             error = methods::new("gpError",
-                code=000,
+                code=248,
                 message=paste0(
                     "Error in io::fn_filter_samples(...). ",
                     "Please use a fraction of the top-most sparse samples (frac_topmost_sparse_samples_to_remove) between 0 and 1."
@@ -1431,7 +1431,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
     if (!is.null(n_topmost_sparse_samples_to_remove)) {
         if ((n_topmost_sparse_samples_to_remove < 0) | (n_topmost_sparse_samples_to_remove > nrow(G))) {
             error = methods::new("gpError",
-                code=000,
+                code=249,
                 message=paste0(
                     "Error in io::fn_filter_samples(...). ",
                     "Please use a number of top-most sparse samples to remove (n_topmost_sparse_samples_to_remove) between 0 and ", nrow(G), "."
@@ -1458,7 +1458,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
     gc()
     if (length(vec_idx) == 0) {
         error = methods::new("gpError",
-            code=000,
+            code=250,
             message=paste0(
                 "Error in io::fn_filter_genotype(...). ",
                 "All loci did not pass the minimum allele frequency (", maf, ") and minimum allele frequency standard deviation (", sdev_min, ")."
@@ -1478,7 +1478,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
         list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=G, verbose=verbose)
         if (methods::is(list_ids_chr_pos_all, "gpError")) {
             error = chain(list_ids_chr_pos_all, methods::new("gpError",
-                code=000,
+                code=251,
                 message=paste0(
                     "Error in io::fn_filter_genotype(...). ",
                     "Error in list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=G, verbose=verbose)."
@@ -1487,7 +1487,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
         }
         if (sum(unique(list_ids_chr_pos_all$vec_all) %in% "allele_1") > 0) {
             error = methods::new("gpError",
-                code=000,
+                code=252,
                 message=paste0(
                     "Error in io::fn_filter_genotype(...). ",
                     "Please make sure all loci have an associated allele, if you wish to filter using a SNP list."
@@ -1501,7 +1501,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
         df = utils::read.delim(fname_snp_list, sep="\t", header=TRUE, check.names=FALSE)
         if (sum(colnames(df) != c("#CHROM", "POS", "REF,ALT")) > 0) {
             error = methods::new("gpError",
-                code=000,
+                code=253,
                 message=paste0(
                     "Error in io::fn_filter_genotype(...). ",
                     "The SNP list file: ", fname_snp_list, " does not have the expected field names: ",
@@ -1519,7 +1519,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
         vec_idx = which(vec_observed_snps %in% vec_expected_snps)
         if (length(vec_idx) == 0) {
             error = methods::new("gpError",
-                code=000,
+                code=254,
                 message=paste0(
                     "Error in io::fn_filter_genotype(...). ",
                     "None of the loci are in the SNP list."
@@ -1537,7 +1537,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
         list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=G, verbose=verbose)
         if (methods::is(list_ids_chr_pos_all, "gpError")) {
             error = chain(list_ids_chr_pos_all, methods::new("gpError",
-                code=000,
+                code=255,
                 message=paste0(
                     "Error in io::fn_filter_genotype(...). ",
                     "Error in list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=G, verbose=verbose)."
@@ -1554,7 +1554,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
         vec_idx = which(vec_loci_names %in% vec_loci_names_passed)
         if (length(vec_idx) == 0) {
             error = methods::new("gpError",
-                code=000,
+                code=256,
                 message=paste0(
                     "Error in io::fn_filter_genotype(...). ",
                     "All loci were filtered out. ",
@@ -1587,7 +1587,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
         vec_idx_loci_to_remove = which(vec_sparsity_per_locus > max_sparsity_per_locus)
         if (verbose & (length(vec_idx_loci_to_remove)==ncol(G))) {
             error = methods::new("gpError",
-                code=000,
+                code=257,
                 message=paste0("All loci were filtered out. Please consider increasing the max_sparsity_per_locus from ", max_sparsity_per_locus, 
                 ", given that the mean sparsity per locus ranges from ", min(vec_sparsity_per_locus, na.rm=TRUE), 
                 " to ", max(vec_sparsity_per_locus, na.rm=TRUE), 
@@ -1605,7 +1605,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
         }
         if (verbose & (length(vec_idx_loci_to_remove)==ncol(G))) {
             error = methods::new("gpError",
-                code=000,
+                code=258,
                 message=paste0("All loci were filtered out. Please consider decreasing the frac_topmost_sparse_loci_to_remove from ", frac_topmost_sparse_loci_to_remove, 
                 " to something more reasonable."))
             return(error)
@@ -1619,7 +1619,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
         }
         if (verbose & (length(vec_idx_loci_to_remove)==ncol(G))) {
             error = methods::new("gpError",
-                code=000,
+                code=259,
                 message=paste0("All loci were filtered out. Please consider decreasing the n_topmost_sparse_loci_to_remove from ", n_topmost_sparse_loci_to_remove, 
                 " to something more reasonable, if it please you m'lady/m'lord."))
             return(error)
@@ -1644,7 +1644,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
         vec_idx_samples_to_remove = which(vec_sparsity_per_sample > max_sparsity_per_sample)
         if (verbose & (length(vec_idx_samples_to_remove)==nrow(G))) {
             error = methods::new("gpError", 
-                code=000,
+                code=260,
                 message=paste0("All samples were filtered out. Please consider increasing the max_sparsity_per_sample from ", max_sparsity_per_sample, 
                 ", given that the mean sparsity per sample ranges from ", min(vec_sparsity_per_sample, na.rm=TRUE), 
                 " to ", max(vec_sparsity_per_sample, na.rm=TRUE), 
@@ -1662,7 +1662,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
         }
         if (verbose & (length(vec_idx_samples_to_remove)==nrow(G))) {
             error = methods::new("gpError", 
-                code=000,
+                code=261,
                 message=paste0("All samples were filtered out. Please consider decreasing the frac_topmost_sparse_samples_to_remove from ", frac_topmost_sparse_samples_to_remove, 
                 " to something more reasonable."))
             return(error)
@@ -1676,7 +1676,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
         }
         if (verbose & (length(vec_idx_samples_to_remove)==nrow(G))) {
             error = methods::new("gpError", 
-                code=000,
+                code=262,
                 message=paste0("All samples were filtered out. Please consider decreasing the n_topmost_sparse_samples_to_remove from ", n_topmost_sparse_samples_to_remove, 
                 " to something more reasonable."))
             return(error)
@@ -1699,7 +1699,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
         (vec_sdevs >= sdev_min))
     if (length(vec_idx) == 0) {
         error = methods::new("gpError",
-            code=000,
+            code=263,
             message=paste0(
                 "Error in io::fn_filter_genotype(...). ",
                 "All loci did not pass the minimum allele frequency (", maf, ") and minimum allele frequency standard deviation (", sdev_min, ")."
@@ -1770,7 +1770,7 @@ fn_save_genotype = function(G, fname, file_type=c("RDS", "TSV")[1], verbose=FALS
     ###################################################### Input sanity check
     if (methods::is(G, "gpError")) {
         error = chain(G, methods::new("gpError",
-            code=000,
+            code=264,
             message=paste0(
                 "Error in io::fn_save_genotype(...). ",
                 "Input G is an error type."
@@ -1780,7 +1780,7 @@ fn_save_genotype = function(G, fname, file_type=c("RDS", "TSV")[1], verbose=FALS
     ### Make sure G contains allele frequencies
     if (sum(((G < 0) | (G > 1) | is.infinite(G)), na.rm=TRUE) > 0) {
         error = methods::new("gpError",
-            code=000,
+            code=265,
             message=paste0(
                 "Error in io::fn_save_genotype(...). ",
                 "We are expecting a matrix allele frequencies but ",
@@ -1791,7 +1791,7 @@ fn_save_genotype = function(G, fname, file_type=c("RDS", "TSV")[1], verbose=FALS
     list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=G, verbose=verbose)
     if (methods::is(list_ids_chr_pos_all, "gpError")) {
         error = chain(list_ids_chr_pos_all, methods::new("gpError",
-            code=000,
+            code=266,
             message=paste0(
                 "Error in io::fn_save_genotype(...). ",
                 "Error in list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=G, verbose=verbose)."
@@ -1809,7 +1809,7 @@ fn_save_genotype = function(G, fname, file_type=c("RDS", "TSV")[1], verbose=FALS
         utils::write.table(df_allele_freq, file=fname, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
     } else {
         error = methods::new("gpError",
-            code=000,
+            code=267,
             message=paste0(
                 "Error in io::fn_save_genotype(...). ",
                 "Unrecognised file type, please use 'RDS' or 'TSV'"
@@ -1864,7 +1864,7 @@ fn_load_phenotype = function(fname_pheno, sep="\t", header=TRUE,
     df = utils::read.table(fname_pheno, sep=sep, header=header, na.strings=na_strings)
     if (max(c(idx_col_y, idx_col_id, idx_col_pop)) > ncol(df)) {
         error = methods::new("gpError",
-            code=000,
+            code=268,
             message=paste0(
                 "Error in io::fn_load_phenotype(...). ",
                 "The requested columns: ", idx_col_id, ", ", idx_col_pop, " and ", idx_col_y, " are incompatible with ",
@@ -1882,7 +1882,7 @@ fn_load_phenotype = function(fname_pheno, sep="\t", header=TRUE,
     y = df[, idx_col_y]
     if (!is.numeric(y)) {
         error = methods::new("gpError",
-            code=000,
+            code=269,
             message=paste0(
                 "Error in io::fn_load_phenotype(...). ",
                 "Phenotype file: ", fname_pheno, ", contains non-numeric data at column ", idx_col_y, ". ",
@@ -1896,7 +1896,7 @@ fn_load_phenotype = function(fname_pheno, sep="\t", header=TRUE,
     ### Emit an error if there is no phenotypic variance
     if (stats::var(y, na.rm=TRUE) < .Machine$double.eps) {
         error = methods::new("gpError",
-            code=000,
+            code=270,
             message=paste0(
                 "Error in io::fn_load_phenotype(...). ",
                 "No variance in phenotype data. ",
@@ -1955,7 +1955,7 @@ fn_filter_phenotype = function(list_pheno, remove_outliers=TRUE, remove_NA=FALSE
     if (methods::is(list_pheno, "gpError")) {
         error = chain(list_pheno,
             methods::new("gpError", 
-                code=000,
+                code=271,
                 message=paste0(
                     "Error in io::fn_filter_phenotype(...). ",
                     "The loaded phenotype data returned an error."
@@ -1967,7 +1967,7 @@ fn_filter_phenotype = function(list_pheno, remove_outliers=TRUE, remove_NA=FALSE
     n = length(list_pheno$y)
     if (n != length(list_pheno$pop)) {
         error = methods::new("gpError",
-            code=000,
+            code=272,
             message=paste0(
                 "Error in io::fn_filter_phenotype(...). ",
                 "The length of the phenotype vector (n=", n, ") is not equal to ",
@@ -2019,7 +2019,7 @@ fn_filter_phenotype = function(list_pheno, remove_outliers=TRUE, remove_NA=FALSE
     ### Emit an error if there is no phenotypic variance after filtering
     if (stats::var(list_pheno$y, na.rm=TRUE) < .Machine$double.eps) {
         error = methods::new("gpError",
-            code=000,
+            code=273,
             message=paste0(
                 "Error in io::fn_filter_phenotype(...). ",
                 "No variance in phenotype data after filtering. ",
@@ -2060,7 +2060,7 @@ fn_save_phenotype = function(list_pheno, fname, sep="\t", verbose=FALSE) {
     if (methods::is(list_pheno, "gpError")) {
         error = chain(list_pheno,
             methods::new("gpError", 
-                code=000,
+                code=274,
                 message=paste0(
                     "Error in io::fn_save_phenotype(...). ",
                     "The loaded phenotype data returned an error."
@@ -2072,7 +2072,7 @@ fn_save_phenotype = function(list_pheno, fname, sep="\t", verbose=FALSE) {
     n = length(list_pheno$y)
     if (n != length(list_pheno$pop)) {
         error = methods::new("gpError",
-            code=000,
+            code=275,
             message=paste0(
                 "Error in io::fn_save_phenotype(...). ",
                 "The length of the phenotype vector (n=", n, ") is not equal to ",
@@ -2154,7 +2154,7 @@ fn_merge_genotype_and_phenotype = function(G, list_pheno, COVAR=NULL, verbose=FA
         by="id", all.x=TRUE)
     if (sum(!is.na(M$y)) == 0) {
         error = methods::new("gpError",
-            code=000,
+            code=276,
             message=paste0(
                 "Error in io::fn_merge_genotype_and_phenotype(...). ",
                 "None of the samples/entries/pools with genotype data have phenotype data. ",
@@ -2167,7 +2167,7 @@ fn_merge_genotype_and_phenotype = function(G, list_pheno, COVAR=NULL, verbose=FA
         vec_colnames = colnames(COVAR)
         if (is.null(vec_rownames) | is.null(vec_colnames)) {
             error = methods::new("gpError",
-                code=000,
+                code=277,
                 message=paste0(
                     "Error in io::fn_merge_genotype_and_phenotype(...). ",
                     "The covariance matrix (COVAR) need to have both row and column names."))
@@ -2282,7 +2282,7 @@ fn_subset_merged_genotype_and_phenotype = function(list_merged, vec_idx, verbose
     if (methods::is(list_merged, "gpError")) {
         error = chain(list_merged, 
             methods::new("gpError",
-                code=000,
+                code=278,
                 message=paste0(
                     "Error in cross_validation::fn_subset_merged_genotype_and_phenotype(...). ",
                     "Input data (list_merged) is an error type."
@@ -2291,7 +2291,7 @@ fn_subset_merged_genotype_and_phenotype = function(list_merged, vec_idx, verbose
     }
     if (sum(c(1:nrow(list_merged$G)) %in% vec_idx) != length(vec_idx)) {
         error = methods::new("gpError",
-            code=000,
+            code=279,
             message=paste0(
                 "Error in cross_validation::fn_subset_merged_genotype_and_phenotype(...). ",
                 "The indexes of samples/entries/pools do not match the indexes in the data set. ",
@@ -2358,7 +2358,7 @@ fn_estimate_memory_footprint = function(X, n_models=7, n_folds=10, n_reps=10,
     ###################################################
     if ((as.numeric(utils::object.size(X)) == 0) | (n_models <= 0) | (n_folds <= 0) | (n_reps <= 0) | (memory_requested_Gb <= 0) | (memory_multiplier <= 0)) {
         error = methods::new("gpError",
-            code=000,
+            code=280,
             message=paste0(
                 "Error in io::fn_estimate_memory_footprint(...). ",
                 "The size of the input data, number of models, folds and replications, ",
