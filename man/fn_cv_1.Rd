@@ -45,7 +45,7 @@ subsequent elements are optional which may refer to the allele identifier and ot
 each column refer to a random shuffling of samples/entry/pool from which the identities of the
 training and validation sets will be sourced from}
 
-\item{vec_set_partition_groupings}{vector of numeric partitioning indexes where each index refer to the
+\item{vec_set_partition_groupings}{vector of numeric partitioning indexes of size n samples, where each index refer to the
 fold which will serve as the validation population}
 
 \item{prefix_tmp}{string referring to the prefix of the temporary files,

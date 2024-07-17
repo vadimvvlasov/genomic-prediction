@@ -371,8 +371,8 @@ fn_G_non_numeric_to_numeric = function(G_non_numeric, retain_minus_one_alleles_p
     }
     ### Extract ploidy where we assume the same ploidy across the entire data set
     ploidy = length(unlist(strsplit(G_non_numeric[1,1], "")))
-    for (i in sample(1:nrow(G_non_numeric), size=100, replace=FALSE)) {
-        for (j in sample(1:ncol(G_non_numeric), size=100, replace=FALSE)) {
+    for (i in sample(1:nrow(G_non_numeric), size=min(c(100, nrow(G_non_numeric))), replace=FALSE)) {
+        for (j in sample(1:ncol(G_non_numeric), size=min(c(100, ncol(G_non_numeric))), replace=FALSE)) {
             if (length(unlist(strsplit(G_non_numeric[i, j], ""))) != ploidy) {
                 error = methods::new("gpError",
                     code=213,
