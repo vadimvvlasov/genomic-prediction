@@ -255,6 +255,55 @@ test_that("fn_filter_phenotype", {
     unlink(list_sim$fname_pheno_tsv)
 })
 
+test_that("fn_merge_genotype_genotype", {
+    set.seed(123)
+    list_sim = gp::fn_simulate_data(verbose=TRUE)
+    G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
+    ### Union row-wise
+    G1 = G[1:ceiling(0.5*nrow(G)), ]
+    G2 = G[(ceiling(0.5*nrow(G))+1):nrow(G), ]
+    G_merged = fn_merge_genotype_genotype(G1=G1, G2=G2)
+    expect_equal(dim(G_merged), dim(G))
+    expect_equal(sum(is.na(G_merged)), 0)
+    ### Union column-wise
+    G1 = G[, 1:ceiling(0.5*ncol(G))]
+    G2 = G[, (ceiling(0.5*ncol(G))+1):ncol(G)]
+    G_merged = fn_merge_genotype_genotype(G1=G1, G2=G2)
+    expect_equal(dim(G_merged), dim(G))
+    expect_equal(sum(is.na(G_merged)), 0)
+    ### Union row and column-wise with 50% skipped
+    G1 = G[seq(from=1, to=nrow(G), by=2), seq(from=1, to=ncol(G), by=2)]
+    G2 = G[seq(from=2, to=nrow(G), by=2), seq(from=2, to=ncol(G), by=2)]
+    G_merged = fn_merge_genotype_genotype(G1=G1, G2=G2)
+    expect_equal(dim(G_merged), dim(G))
+    expect_equal(sum(is.na(G_merged)), prod(dim(G))/2)
+    ### Intersection row-wise where G2 data is divided by 2
+    idx_0 = 1
+    idx_1 = ceiling(0.5*nrow(G))
+    idx_2 = nrow(G)
+    G2 = G[idx_0:idx_1, ] / 2
+    G_merged_1 = fn_merge_genotype_genotype(G1=G, G2=G2, str_conflict_resolution="1")
+    expect_equal(sum(G_merged_1 - G), 0)
+    G_merged_2 = fn_merge_genotype_genotype(G1=G, G2=G2, str_conflict_resolution="2")
+    expect_equal(sum(G_merged_2 - rbind(G2[idx_0:idx_1, ], G[(idx_1+1):idx_2, ])), 0)
+    G_merged_3 = fn_merge_genotype_genotype(G1=G, G2=G2, str_conflict_resolution="3")
+    expect_equal(sum(G_merged_3 - rbind((G[idx_0:idx_1, ] + G2[idx_0:idx_1, ])/2, G[(idx_1+1):idx_2, ])), 0)
+    ### Intersection column-wise where G2 data is divided by 2
+    idx_0 = 1
+    idx_1 = ceiling(0.5*ncol(G))
+    idx_2 = ncol(G)
+    G2 = G[, idx_0:idx_1] / 2
+    G_merged_1 = fn_merge_genotype_genotype(G1=G, G2=G2, str_conflict_resolution="1")
+    expect_equal(sum(G_merged_1 - G), 0)
+    G_merged_2 = fn_merge_genotype_genotype(G1=G, G2=G2, str_conflict_resolution="2")
+    expect_equal(sum(G_merged_2 - cbind(G2[, idx_0:idx_1], G[, (idx_1+1):idx_2])), 0)
+    G_merged_3 = fn_merge_genotype_genotype(G1=G, G2=G2, str_conflict_resolution="3")
+    expect_equal(sum(G_merged_3 - cbind((G[, idx_0:idx_1] + G2[, idx_0:idx_1])/2, G[, (idx_1+1):idx_2])), 0)
+    ### Clean-up
+    unlink(list_sim$fname_geno_vcf)
+    unlink(list_sim$fname_pheno_tsv)
+})
+
 test_that("fn_save_phenotype", {
     set.seed(123)
     list_sim = fn_simulate_data(n_pop=3, verbose=TRUE)

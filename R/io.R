@@ -1731,6 +1731,160 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
     return(G)
 }
 
+#' Merge two genotypes matrices where if there are conflict:
+#'  - data on the first matrix will be used,
+#'  - data on the second matrix will be used, or
+#'  - arithmetic mean between the two matrices will be used.
+#'
+#' @param G1 numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'  Row names can be any string of characters which identify the sample or entry or pool names.
+#'  Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
+#'  the second should be numeric which refers to the position in the chromosome/scaffold, and 
+#'  subsequent elements are optional which may refer to the allele identifier and other identifiers.
+#' @param G2 numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'  Row names can be any string of characters which identify the sample or entry or pool names.
+#'  Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
+#'  the second should be numeric which refers to the position in the chromosome/scaffold, and 
+#'  subsequent elements are optional which may refer to the allele identifier and other identifiers.
+#' @param str_conflict_resolution conflict resolution mode. Use "1" to always use the genotype data from the 
+#'  first matrix, "2" to to always use the data from the second matrix, and "3" to compute the arithmetic mean
+#'  between the two matrices.
+#' @param verbose show genotype merging messages? (Default=FALSE)
+#' @returns
+#'  - Ok: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#'  Row names can be any string of characters which identify the sample or entry or pool names.
+#'  Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
+#'  the second should be numeric which refers to the position in the chromosome/scaffold, and 
+#'  subsequent elements are optional which may refer to the allele identifier and other identifiers.
+#'  - Err: gpError
+#' @examples
+#' list_sim = gp::fn_simulate_data(verbose=TRUE)
+#' G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
+#' G1 = G[1:ceiling(0.5*nrow(G)), ]
+#' G2 = G[(ceiling(0.5*nrow(G))+1):nrow(G), ]
+#' G_merged = fn_merge_genotype_genotype(G1=G1, G2=G2, verbose=TRUE)
+#' @export
+fn_merge_genotype_genotype = function(G1, G2, str_conflict_resolution=c("1-use-G1", "2-use-G2", "3-use_mean")[3], verbose=FALSE) {
+    ###################################################
+    ### TEST
+	# list_sim = gp::fn_simulate_data(verbose=TRUE)
+    # G = fn_load_genotype(fname_geno=list_sim$fname_geno_vcf)
+	# G1 = G[sample.int(nrow(G), size=50), sample.int(ncol(G), size=500), drop=FALSE]
+	# G2 = G[sample.int(nrow(G), size=50), sample.int(ncol(G), size=500), drop=FALSE]
+	# str_conflict_resolution = c("1-use-G1", "2-use-G2", "3-use_mean")[3]
+    # verbose = TRUE
+    ###################################################
+    if (verbose) {
+        print("###########################")
+        print("### Merge genotype data ###")
+        print("###########################")
+    }
+    ### Input sanity check
+    if (methods::is(G1, "gpError") | methods::is(G2, "gpError")) {
+        if (methods::is(G1, "gpError")) {
+            error = chain(G1, methods::new("gpError",
+                code=281,
+                message=paste0(
+                    "Error in io::fn_filter_genotype(...). ",
+                    "Input G1 is an error type."
+                )))
+        } else if (methods::is(G2, "gpError")) {
+            error = chain(G2, methods::new("gpError",
+                code=282,
+                message=paste0(
+                    "Error in io::fn_filter_genotype(...). ",
+                    "Input G2 is an error type."
+                )))
+        } else {
+            error = chain(G1, chain(G2, methods::new("gpError",
+                code=283,
+                message=paste0(
+                    "Error in io::fn_filter_genotype(...). ",
+                    "Inputs G1 and G2 are error types."
+                ))))
+        }
+        return(error)
+    }
+    ### Extract row and column names, i.e. ssample and loci names
+	vec_G1_row_names = rownames(G1); vec_G1_column_names = colnames(G1)
+	vec_G2_row_names = rownames(G2); vec_G2_column_names = colnames(G2)
+	### Merge the 2 matrices where G1 takes precedence over G2, where we simply add the unique columns in G2.
+    ### This means that in the merged matrix, data are missing at common loci in the G2 samples.
+	vec_G2_bool_unique_loci = !(vec_G2_column_names %in% vec_G1_column_names)
+	df_G_merged = merge(
+		data.frame(ID=vec_G1_row_names, G1, check.names=FALSE),
+		data.frame(ID=vec_G2_row_names, G2[, vec_G2_bool_unique_loci, drop=FALSE], check.names=FALSE),
+		by="ID", all=TRUE)
+	### Convert the merged genotype data frames into a matrix
+	G_merged = as.matrix(df_G_merged[, -1, drop=FALSE]); rownames(G_merged) = df_G_merged$ID
+	vec_G_merged_row_names = rownames(G_merged); vec_G_merged_column_names = colnames(G_merged)
+	### Define the intersections
+	vec_common_row_names = intersect(vec_G1_row_names, vec_G2_row_names)
+	vec_common_column_names = intersect(vec_G1_column_names, vec_G2_column_names)
+	### Insert G2 data into the intersecting columns (loci)
+	if (sum(!vec_G2_bool_unique_loci) > 0) {
+		pb = utils::txtProgressBar(min=0, max=nrow(G2), style=3)
+		for (i in 1:nrow(G2)) {
+			# i = 1
+			row_name = vec_G2_row_names[i]
+			idx_G_merged_row = which(vec_G_merged_row_names == row_name)
+			idx_G2_row = which(vec_G2_row_names == row_name)
+			vec_G_merged_idx_column_sort = which(vec_G_merged_column_names %in% vec_G2_column_names)
+			vec_G_merged_idx_column_sort = vec_G_merged_idx_column_sort[order(vec_G_merged_column_names[vec_G_merged_idx_column_sort])]
+			vec_G2_idx_column_sort = which(vec_G2_column_names %in% vec_G2_column_names)
+			vec_G2_idx_column_sort = vec_G2_idx_column_sort[order(vec_G2_column_names[vec_G2_idx_column_sort])]
+			if (sum(vec_G_merged_column_names[vec_G_merged_idx_column_sort] == vec_G2_column_names[vec_G2_idx_column_sort]) != length(vec_G_merged_idx_column_sort)) {
+				error = methods::new("dbError",
+					code=000,
+					message=paste0("Error in fn_merge_genotype_genotype(...): the merged sample names do not match with G2 sample names."))
+				return(error)
+			}
+			G_merged[idx_G_merged_row, vec_G_merged_idx_column_sort] = G2[idx_G2_row, vec_G2_idx_column_sort]
+			utils::setTxtProgressBar(pb, i)
+		}
+		close(pb)
+	}
+	### Fix conflicts on common rows and columns
+	if ((length(vec_common_row_names) > 0) && (length(vec_common_column_names) > 0)) {
+		pb = utils::txtProgressBar(min=0, max=(length(vec_common_row_names)*length(vec_common_column_names)), style=3); counter = 1
+		for (row_name in vec_common_row_names) {
+			for (column_name in vec_common_column_names) {
+				# row_name = vec_common_row_names[1]; column_name = vec_common_column_names[1]
+				idx_G1_row = which(vec_G1_row_names == row_name)
+				idx_G1_column = which(vec_G1_column_names == column_name)
+				idx_G2_row = which(vec_G2_row_names == row_name)
+				idx_G2_column = which(vec_G2_column_names == column_name)
+				g1 = G1[idx_G1_row, idx_G1_column]
+				g2 = G2[idx_G2_row, idx_G2_column]
+				if (grepl("^1", str_conflict_resolution)) {
+					g = g1
+				} else if (grepl("^2", str_conflict_resolution)) {
+					g = g2
+				} else {
+					if (is.na(g1) & is.na(g2)) {
+						g = NA
+					} else {
+						g = mean(c(g1, g2), na.rm=TRUE)
+					}
+				}
+				G_merged[vec_G_merged_row_names == row_name, vec_G_merged_column_names == column_name] = g
+				utils::setTxtProgressBar(pb, counter); counter = counter + 1
+			}
+		}
+		close(pb)
+	} else if (verbose) {
+		if ((length(vec_common_row_names) == 0) && (length(vec_common_column_names) == 0)) {
+			print("There are no common samples and loci between the 2 genotype matrices.")
+		} else if (length(vec_common_row_names) == 0) {
+			print("There are no common samples between the 2 genotype matrices.")
+		} else {
+			print("There are no common loci between the 2 genotype matrices.")
+		}
+	}
+	### Output
+	return(G_merged)
+}
+
 #' Save numeric genotype matrix into a file
 #'
 #' @param G numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
