@@ -2034,6 +2034,16 @@ fn_load_phenotype = function(fname_pheno, sep="\t", header=TRUE,
     entry = as.character(df[, idx_col_id])
     pop = as.character(df[, idx_col_pop])
     y = df[, idx_col_y]
+    if (sum(duplicated(entry)) > 0) {
+        error = methods::new("gpError",
+            code=281,
+            message=paste0(
+                "Error in io::fn_load_phenotype(...). ",
+                "The sample names have duplicates. ",
+                "We expect unique samples in the phenotype file. ",
+                "Please remove duplicated or extract BLUEs/BLUPs using an appropriate linear model."))
+        return(error)
+    }
     if (!is.numeric(y)) {
         error = methods::new("gpError",
             code=269,
