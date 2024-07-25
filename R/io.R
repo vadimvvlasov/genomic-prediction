@@ -2310,6 +2310,23 @@ fn_merge_genotype_and_phenotype = function(G, list_pheno, COVAR=NULL, verbose=FA
         print("### Merging genotype and phenotype data ###")
         print("###########################################")
     }
+    ### Check list_pheno
+    if (sum(is.na(list_pheno$y))==length(list_pheno$y)) {
+        error = methods::new("gpError",
+            code=284,
+            message=paste0(
+                "Error in io::fn_merge_genotype_and_phenotype(...). ",
+                "All phenotype data are missing."))
+        return(error)
+    }
+    if (length(names(list_pheno$y)) < length(list_pheno$y)) {
+        error = methods::new("gpError",
+            code=285,
+            message=paste0(
+                "Error in io::fn_merge_genotype_and_phenotype(...). ",
+                "Phenotype data are missing names."))
+        return(error)
+    }
     ### All samples with genotype data will be included and samples without phenotype data will be set to NA (all.x=TRUE)
     ### Samples with phenotype but without genotype data are omitted.
     M = merge(
