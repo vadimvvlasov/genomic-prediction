@@ -106,7 +106,7 @@ fn_prediction_performance_metrics = function(y_true, y_pred, verbose=FALSE) {
         print(paste0("Mean absolute error (mae) = ", mae))
         print(paste0("Root mean square error (rmse) = ", rmse))
         print(paste0("Coefficient of determination (r2) = ", r2))
-        print(paste0("Power to identify top 10 (power_t10) = ", mbe))
+        print(paste0("Power to identify top 10 (power_t10) = ", power_t10))
         print(paste0("Power to identify bottom 10 (power_b10) = ", power_b10))
         print(paste0("Pearson's correlation (corr) = ", corr))
         print(paste0("Variance of predicted phenotypes (var_pred) = ", var_pred, " (estimator of additive genetic variance)"))
