@@ -1110,7 +1110,7 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
                 return(error)
             }
         }
-        if (verbose) {print("Genotype loaded from an RDS file.")}
+        if (verbose) {print("Genotype loaded from an RDS file. No depth information available.")}
         G
     }, 
     error=function(e) {
@@ -1129,7 +1129,7 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
                         "Error loading the vcf file: ", fname_geno, ".")))
                 return(error)
             } else {
-                if (verbose) {print("Genotype loaded from a VCF file.")}
+                if (verbose) {print("Genotype loaded from a VCF file. Depth information used.")}
                 rm("vcf")
                 rm("list_G_D")
                 gc()
@@ -1158,7 +1158,7 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
             G = as.matrix(t(df[, c(-1:-3)]))
             rownames(G) = vec_entries
             colnames(G) = vec_loci_names
-            if (verbose) {print("Genotype loaded from a tab-delimited allele frequency table file.")}
+            if (verbose) {print("Genotype loaded from a tab-delimited allele frequency table file. No depth information available.")}
             rm("df")
             gc()
             return(G)
