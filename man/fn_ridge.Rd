@@ -52,7 +52,7 @@ internal cross-fold validation to find the optimum lambda at which the deviance 
 \item $power_t10: fraction of observed top 10 phenotype values correctly predicted
 \item $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
 \item $var_additive: variance of predicted phenotype values (estimator of additive genetic variance)
-\item $var_residual: variance of observed phenotype values (estimator of total phenotypic variance)
+\item $var_residual: variance of differnce between observed and predicted phenotype values (estimator of residual variance)
 \item $h2: narrow-sense heritability estimate
 }
 \item $df_y_validation:

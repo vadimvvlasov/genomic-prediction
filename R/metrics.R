@@ -19,7 +19,7 @@
 #'      + $power_t10: fraction of observed top 10 phenotype values correctly predicted
 #'      + $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
 #'      + $var_additive: variance of predicted phenotype values (estimator of additive genetic variance)
-#'      + $var_residual: variance of observed phenotype values (estimator of total phenotypic variance)
+#'      + $var_residual: variance of differnce between observed and predicted phenotype values (estimator of residual variance)
 #'      + $h2: estimated narrow-sense heritability weighted by Pearson's correlation between observed 
 #'          and predicted phenotype values.
 #'          - Formula: h2_predicted = corr(observed, predicted) * h2_true

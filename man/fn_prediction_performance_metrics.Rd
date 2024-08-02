@@ -31,7 +31,7 @@ fn_prediction_performance_metrics(y_true, y_pred, verbose = FALSE)
 \item $power_t10: fraction of observed top 10 phenotype values correctly predicted
 \item $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
 \item $var_additive: variance of predicted phenotype values (estimator of additive genetic variance)
-\item $var_residual: variance of observed phenotype values (estimator of total phenotypic variance)
+\item $var_residual: variance of differnce between observed and predicted phenotype values (estimator of residual variance)
 \item $h2: estimated narrow-sense heritability weighted by Pearson's correlation between observed
 and predicted phenotype values.
 \itemize{
