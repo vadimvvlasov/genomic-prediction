@@ -55,8 +55,8 @@ subsequent elements are optional which may refer to the allele identifier and ot
 \item $corr: Pearson's product moment correlation
 \item $power_t10: fraction of observed top 10 phenotype values correctly predicted
 \item $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-\item $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-\item $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+\item $var_additive: variance of predicted phenotype values (estimator of additive genetic variance)
+\item $var_residual: variance of observed phenotype values (estimator of total phenotypic variance)
 \item $h2: narrow-sense heritability estimate
 }
 \item $df_y_validation:

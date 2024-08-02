@@ -44,20 +44,20 @@ fn_io_server = function(dir=NULL) {
 		list_output = readRDS(vec_Rds[i])
 		shiny::validate(
 			shiny::need(class(list_output) == "list", paste0("Error: the ", nth, " Rds input is not the correct genomic_selection pipeline output (not a list)!")),
-			shiny::need(length(list_output) == 12, paste0("Error: the ", nth, " Rds input is not the correct genomic_selection pipeline output (does not have 7 elements)!"))
+			shiny::need(length(list_output) >= 12, paste0("Error: the ", nth, " Rds input is not the correct genomic_selection pipeline output (does not have 12 elements)!"))
 		)
 		shiny::validate(
 			shiny::need(!is.null(list_output$TRAIT_NAME), paste0("Missing filed: TRAIT_NAME")),
 			shiny::need(!is.null(list_output$POPULATION), paste0("Missing filed: POPULATION")),
 			shiny::need(!is.null(list_output$METRICS_WITHIN_POP), paste0("Missing filed: METRICS_WITHIN_POP")),
 			shiny::need(!is.null(list_output$YPRED_WITHIN_POP), paste0("Missing filed: YPRED_WITHIN_POP")),
-			shiny::need(!is.null(list_output$METRICS_ACROSS_POP_BULK), paste0("Missing filed: METRICS_ACROSS_POP_BULK")),
-			shiny::need(!is.null(list_output$YPRED_ACROSS_POP_BULK), paste0("Missing filed: YPRED_ACROSS_POP_BULK")),
-			shiny::need(!is.null(list_output$METRICS_ACROSS_POP_PAIRWISE), paste0("Missing filed: METRICS_ACROSS_POP_PAIRWISE")),
-			shiny::need(!is.null(list_output$YPRED_ACROSS_POP_PAIRWISE), paste0("Missing filed: YPRED_ACROSS_POP_PAIRWISE")),
-			shiny::need(!is.null(list_output$METRICS_ACROSS_POP_LOPO), paste0("Missing filed: METRICS_ACROSS_POP_LOPO")),
-			shiny::need(!is.null(list_output$YPRED_ACROSS_POP_LOPO), paste0("Missing filed: YPRED_ACROSS_POP_LOPO")),
-			shiny::need(!is.null(list_output$GENOMIC_PREDICTIONS), paste0("Missing filed: GENOMIC_PREDICTIONS")),
+			# shiny::need(!is.null(list_output$METRICS_ACROSS_POP_BULK), paste0("Missing filed: METRICS_ACROSS_POP_BULK")),
+			# shiny::need(!is.null(list_output$YPRED_ACROSS_POP_BULK), paste0("Missing filed: YPRED_ACROSS_POP_BULK")),
+			# shiny::need(!is.null(list_output$METRICS_ACROSS_POP_PAIRWISE), paste0("Missing filed: METRICS_ACROSS_POP_PAIRWISE")),
+			# shiny::need(!is.null(list_output$YPRED_ACROSS_POP_PAIRWISE), paste0("Missing filed: YPRED_ACROSS_POP_PAIRWISE")),
+			# shiny::need(!is.null(list_output$METRICS_ACROSS_POP_LOPO), paste0("Missing filed: METRICS_ACROSS_POP_LOPO")),
+			# shiny::need(!is.null(list_output$YPRED_ACROSS_POP_LOPO), paste0("Missing filed: YPRED_ACROSS_POP_LOPO")),
+			# shiny::need(!is.null(list_output$GENOMIC_PREDICTIONS), paste0("Missing filed: GENOMIC_PREDICTIONS")),
 			shiny::need(!is.null(list_output$ADDITIVE_GENETIC_EFFECTS), paste0("Missing filed: ADDITIVE_GENETIC_EFFECTS"))
 		)
 		trait = list_output$TRAIT_NAME

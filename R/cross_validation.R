@@ -49,8 +49,8 @@
 #'          - $corr: Pearson's product moment correlation
 #'          - $power_t10: fraction of observed top 10 phenotype values correctly predicted
 #'          - $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-#'          - $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-#'          - $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          - $var_additive: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          - $var_residual: variance of observed phenotype values (estimator of total phenotypic variance)
 #'          - $h2: narrow-sense heritability estimate
 #'      + $df_y_validation: 
 #'          - $rep: replication number
@@ -586,8 +586,8 @@ fn_cross_validation_preparation = function(list_merged, cv_type=1, n_folds=10, n
 #'          - $corr: Pearson's product moment correlation
 #'          - $power_t10: fraction of observed top 10 phenotype values correctly predicted
 #'          - $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-#'          - $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-#'          - $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          - $var_additive: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          - $var_residual: variance of observed phenotype values (estimator of total phenotypic variance)
 #'          - $h2: narrow-sense heritability estimate
 #'      + $YPRED_WITHIN_POP (row-binded df_y_validation across populations, reps, folds, and models):
 #'          - $rep: replication number
@@ -909,8 +909,8 @@ fn_cross_validation_within_population = function(list_merged, n_folds=10, n_reps
 #'          - $corr: Pearson's product moment correlation
 #'          - $power_t10: fraction of observed top 10 phenotype values correctly predicted
 #'          - $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-#'          - $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-#'          - $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          - $var_additive: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          - $var_residual: variance of observed phenotype values (estimator of total phenotypic variance)
 #'          - $h2: narrow-sense heritability estimate
 #'      + $YPRED_ACROSS_POP_BULK:
 #'          - $rep: replication number
@@ -1176,8 +1176,8 @@ fn_cross_validation_across_populations_bulk = function(list_merged, n_folds=10, 
 #'          - $corr: Pearson's product moment correlation
 #'          - $power_t10: fraction of observed top 10 phenotype values correctly predicted
 #'          - $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-#'          - $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-#'          - $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          - $var_additive: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          - $var_residual: variance of observed phenotype values (estimator of total phenotypic variance)
 #'          - $h2: narrow-sense heritability estimate
 #'      + $YPRED_ACROSS_POP_PAIRWISE:
 #'          - $rep: replication number
@@ -1493,8 +1493,8 @@ fn_cross_validation_across_populations_pairwise = function(list_merged,
 #'          - $corr: Pearson's product moment correlation
 #'          - $power_t10: fraction of observed top 10 phenotype values correctly predicted
 #'          - $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-#'          - $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-#'          - $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          - $var_additive: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          - $var_residual: variance of observed phenotype values (estimator of total phenotypic variance)
 #'          - $h2: narrow-sense heritability estimate
 #'      + $YPRED_ACROSS_POP_LOPO:
 #'          - $rep: replication number

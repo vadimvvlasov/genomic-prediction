@@ -40,8 +40,8 @@ suppressWarnings(suppressPackageStartupMessages(library(sommer)))
 #'          - $corr: Pearson's product moment correlation
 #'          - $power_t10: fraction of observed top 10 phenotype values correctly predicted
 #'          - $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-#'          - $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-#'          - $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          - $var_additive: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          - $var_residual: variance of observed phenotype values (estimator of total phenotypic variance)
 #'          - $h2: narrow-sense heritability estimate
 #'      + $df_y_validation:
 #'          - $id: names of the samples/entries/pools, 
@@ -213,8 +213,8 @@ fn_ols = function(list_merged, vec_idx_training, vec_idx_validation, other_param
 #'          - $corr: Pearson's product moment correlation
 #'          - $power_t10: fraction of observed top 10 phenotype values correctly predicted
 #'          - $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-#'          - $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-#'          - $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          - $var_additive: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          - $var_residual: variance of observed phenotype values (estimator of total phenotypic variance)
 #'          - $h2: narrow-sense heritability estimate
 #'      + $df_y_validation:
 #'          - $id: names of the samples/entries/pools, 
@@ -357,8 +357,8 @@ fn_ridge = function(list_merged, vec_idx_training, vec_idx_validation, other_par
 #'          - $corr: Pearson's product moment correlation
 #'          - $power_t10: fraction of observed top 10 phenotype values correctly predicted
 #'          - $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-#'          - $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-#'          - $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          - $var_additive: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          - $var_residual: variance of observed phenotype values (estimator of total phenotypic variance)
 #'          - $h2: narrow-sense heritability estimate
 #'      + $df_y_validation:
 #'          - $id: names of the samples/entries/pools, 
@@ -501,8 +501,8 @@ fn_lasso = function(list_merged, vec_idx_training, vec_idx_validation, other_par
 #'          - $corr: Pearson's product moment correlation
 #'          - $power_t10: fraction of observed top 10 phenotype values correctly predicted
 #'          - $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-#'          - $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-#'          - $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          - $var_additive: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          - $var_residual: variance of observed phenotype values (estimator of total phenotypic variance)
 #'          - $h2: narrow-sense heritability estimate
 #'      + $df_y_validation:
 #'          - $id: names of the samples/entries/pools, 
@@ -647,8 +647,8 @@ fn_elastic_net = function(list_merged, vec_idx_training, vec_idx_validation, oth
 #'          - $corr: Pearson's product moment correlation
 #'          - $power_t10: fraction of observed top 10 phenotype values correctly predicted
 #'          - $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-#'          - $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-#'          - $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          - $var_additive: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          - $var_residual: variance of observed phenotype values (estimator of total phenotypic variance)
 #'          - $h2: narrow-sense heritability estimate
 #'      + $df_y_validation:
 #'          - $id: names of the samples/entries/pools, 
@@ -794,8 +794,8 @@ fn_Bayes_A = function(list_merged, vec_idx_training, vec_idx_validation,
 #'          - $corr: Pearson's product moment correlation
 #'          - $power_t10: fraction of observed top 10 phenotype values correctly predicted
 #'          - $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-#'          - $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-#'          - $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          - $var_additive: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          - $var_residual: variance of observed phenotype values (estimator of total phenotypic variance)
 #'          - $h2: narrow-sense heritability estimate
 #'      + $df_y_validation:
 #'          - $id: names of the samples/entries/pools, 
@@ -941,8 +941,8 @@ fn_Bayes_B = function(list_merged, vec_idx_training, vec_idx_validation,
 #'          - $corr: Pearson's product moment correlation
 #'          - $power_t10: fraction of observed top 10 phenotype values correctly predicted
 #'          - $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-#'          - $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-#'          - $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          - $var_additive: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          - $var_residual: variance of observed phenotype values (estimator of total phenotypic variance)
 #'          - $h2: narrow-sense heritability estimate
 #'      + $df_y_validation:
 #'          - $id: names of the samples/entries/pools, 
@@ -1086,8 +1086,8 @@ fn_Bayes_C = function(list_merged, vec_idx_training, vec_idx_validation,
 #'          - $corr: Pearson's product moment correlation
 #'          - $power_t10: fraction of observed top 10 phenotype values correctly predicted
 #'          - $power_b10: fraction of observed bottom 10 phenotype values correctly predicted
-#'          - $var_pred: variance of predicted phenotype values (estimator of additive genetic variance)
-#'          - $var_true: variance of observed phenotype values (estimator of total phenotypic variance)
+#'          - $var_additive: variance of predicted phenotype values (estimator of additive genetic variance)
+#'          - $var_residual: variance of observed phenotype values (estimator of total phenotypic variance)
 #'          - $h2: narrow-sense heritability estimate
 #'      + $df_y_validation:
 #'          - $id: names of the samples/entries/pools, 
