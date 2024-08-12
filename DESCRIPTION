@@ -16,6 +16,7 @@ Remotes:
 Imports:
     methods,
     vcfR,
+    stringr,
     parallel,
     glmnet,
     BGLR,

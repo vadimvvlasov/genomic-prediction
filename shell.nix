@@ -22,6 +22,7 @@ let
       devtools
       testthat
       vcfR
+      stringr
       txtplot
       glmnet
       BGLR

@@ -2015,7 +2015,14 @@ fn_load_phenotype = function(fname_pheno, sep="\t", header=TRUE,
         print("### Load phenotype data ###")
         print("###########################")
     }
-    df = utils::read.table(fname_pheno, sep=sep, header=header, na.strings=na_strings)
+    df = utils::read.table(fname_pheno, sep=sep, header=header, na.strings=na_strings, check.names=FALSE)
+    ### Convert special symbols into underscores
+    vec_column_names = colnames(df)
+    vec_symbols = c(" ", "\t", "`", "~", "!", "@", "#", "\\$", "%", "\\^", "&", "\\*", "\\(", "\\)", "=", "\\+", "\\[", "\\]", "\\{", "\\}", "<", ">", "\\\\", "\\|", "'", '"', ";", "/", "\\?", "__", "__")
+    for (symbol in vec_symbols) {
+        vec_column_names = stringr::str_replace_all(string=vec_column_names, pattern=symbol, replacement="_")
+    }
+    colnames(df) = vec_column_names
     if (max(c(idx_col_y, idx_col_id, idx_col_pop)) > ncol(df)) {
         error = methods::new("gpError",
             code=268,

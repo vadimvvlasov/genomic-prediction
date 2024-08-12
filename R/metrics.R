@@ -60,6 +60,7 @@ fn_prediction_performance_metrics = function(y_true, y_pred, verbose=FALSE) {
         r2 = 1 - (sum(error^2, na.rm=TRUE) / sum((y_true-mean(y_true, na.rm=TRUE))^2, na.rm=TRUE))
     }
     corr = suppressWarnings(stats::cor(y_true, y_pred, method="pearson", use="na.or.complete"))
+    corr_rank = suppressWarnings(stats::cor(y_true, y_pred, method="spearman", use="na.or.complete"))
     ### Power to select true top and bottom 10%
     n_top_or_bottom_10 = max(c(1, round(0.1*n)))
     top10_dec_true = order(y_true, decreasing=TRUE)[1:n_top_or_bottom_10]
@@ -97,6 +98,7 @@ fn_prediction_performance_metrics = function(y_true, y_pred, verbose=FALSE) {
         print(paste0("Power to identify top 10 (power_t10) = ", power_t10))
         print(paste0("Power to identify bottom 10 (power_b10) = ", power_b10))
         print(paste0("Pearson's correlation (corr) = ", corr))
+        print(paste0("Spearman's correlation (corr_rank) = ", corr_rank))
         print(paste0("Variance of predicted phenotypes (var_additive) = ", var_additive, " (estimator of additive genetic variance)"))
         print(paste0("Variance of the difference between observed and predicted phenotypes (var_residual) = ", var_residual, " (estimator of residual variance)"))
         print(paste0("Narrow-sense heritability estimate (h2) = ", h2))
@@ -108,6 +110,7 @@ fn_prediction_performance_metrics = function(y_true, y_pred, verbose=FALSE) {
         rmse=rmse,
         r2=r2,
         corr=corr,
+        corr_rank=corr_rank,
         power_t10=power_t10,
         power_b10=power_b10,
         var_additive=var_additive,

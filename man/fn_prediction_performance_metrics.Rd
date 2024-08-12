@@ -34,24 +34,6 @@ fn_prediction_performance_metrics(y_true, y_pred, verbose = FALSE)
 \item $var_residual: variance of differnce between observed and predicted phenotype values (estimator of residual variance)
 \item $h2: estimated narrow-sense heritability weighted by Pearson's correlation between observed
 and predicted phenotype values.
-\itemize{
-\item Formula: h2_predicted = corr(observed, predicted) * h2_true
-\item Caveat:
-\itemize{
-\item yields NA if the estimated heritability lies beyond 0 and 1
-which happens when correlation between observed and predicted phenotypes is negative, and
-the predicted phenotypes have higher variance than observed phenotypes.
-\item This unexpected higher variance in the predictions implies that the genomic prediction model performs very poorly,
-and therefore heritability estimates from them should not be considered.
-}
-\item Assumptions:
-\itemize{
-\item correlation between predicted and true trait values relates the variance of the predicted trait values with the true heritability,
-\item predicted trait values are due to purely additive effects,
-\item variance in the predicted trait values is proportional to the additive genetic variance (~Va)
-\item variance in the true trait values represent the total phenotypic variance (Vp)
-}
-}
 }
 \item Err: gpError
 }
