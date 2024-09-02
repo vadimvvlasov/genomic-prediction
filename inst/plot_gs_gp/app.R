@@ -1152,7 +1152,7 @@ server = function(input, output, session) {
 		for (x in list_list_output) {
 			# x = list_list_output[[1]]
 			vec_traits = c(vec_traits, as.character(x$TRAIT_NAME))
-			vec_populations = c(vec_populations, as.character(x$POPULATION))
+			vec_populations = c(vec_populations, unique(c(as.character(x$POPULATION), unique(x$METRICS_WITHIN_POP$pop_training))))
 			vec_models = c(vec_models, unique(as.character(x$METRICS_WITHIN_POP$model)))
 			df_tmp = x$METRICS_WITHIN_POP
 			for (j in 1:ncol(df_tmp)) {
