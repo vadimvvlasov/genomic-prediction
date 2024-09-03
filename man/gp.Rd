@@ -244,43 +244,63 @@ Main genomic prediction cross-validation within and across populations
 }
 \details{
 Functions list per module:
+\itemize{
+\item 
 \enumerate{
 \item io.R
-1.1. fn_G_extract_names
-1.2. fn_G_split_off_alternative_allele
-1.3. fn_G_numeric_to_non_numeric
-1.4. fn_G_non_numeric_to_numeric
-1.5. fn_G_to_vcf
-1.6. fn_vcf_to_G
-1.7. fn_classify_allele_frequencies
-1.8. fn_simulate_data
-1.9. fn_load_genotype
-1.10. fn_filter_genotype
-1.11. fn_save_genotype
-1.12. fn_load_phenotype
-1.13. fn_filter_phenotype
-1.14. fn_save_phenotype
-1.15. fn_merge_genotype_and_phenotype
-1.16. fn_subset_merged_genotype_and_phenotype
-1.17. fn_estimate_memory_footprint
+}
+\itemize{
+\item 1.1. fn_G_extract_names
+\item 1.2. fn_G_split_off_alternative_allele
+\item 1.3. fn_G_numeric_to_non_numeric
+\item 1.4. fn_G_non_numeric_to_numeric
+\item 1.5. fn_G_to_vcf
+\item 1.6. fn_vcf_to_G
+\item 1.7. fn_classify_allele_frequencies
+\item 1.8. fn_simulate_data
+\item 1.9. fn_load_genotype
+\item 1.10. fn_filter_genotype
+\item 1.11. fn_save_genotype
+\item 1.12. fn_load_phenotype
+\item 1.13. fn_filter_phenotype
+\item 1.14. fn_save_phenotype
+\item 1.15. fn_merge_genotype_and_phenotype
+\item 1.16. fn_subset_merged_genotype_and_phenotype
+\item 1.17. fn_estimate_memory_footprint
+}
+\item 
+\enumerate{
 \item cross_validation.R
-2.1. fn_cv_1
-2.2. fn_cross_validation_preparation
-2.3. fn_cross_validation_within_population
-2.4. fn_cross_validation_across_populations_bulk
-2.5. fn_cross_validation_across_populations_pairwise
-2.6. fn_cross_validation_across_populations_lopo
+}
+\itemize{
+\item 2.1. fn_cv_1
+\item 2.2. fn_cross_validation_preparation
+\item 2.3. fn_cross_validation_within_population
+\item 2.4. fn_cross_validation_across_populations_bulk
+\item 2.5. fn_cross_validation_across_populations_pairwise
+\item 2.6. fn_cross_validation_across_populations_lopo
+}
+\item 
+\enumerate{
 \item models.R
-3.1. fn_ols
-3.2. fn_ridge
-3.3. fn_lasso
-3.4. fn_elastic_net
-3.5. fn_Bayes_A
-3.6. fn_Bayes_B
-3.7. fn_Bayes_C
-3.8. fn_gBLUP
+}
+\itemize{
+\item 3.1. fn_ols
+\item 3.2. fn_ridge
+\item 3.3. fn_lasso
+\item 3.4. fn_elastic_net
+\item 3.5. fn_Bayes_A
+\item 3.6. fn_Bayes_B
+\item 3.7. fn_Bayes_C
+\item 3.8. fn_gBLUP
+}
+\item 
+\enumerate{
 \item metrics.R
-4.1. fn_prediction_performance_metrics
+}
+\itemize{
+\item 4.1. fn_prediction_performance_metrics
+}
 }
 }
 \examples{
