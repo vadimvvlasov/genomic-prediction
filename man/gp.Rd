@@ -244,11 +244,8 @@ Main genomic prediction cross-validation within and across populations
 }
 \details{
 Functions list per module:
-\itemize{
-\item 
 \enumerate{
 \item io.R
-}
 \itemize{
 \item 1.1. fn_G_extract_names
 \item 1.2. fn_G_split_off_alternative_allele
@@ -268,10 +265,7 @@ Functions list per module:
 \item 1.16. fn_subset_merged_genotype_and_phenotype
 \item 1.17. fn_estimate_memory_footprint
 }
-\item 
-\enumerate{
 \item cross_validation.R
-}
 \itemize{
 \item 2.1. fn_cv_1
 \item 2.2. fn_cross_validation_preparation
@@ -280,10 +274,7 @@ Functions list per module:
 \item 2.5. fn_cross_validation_across_populations_pairwise
 \item 2.6. fn_cross_validation_across_populations_lopo
 }
-\item 
-\enumerate{
 \item models.R
-}
 \itemize{
 \item 3.1. fn_ols
 \item 3.2. fn_ridge
@@ -294,10 +285,7 @@ Functions list per module:
 \item 3.7. fn_Bayes_C
 \item 3.8. fn_gBLUP
 }
-\item 
-\enumerate{
 \item metrics.R
-}
 \itemize{
 \item 4.1. fn_prediction_performance_metrics
 }

@@ -206,7 +206,7 @@
 #'  _ Err: gpError
 #' @details
 #' Functions list per module:
-#'  - 1. io.R
+#'  1. io.R
 #'      + 1.1. fn_G_extract_names
 #'      + 1.2. fn_G_split_off_alternative_allele
 #'      + 1.3. fn_G_numeric_to_non_numeric
@@ -224,14 +224,14 @@
 #'      + 1.15. fn_merge_genotype_and_phenotype
 #'      + 1.16. fn_subset_merged_genotype_and_phenotype
 #'      + 1.17. fn_estimate_memory_footprint
-#'  - 2. cross_validation.R
+#'  2. cross_validation.R
 #'      + 2.1. fn_cv_1
 #'      + 2.2. fn_cross_validation_preparation
 #'      + 2.3. fn_cross_validation_within_population
 #'      + 2.4. fn_cross_validation_across_populations_bulk
 #'      + 2.5. fn_cross_validation_across_populations_pairwise
 #'      + 2.6. fn_cross_validation_across_populations_lopo
-#'  - 3. models.R
+#'  3. models.R
 #'      + 3.1. fn_ols
 #'      + 3.2. fn_ridge
 #'      + 3.3. fn_lasso
@@ -240,7 +240,7 @@
 #'      + 3.6. fn_Bayes_B
 #'      + 3.7. fn_Bayes_C
 #'      + 3.8. fn_gBLUP
-#'  - 4. metrics.R
+#'  4. metrics.R
 #'      + 4.1. fn_prediction_performance_metrics
 #' @examples
 #' list_sim = fn_simulate_data(n=300, n_pop=3, verbose=TRUE)
