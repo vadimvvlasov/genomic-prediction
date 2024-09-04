@@ -1301,7 +1301,7 @@ server = function(input, output, session) {
 			list_df_stats_raw = fn_within_table_metrics_server(input, list_list_output=data())
 			dir_tmp = tempdir()
 			vec_fnames_tsv = unlist(lapply(list_df_stats_raw, FUN=function(df){
-				if (ncol(df) == 21) {
+				if (ncol(df) > ncol(list_df_stats_raw$df_stats)) {
 					fname_tsv = "gp_withinPop_raw_selected_data.tsv"
 					write.table(df, file=file.path(dir_tmp, fname_tsv), sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
 				} else {
@@ -1454,7 +1454,7 @@ server = function(input, output, session) {
 			list_df_stats_raw = fn_across_bulk_table_metrics_server(input, list_list_output=data())
 			dir_tmp = tempdir()
 			vec_fnames_tsv = unlist(lapply(list_df_stats_raw, FUN=function(df){
-				if (ncol(df) == 21) {
+				if (ncol(df) > ncol(list_df_stats_raw$df_stats)) {
 					fname_tsv = "gp_acrossPopBulk_raw_selected_data.tsv"
 					write.table(df, file=file.path(dir_tmp, fname_tsv), sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
 				} else {
