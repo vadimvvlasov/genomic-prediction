@@ -101,6 +101,27 @@ fn_within_violin_ui = function() {
 	)
 }
 
+fn_within_barplot_ui = function() {
+	card(
+		card_header(h1(strong("Within population bar plot"), style="font-size:21px; text-align:left")),
+		min_height="700px",
+		layout_sidebar(
+			sidebar=sidebar(
+				width=500,
+				shinyWidgets::pickerInput(inputId="within_barplot_vec_traits", label="Filter by trait:", choices="", multiple=TRUE, options=list(`live-search`=TRUE, `actions-box`=TRUE)),
+				shinyWidgets::pickerInput(inputId="within_barplot_vec_populations", label="Filter by population:", choices="", multiple=TRUE, options=list(`live-search`=TRUE, `actions-box`=TRUE)),
+				shinyWidgets::pickerInput(inputId="within_barplot_metric", label="Use the genomic prediction accuracy metric:", choices="", multiple=FALSE, options=list(`live-search`=TRUE, `actions-box`=TRUE)),
+				shinyWidgets::pickerInput(inputId="within_barplot_model", label="Model:", choices="", multiple=FALSE, options=list(`live-search`=TRUE, `actions-box`=TRUE)),
+				shinyWidgets::materialSwitch(inputId="within_barplot_bool_group_pop", label="Group by population", value=FALSE, status="primary", right=TRUE)
+			),
+			mainPanel(
+				width=750,
+				shinycssloaders::withSpinner(plotlyOutput(outputId="within_plot_bar"))
+			)
+		)
+	)
+}
+
 fn_within_scatter_hist_ui = function() {
 	card(
 		card_header(h1(strong("Within population observed vs predicted phenotypes"), style="font-size:21px; text-align:left")),
@@ -268,6 +289,66 @@ fn_within_table_metrics_server = function(input, list_list_output) {
 			by=input$within_vec_group_by),
 			by=input$within_vec_group_by)
 	return(list(df_stats=df_stats, df_raw=df_raw))
+}
+
+fn_within_df_stats_for_barplot_server = function(input, list_list_output) {
+	# list_list_output = fn_io_server(dir="/group/pasture/Jeff/lucerne/workdir/gs/output_ground_truth_biomass_traits/output")
+	# names(list_list_output)
+	# input = list(
+	# 	within_barplot_vec_traits=unique(unlist(lapply(list_list_output, FUN=function(x){x$TRAIT_NAME}))), 
+	# 	within_barplot_vec_populations=unique(unlist(lapply(list_list_output, FUN=function(x){x$POPULATION})))
+
+	METRICS_WITHIN_POP = NULL
+	for (list_output in list_list_output) {
+		df_metrics_within_pop = list_output$METRICS_WITHIN_POP
+		if (is.na(df_metrics_within_pop[1])[1]) {next}
+		df_metrics_within_pop$trait = list_output$TRAIT_NAME
+		if (is.null(METRICS_WITHIN_POP)) {
+			METRICS_WITHIN_POP = df_metrics_within_pop
+		} else {
+			METRICS_WITHIN_POP = rbind(METRICS_WITHIN_POP, df_metrics_within_pop)
+		}
+	}
+	if (is.null(METRICS_WITHIN_POP)) {
+		return(list(df_stats=NULL, df_raw=NULL))
+	}
+	vec_idx = which((METRICS_WITHIN_POP$trait %in% input$within_barplot_vec_traits) &
+		(METRICS_WITHIN_POP$pop_validation %in% input$within_barplot_vec_populations))
+	df_raw = METRICS_WITHIN_POP[vec_idx, , drop=FALSE]
+
+	vec_within_barplot_vec_group_by = c("trait", "pop_training", "model")
+	df_agg_mean = eval(parse(text=paste0("aggregate(", input$within_barplot_metric, " ~ ", paste(vec_within_barplot_vec_group_by, collapse="+"), ", data=df_raw, FUN=mean, na.rm=TRUE)"))); colnames(df_agg_mean)[ncol(df_agg_mean)] = paste0("mean_", input$within_barplot_metric)
+	df_agg_median = eval(parse(text=paste0("aggregate(", input$within_barplot_metric, " ~ ", paste(vec_within_barplot_vec_group_by, collapse="+"), ", data=df_raw, FUN=median, na.rm=TRUE)"))); colnames(df_agg_median)[ncol(df_agg_median)] = paste0("median_", input$within_barplot_metric)
+	df_agg_min = eval(parse(text=paste0("aggregate(", input$within_barplot_metric, " ~ ", paste(vec_within_barplot_vec_group_by, collapse="+"), ", data=df_raw, FUN=min, na.rm=TRUE)"))); colnames(df_agg_min)[ncol(df_agg_min)] = paste0("min_", input$within_barplot_metric)
+	df_agg_max = eval(parse(text=paste0("aggregate(", input$within_barplot_metric, " ~ ", paste(vec_within_barplot_vec_group_by, collapse="+"), ", data=df_raw, FUN=max, na.rm=TRUE)"))); colnames(df_agg_max)[ncol(df_agg_max)] = paste0("max_", input$within_barplot_metric)
+	df_agg_var = eval(parse(text=paste0("aggregate(", input$within_barplot_metric, " ~ ", paste(vec_within_barplot_vec_group_by, collapse="+"), ", data=df_raw, FUN=var, na.rm=TRUE)"))); colnames(df_agg_var)[ncol(df_agg_var)] = paste0("var_", input$within_barplot_metric)
+	df_agg_nan = eval(parse(text=paste0("aggregate(", input$within_barplot_metric, " ~ ", paste(vec_within_barplot_vec_group_by, collapse="+"), ", data=df_raw, FUN=function(x){sum(is.na(x))})"))); colnames(df_agg_nan)[ncol(df_agg_nan)] = paste0("n_missing_", input$within_barplot_metric)
+	df_stats = merge(df_agg_mean, 
+		merge(df_agg_median, 
+		merge(df_agg_min, 
+		merge(df_agg_max, 
+		merge(df_agg_var, df_agg_nan, 
+			by=vec_within_barplot_vec_group_by),
+			by=vec_within_barplot_vec_group_by),
+			by=vec_within_barplot_vec_group_by),
+			by=vec_within_barplot_vec_group_by),
+			by=vec_within_barplot_vec_group_by)
+	df_stats = df_stats[order(df_stats$trait, decreasing=FALSE), , drop=FALSE]
+	return(df_stats)
+}
+
+fn_within_barplot_server = function(input, list_list_output) {
+	df_stats = fn_within_df_stats_for_barplot_server(input=input, list_list_output=list_list_output)
+	df_stats = df_stats[df_stats$model %in% input$within_barplot_model, , drop=FALSE]
+	if (!input$within_barplot_bool_group_pop) {
+		p = eval(parse(text=paste0("plotly::plot_ly(data=df_stats, x=~trait, y=~mean_", input$within_barplot_metric, ", type='bar', name=~pop_training, error_y=~list(array=sqrt(var_", input$within_barplot_metric, "), color='#000000'))")))
+	} else {
+		p = eval(parse(text=paste0("plotly::plot_ly(data=df_stats, x=~pop_training, y=~mean_", input$within_barplot_metric, ", type='bar', name=~trait, error_y=~list(array=sqrt(var_", input$within_barplot_metric, "), color='#000000'))")))
+	}
+	p = p %>% config(toImageButtonOptions = list(format = "svg"))
+	return(p)
+
+
 }
 
 fn_within_scatterplot_server = function(input, list_list_output) {
@@ -1104,6 +1185,7 @@ ui <- page_fillable(
 	navset_card_underline(
 		nav_panel(h1(strong("WITHIN POPULATION"), style="font-size:15px; text-align:left"),
 			fn_within_violin_ui(),
+			fn_within_barplot_ui(),
 			fn_within_scatter_hist_ui()
 		),
 		nav_panel(h1(strong("ACROSS POPULATIONS (PAIRWISE)"), style="font-size:15px; text-align:left"),
@@ -1137,10 +1219,13 @@ server = function(input, output, session) {
 	##########################################
 	data = reactive({
 		# dirname_root = "/group/pasture/Jeff/gp/inst/exec_Rscript/output"
-		dirname_root = "/"
+		# dirname_root = "/group/pasture/Jeff/lucerne/workdir/gs/output_ground_truth_biomass_traits/output"
+		dirname_root = "/group/pasture/Jeff/lucerne/workdir/gs/output_remote_sensing_biomass_traits/output"
+		# dirname_root = "/"
 		shinyFiles::shinyDirChoose(input, id='dir', roots=c(root=dirname_root), filetypes=c('rds', 'Rds', 'RDS'), session=session)
 		dir = as.character(parseDirPath(c(root=dirname_root), input$dir))
 		list_list_output = fn_io_server(dir=dir)
+		# list_list_output = fn_io_server(dir=NULL)
 		#######################################
 		### Update within population selections
 		vec_traits = c()
@@ -1169,6 +1254,10 @@ server = function(input, output, session) {
 		updatePickerInput(session, "within_vec_populations", choices=vec_populations, selected=vec_populations[1])
 		updatePickerInput(session, "within_vec_models", choices=vec_models, selected=vec_models[1:2])
 		updatePickerInput(session, "within_metric", choices=vec_metrics, selected=vec_metrics[1])
+		updatePickerInput(session, "within_barplot_vec_traits", choices=vec_traits, selected=head(vec_traits))
+		updatePickerInput(session, "within_barplot_vec_populations", choices=vec_populations, selected=head(vec_populations))
+		updatePickerInput(session, "within_barplot_model", choices=vec_models, selected=vec_models[1])
+		updatePickerInput(session, "within_barplot_metric", choices=vec_metrics, selected=vec_metrics[1])
 		updatePickerInput(session, "within_scat_trait_x_pop", choices=names(list_list_output), selected=names(list_list_output)[1])
 		updatePickerInput(session, "within_scat_model", choices=vec_models, selected=vec_models[1])
 		#############################################################
@@ -1317,6 +1406,10 @@ server = function(input, output, session) {
 	output$within_data_tables= renderTable({
 		list_df_stats_raw = fn_within_table_metrics_server(input, list_list_output=data())
 		head(list_df_stats_raw$df_stats, n=4)
+	})
+	### Within population: bar plot
+	output$within_plot_bar = renderPlotly({
+		fn_within_barplot_server(input=input, list_list_output=data())
 	})
 	### Within population: observed vs prediction scatter plot
 	output$within_plot_scatter = renderPlotly({
