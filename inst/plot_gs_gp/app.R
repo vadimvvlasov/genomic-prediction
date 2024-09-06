@@ -1220,8 +1220,8 @@ server = function(input, output, session) {
 	data = reactive({
 		# dirname_root = "/group/pasture/Jeff/gp/inst/exec_Rscript/output"
 		# dirname_root = "/group/pasture/Jeff/lucerne/workdir/gs/output_ground_truth_biomass_traits/output"
-		dirname_root = "/group/pasture/Jeff/lucerne/workdir/gs/output_remote_sensing_biomass_traits/output"
-		# dirname_root = "/"
+		# dirname_root = "/group/pasture/Jeff/lucerne/workdir/gs/output_remote_sensing_biomass_traits/output"
+		dirname_root = "/"
 		shinyFiles::shinyDirChoose(input, id='dir', roots=c(root=dirname_root), filetypes=c('rds', 'Rds', 'RDS'), session=session)
 		dir = as.character(parseDirPath(c(root=dirname_root), input$dir))
 		list_list_output = fn_io_server(dir=dir)
