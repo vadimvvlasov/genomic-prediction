@@ -2586,34 +2586,3 @@ fn_estimate_memory_footprint = function(X, n_models=7, n_folds=10, n_reps=10,
         size_total=size_total,
         n_threads=n_threads))
 }
-
-
-
-
-### Getting frustrated with how the data are stored and labelled.
-### Let's use a proper database for direct I/O in and out of R:
-# fn_load_into_database = function() {
-
-#     mydb = DBI::dbConnect(RSQLite::SQLite(), "test.sqlite")
-#     DBI::dbDisconnect(mydb)
-
-#     mydb = DBI::dbConnect(RSQLite::SQLite(), "")
-#     DBI::dbWriteTable(mydb, "mtcars", datasets::mtcars)
-#     DBI::dbWriteTable(mydb, "iris", datasets::iris)
-#     DBI::dbListTables(mydb)
-
-#     DBI::dbGetQuery(mydb, 'SELECT * FROM mtcars LIMIT 5')
-#     DBI::dbGetQuery(mydb, 'SELECT * FROM iris WHERE "Sepal.Length" < 4.6')
-#     DBI::dbGetQuery(mydb, 'SELECT * FROM iris WHERE "Sepal.Length" < :x', params=list(x=4.6))
-
-#     rs = DBI::dbSendQuery(mydb, 'SELECT * FROM mtcars')
-#     while (!DBI::dbHasCompleted(rs)) {
-#     df = DBI::dbFetch(rs, n=10)
-#     print(nrow(df))
-#     }
-
-#     rs = DBI::dbSendQuery(mydb, 'SELECT * FROM iris WHERE "Sepal.Length" = :x')
-#     DBI::dbBind(rs, params=list(x=seq(4, 4.4, by=0.1)))
-#     nrow(DBI::dbFetch(rs))
-
-# }
