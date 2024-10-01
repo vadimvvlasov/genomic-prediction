@@ -224,26 +224,26 @@
 #'      + 1.15. fn_merge_genotype_and_phenotype
 #'      + 1.16. fn_subset_merged_genotype_and_phenotype
 #'      + 1.17. fn_estimate_memory_footprint
-#'  2. cross_validation.R
-#'      + 2.1. fn_cv_1
-#'      + 2.2. fn_cross_validation_preparation
-#'      + 2.3. fn_cross_validation_within_population
-#'      + 2.4. fn_cross_validation_across_populations_bulk
-#'      + 2.5. fn_cross_validation_across_populations_pairwise
-#'      + 2.6. fn_cross_validation_across_populations_lopo
-#'  3. models.R
-#'      + 3.1. fn_ols
-#'      + 3.2. fn_ridge
-#'      + 3.3. fn_lasso
-#'      + 3.4. fn_elastic_net
-#'      + 3.5. fn_Bayes_A
-#'      + 3.6. fn_Bayes_B
-#'      + 3.7. fn_Bayes_C
-#'      + 3.8. fn_gBLUP
-#'  4. metrics.R
-#'      + 4.1. fn_prediction_performance_metrics
-#'  5. distances.R
-#'      + 5.1. fn_grm_and_dist
+#'  2. distances.R
+#'      + 2.1. fn_grm_and_dist
+#'  3. cross_validation.R
+#'      + 3.1. fn_cv_1
+#'      + 3.2. fn_cross_validation_preparation
+#'      + 3.3. fn_cross_validation_within_population
+#'      + 3.4. fn_cross_validation_across_populations_bulk
+#'      + 3.5. fn_cross_validation_across_populations_pairwise
+#'      + 3.6. fn_cross_validation_across_populations_lopo
+#'  4. models.R
+#'      + 4.1. fn_ols
+#'      + 4.2. fn_ridge
+#'      + 4.3. fn_lasso
+#'      + 4.4. fn_elastic_net
+#'      + 4.5. fn_Bayes_A
+#'      + 4.6. fn_Bayes_B
+#'      + 4.7. fn_Bayes_C
+#'      + 4.8. fn_gBLUP
+#'  5. metrics.R
+#'      + 5.1. fn_prediction_performance_metrics
 #' @examples
 #' list_sim = fn_simulate_data(n=300, n_pop=3, verbose=TRUE)
 #' df_pheno = read.delim(list_sim$fname_pheno_tsv, header=TRUE)

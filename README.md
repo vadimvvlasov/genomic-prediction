@@ -20,6 +20,7 @@ devtools::install_github("jeffersonfparil/gp")
 R/
 └── main.R
     ├── io.R
+    ├── distances.R
     └── cross_validation.R
         └── models.R
             └── metrics.R
@@ -27,9 +28,10 @@ R/
 
 1. main.R - main function
 2. io.R - input, output, filtering, and simulation
-3. cross_validation.R - k-fold cross validation within and across populations, pairwise-cross-validation, and leave-one-population-out cross-validation
-4. models.R - genomic prediction models with the consistent signatures
-5. metrics.R - genomic prediction accuracy metrics
+3. distances.R - genetic relationship, distance matrices and their inverses
+4. cross_validation.R - k-fold cross validation within and across populations, pairwise-cross-validation, and leave-one-population-out cross-validation
+5. models.R - genomic prediction models with the consistent signatures
+6. metrics.R - genomic prediction accuracy metrics
 
 ## Models
 
