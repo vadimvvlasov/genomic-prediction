@@ -242,6 +242,8 @@
 #'      + 3.8. fn_gBLUP
 #'  4. metrics.R
 #'      + 4.1. fn_prediction_performance_metrics
+#'  5. distances.R
+#'      + 5.1. fn_grm_and_dist
 #' @examples
 #' list_sim = fn_simulate_data(n=300, n_pop=3, verbose=TRUE)
 #' df_pheno = read.delim(list_sim$fname_pheno_tsv, header=TRUE)
