@@ -265,29 +265,33 @@ Functions list per module:
 \item 1.16. fn_subset_merged_genotype_and_phenotype
 \item 1.17. fn_estimate_memory_footprint
 }
+\item distances.R
+\itemize{
+\item 2.1. fn_grm_and_dist
+}
 \item cross_validation.R
 \itemize{
-\item 2.1. fn_cv_1
-\item 2.2. fn_cross_validation_preparation
-\item 2.3. fn_cross_validation_within_population
-\item 2.4. fn_cross_validation_across_populations_bulk
-\item 2.5. fn_cross_validation_across_populations_pairwise
-\item 2.6. fn_cross_validation_across_populations_lopo
+\item 3.1. fn_cv_1
+\item 3.2. fn_cross_validation_preparation
+\item 3.3. fn_cross_validation_within_population
+\item 3.4. fn_cross_validation_across_populations_bulk
+\item 3.5. fn_cross_validation_across_populations_pairwise
+\item 3.6. fn_cross_validation_across_populations_lopo
 }
 \item models.R
 \itemize{
-\item 3.1. fn_ols
-\item 3.2. fn_ridge
-\item 3.3. fn_lasso
-\item 3.4. fn_elastic_net
-\item 3.5. fn_Bayes_A
-\item 3.6. fn_Bayes_B
-\item 3.7. fn_Bayes_C
-\item 3.8. fn_gBLUP
+\item 4.1. fn_ols
+\item 4.2. fn_ridge
+\item 4.3. fn_lasso
+\item 4.4. fn_elastic_net
+\item 4.5. fn_Bayes_A
+\item 4.6. fn_Bayes_B
+\item 4.7. fn_Bayes_C
+\item 4.8. fn_gBLUP
 }
 \item metrics.R
 \itemize{
-\item 4.1. fn_prediction_performance_metrics
+\item 5.1. fn_prediction_performance_metrics
 }
 }
 }

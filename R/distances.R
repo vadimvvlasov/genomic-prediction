@@ -67,8 +67,8 @@ fn_grm_and_dist = function(G, maf=0.01, ploidy=2, diagonal_load=0.001, verbose=F
     }
     vec_idx = which((q >= maf) & (q <= (1.00-maf)))
     if (length(vec_idx) < p) {
-        G = G[, idx, drop=FALSE]
-        q = q[idx]
+        G = G[, vec_idx, drop=FALSE]
+        q = q[vec_idx]
     }
     ### (1) Simple GRM
     grm = G%*%t(G) / p
@@ -98,7 +98,7 @@ fn_grm_and_dist = function(G, maf=0.01, ploidy=2, diagonal_load=0.001, verbose=F
         }
     }
     ### (3) Jaccard's distance
-    dist_binary = as.matrix(dist(G, method="binary", diag=TRUE, upper=TRUE))
+    dist_binary = as.matrix(stats::dist(G, method="binary", diag=TRUE, upper=TRUE))
     one_minus_dist_binary =  1.00 - dist_binary
     inverse_one_minus_dist_binary = tryCatch(solve(one_minus_dist_binary), error=function(e) {NA})
     if (is.na(inverse_one_minus_dist_binary[1])) {
@@ -111,7 +111,7 @@ fn_grm_and_dist = function(G, maf=0.01, ploidy=2, diagonal_load=0.001, verbose=F
         }
     }
     ### (3) Jaccard's distance
-    dist_binary = as.matrix(dist(G, method="binary", diag=TRUE, upper=TRUE))
+    dist_binary = as.matrix(stats::dist(G, method="binary", diag=TRUE, upper=TRUE))
     one_minus_dist_binary =  1.00 - dist_binary
     inverse_one_minus_dist_binary = tryCatch(solve(one_minus_dist_binary), error=function(e) {NA})
     if (is.na(inverse_one_minus_dist_binary[1])) {
@@ -124,7 +124,7 @@ fn_grm_and_dist = function(G, maf=0.01, ploidy=2, diagonal_load=0.001, verbose=F
         }
     }
     ### (4) Euclidean's distance
-    dist_euclidean = as.matrix(dist(G, method="euclidean", diag=TRUE, upper=TRUE))
+    dist_euclidean = as.matrix(stats::dist(G, method="euclidean", diag=TRUE, upper=TRUE))
     one_minus_dist_euclidean =  1.00 - dist_euclidean
     inverse_one_minus_dist_euclidean = tryCatch(solve(one_minus_dist_euclidean), error=function(e) {NA})
     if (is.na(inverse_one_minus_dist_euclidean[1])) {
@@ -137,7 +137,7 @@ fn_grm_and_dist = function(G, maf=0.01, ploidy=2, diagonal_load=0.001, verbose=F
         }
     }
     ### (5) Taxicab distance
-    dist_taxicab = as.matrix(dist(G, method="manhattan", diag=TRUE, upper=TRUE))
+    dist_taxicab = as.matrix(stats::dist(G, method="manhattan", diag=TRUE, upper=TRUE))
     one_minus_dist_taxicab =  1.00 - dist_taxicab
     inverse_one_minus_dist_taxicab = tryCatch(solve(one_minus_dist_taxicab), error=function(e) {NA})
     if (is.na(inverse_one_minus_dist_taxicab[1])) {
@@ -153,12 +153,12 @@ fn_grm_and_dist = function(G, maf=0.01, ploidy=2, diagonal_load=0.001, verbose=F
     # system(command="module load ASReml-R", intern=TRUE)
     # library(asreml)
     # GRM = inverse_one_minus_dist_taxicab
-    # ### With spherical error (e~N(0,se))
     # list_pheno = fn_load_phenotype(fname_pheno=list_sim$fname_pheno_tsv)
     # df = data.frame(y=list_pheno$y, gen=names(list_pheno$y))
     # rownames(df) = NULL
     # df$gen = as.factor(df$gen)
     # str(df)
+    # ### With spherical error (e~N(0,se))
     # mod_6 = asreml::asreml(
     #     fixed = y ~ 1,
     #     random = ~giv(gen),
@@ -169,7 +169,7 @@ fn_grm_and_dist = function(G, maf=0.01, ploidy=2, diagonal_load=0.001, verbose=F
     # )
     # coef_6 = coef(mod_6)$random
     # pred_6 = predict(mod_6, classify="gen")$pred$pvals$predicted.value
-    # cor(coef_6, pred_6)
+    # stats::cor(coef_6, pred_6)
     # summary(mod_6)
     # ### With standard normal error (e~N(0,1))
     # mod_7 = asreml::asreml(
@@ -182,13 +182,13 @@ fn_grm_and_dist = function(G, maf=0.01, ploidy=2, diagonal_load=0.001, verbose=F
     # )
     # coef_7 = coef(mod_7)$random
     # pred_7 = predict(mod_7, classify="gen")$pred$pvals$predicted.value
-    # cor(coef_7, pred_7)
+    # stats::cor(coef_7, pred_7)
     # summary(mod_7)
     # ### Correlate the BLUPs of the 2 models
     # txtplot::txtdensity(coef_6)
     # txtplot::txtdensity(coef_7)
     # txtplot::txtplot(coef_6, coef_7)
-    # cor(coef_6, coef_7)
+    # stats::cor(coef_6, coef_7)
     # mean(abs(coef_6 - coef_7))
     # sqrt(mean((coef_6 - coef_7)^2))
     if (verbose) {
@@ -210,7 +210,7 @@ fn_grm_and_dist = function(G, maf=0.01, ploidy=2, diagonal_load=0.001, verbose=F
         print("Correlations:")
         mat_grms_and_dists = cbind(vec_grm, vec_grm_VanRaden, vec_dist_binary, vec_dist_euclidean, vec_dist_taxicab)
         colnames(mat_grms_and_dists) = c("grm", "grm_VanRaden", "dist_binary", "dist_euclidean", "dist_taxicab")
-        print(cor(mat_grms_and_dists))
+        print(stats::cor(mat_grms_and_dists))
     }
     return(list(
         grm=grm,

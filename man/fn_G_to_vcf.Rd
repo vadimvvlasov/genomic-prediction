@@ -2,7 +2,7 @@
 % Please edit documentation in R/io.R
 \name{fn_G_to_vcf}
 \alias{fn_G_to_vcf}
-\title{Convert numeric allele frequency matrix into a vcfR::vcf object}
+\title{Convert numeric allele frequency matrix into a vcfR::vcf object with randomly sampled depths (for fn_simulate_data(...) below)}
 \usage{
 fn_G_to_vcf(G, min_depth = 100, max_depth = 1000, verbose = FALSE)
 }
@@ -14,9 +14,9 @@ the second should be numeric which refers to the position in the chromosome/scaf
 subsequent elements are optional which may refer to the allele identifier and other identifiers.
 Note that this function only accepts biallelic loci.}
 
-\item{min_depth}{minimum depth per locus (Default=100)}
+\item{min_depth}{minimum depth per locus for sampling simulated depths (Default=100)}
 
-\item{max_depth}{maximum depth per locus (Default=1000)}
+\item{max_depth}{maximum depth per locus for sampling simulated depths (Default=1000)}
 
 \item{verbose}{show allele frequency genotype matrix to vcf conversion messages? (Default=FALSE)}
 }
@@ -27,7 +27,7 @@ Note that this function only accepts biallelic loci.}
 }
 }
 \description{
-Convert numeric allele frequency matrix into a vcfR::vcf object
+Convert numeric allele frequency matrix into a vcfR::vcf object with randomly sampled depths (for fn_simulate_data(...) below)
 }
 \examples{
 G = simquantgen::fn_simulate_genotypes(verbose=TRUE)
