@@ -439,7 +439,7 @@ fn_G_non_numeric_to_numeric = function(G_non_numeric, retain_minus_one_alleles_p
     return(list_G_G_alt$G)
 }
 
-#' Convert numeric allele frequency matrix into a vcfR::vcf object
+#' Convert numeric allele frequency matrix into a vcfR::vcf object with randomly sampled depths (for fn_simulate_data(...) below)
 #' 
 #' @param G numeric n samples x p biallelic loci matrix of allele frequencies with non-null row and column names.
 #'  Row names can be any string of characters which identify the sample or entry or pool names.
@@ -447,8 +447,8 @@ fn_G_non_numeric_to_numeric = function(G_non_numeric, retain_minus_one_alleles_p
 #'  the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'  subsequent elements are optional which may refer to the allele identifier and other identifiers.
 #'  Note that this function only accepts biallelic loci.
-#' @param min_depth minimum depth per locus (Default=100)
-#' @param max_depth maximum depth per locus (Default=1000)
+#' @param min_depth minimum depth per locus for sampling simulated depths (Default=100)
+#' @param max_depth maximum depth per locus for sampling simulated depths (Default=1000)
 #' @param verbose show allele frequency genotype matrix to vcf conversion messages? (Default=FALSE)
 #' @returns
 #'  - Ok: simulated genotype data as a vcfR object with GT, AD and DP fields
@@ -825,7 +825,7 @@ fn_classify_allele_frequencies = function(G, ploidy=2, verbose=FALSE) {
         error = chain(G, methods::new("gpError",
             code=227,
             message=paste0(
-                "Error in io::fn_G_to_vcf(...). ",
+                "Error in io::fn_classify_allele_frequencies(...). ",
                 "Input G is an error type."
             )))
         return(error)
@@ -835,7 +835,7 @@ fn_classify_allele_frequencies = function(G, ploidy=2, verbose=FALSE) {
         error = methods::new("gpError",
             code=228,
             message=paste0(
-                "Error in io::fn_G_to_vcf(...). ",
+                "Error in io::fn_classify_allele_frequencies(...). ",
                 "We are expecting a matrix allele frequencies but ",
                 "we are getting negative values and/or values greater than 1 and/or infinite values."))
         return(error)
