@@ -2380,6 +2380,7 @@ fn_merge_genotype_and_phenotype = function(G, list_pheno, COVAR=NULL, verbose=FA
     y = M$y
     names(y) = M$id
     pop = M$pop
+    pop[is.na(pop)] = "Unknown"
     trait_name = list_pheno$trait_name
     ### Clean-up
     rm("M")
