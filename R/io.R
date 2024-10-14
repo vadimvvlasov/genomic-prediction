@@ -385,6 +385,11 @@ fn_G_non_numeric_to_numeric = function(G_non_numeric, retain_minus_one_alleles_p
             }
         }
     }
+    ### Do not update the allele IDs in the column names if there are already allele names, i.e. there are 3 elements per column name after splitting by tabs
+    bool_update_allele_ids = TRUE
+    if (length(unlist(strsplit(colnames(G_non_numeric)[1], "\t"))) == 3) {
+        bool_update_allele_ids = FALSE
+    }
     ### Extract the loci and alleles per locus
     vec_loci_names = colnames(G_non_numeric)
     list_allele_names = list()
@@ -413,7 +418,11 @@ fn_G_non_numeric_to_numeric = function(G_non_numeric, retain_minus_one_alleles_p
         for (k in 1:length(vec_alleles)) {
             # k = 1
             idx_locus_allle = idx_locus_allle + 1
-            vec_colnames = c(vec_colnames, paste0(vec_loci_names[j], "\t", vec_alleles[k]))
+            if (bool_update_allele_ids) {
+                vec_colnames = c(vec_colnames, paste0(vec_loci_names[j], "\t", vec_alleles[k]))
+            } else {
+                vec_colnames = c(vec_colnames, vec_loci_names[j])
+            }
             for (i in 1:n) {
                 # i = 1
                 G[i, idx_locus_allle] = sum(list_geno_classes[[i]] == vec_alleles[k]) / ploidy
@@ -422,12 +431,8 @@ fn_G_non_numeric_to_numeric = function(G_non_numeric, retain_minus_one_alleles_p
         if (verbose) {utils::setTxtProgressBar(pb, j)}
     }
     if (verbose) {close(pb)}
-    ### Do not update the allele IDs in the column names if there are already allele names, i.e. there are 3 elements per column name after splitting by tabs
-    if (length(unlist(strsplit(vec_loci_names[1], "\t"))) == 3) {
-        colnames(G) = vec_loci_names
-    } else {
-        colnames(G) = vec_colnames
-    }
+    ### Update the loci names
+    colnames(G) = vec_colnames
     ### Return numeric allele frequency genotype matrix with or without all the alleles
     if (retain_minus_one_alleles_per_locus) {
         list_G_G_alt = fn_G_split_off_alternative_allele(G=G, verbose=verbose)
