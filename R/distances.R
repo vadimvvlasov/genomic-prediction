@@ -71,6 +71,7 @@ fn_grm_and_dist = function(G, maf=0.01, ploidy=2, diagonal_load=0.001, verbose=F
         q = q[vec_idx]
     }
     ### (1) Simple GRM
+    if (verbose) {print("Calculating GRM via G%*%t(G) / p:")}
     grm = G%*%t(G) / p
     inverse_grm = tryCatch(solve(grm), error=function(e) {NA})
     if (is.na(inverse_grm[1])) {
@@ -83,6 +84,7 @@ fn_grm_and_dist = function(G, maf=0.01, ploidy=2, diagonal_load=0.001, verbose=F
         }
     }
     ### (2) Ploidy-aware GRM of Bell et al (2017) and VanRaden et al (2008)
+    if (verbose) {print("Calculating GRM via Bell et al (2017) and VanRaden et al (2008):")}
     G_star = ploidy*(G-0.5)
     q_star = ploidy*(q-0.5)
     Z = G_star - matrix(rep(q_star, each=n), nrow=n, byrow=FALSE)
@@ -98,19 +100,7 @@ fn_grm_and_dist = function(G, maf=0.01, ploidy=2, diagonal_load=0.001, verbose=F
         }
     }
     ### (3) Jaccard's distance
-    dist_binary = as.matrix(stats::dist(G, method="binary", diag=TRUE, upper=TRUE))
-    one_minus_dist_binary =  1.00 - dist_binary
-    inverse_one_minus_dist_binary = tryCatch(solve(one_minus_dist_binary), error=function(e) {NA})
-    if (is.na(inverse_one_minus_dist_binary[1])) {
-        diag(one_minus_dist_binary) = diag(one_minus_dist_binary) + diagonal_load
-        inverse_one_minus_dist_binary = solve(one_minus_dist_binary)
-    }
-    if (verbose) {
-        if (abs(sum(one_minus_dist_binary %*% inverse_one_minus_dist_binary) - n) > 1e-5) {
-            print("Warning: the inverse of grm may be unreliable due to the addition of the diagonal_load to enable inversion.")
-        }
-    }
-    ### (3) Jaccard's distance
+    if (verbose) {print("Calculating Jaccard's distances:")}
     dist_binary = as.matrix(stats::dist(G, method="binary", diag=TRUE, upper=TRUE))
     one_minus_dist_binary =  1.00 - dist_binary
     inverse_one_minus_dist_binary = tryCatch(solve(one_minus_dist_binary), error=function(e) {NA})
@@ -124,6 +114,7 @@ fn_grm_and_dist = function(G, maf=0.01, ploidy=2, diagonal_load=0.001, verbose=F
         }
     }
     ### (4) Euclidean's distance
+    if (verbose) {print("Calculating Euclidean distances:")}
     dist_euclidean = as.matrix(stats::dist(G, method="euclidean", diag=TRUE, upper=TRUE))
     one_minus_dist_euclidean =  1.00 - dist_euclidean
     inverse_one_minus_dist_euclidean = tryCatch(solve(one_minus_dist_euclidean), error=function(e) {NA})
@@ -137,6 +128,7 @@ fn_grm_and_dist = function(G, maf=0.01, ploidy=2, diagonal_load=0.001, verbose=F
         }
     }
     ### (5) Taxicab distance
+    if (verbose) {print("Calculating Taxicab distances:")}
     dist_taxicab = as.matrix(stats::dist(G, method="manhattan", diag=TRUE, upper=TRUE))
     one_minus_dist_taxicab =  1.00 - dist_taxicab
     inverse_one_minus_dist_taxicab = tryCatch(solve(one_minus_dist_taxicab), error=function(e) {NA})
