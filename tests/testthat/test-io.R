@@ -43,7 +43,7 @@ test_that("fn_G_non_numeric_to_numeric", {
     n_alleles = 2
     G_numeric = simquantgen::fn_simulate_genotypes(ploidy=ploidy, n_alleles=n_alleles, verbose=TRUE)
     G_non_numeric = fn_G_numeric_to_non_numeric(G=G_numeric, ploidy=ploidy, verbose=TRUE)
-    G_numeric_back = fn_G_non_numeric_to_numeric(G=G_non_numeric, verbose=TRUE)
+    G_numeric_back = fn_G_non_numeric_to_numeric(G_non_numeric=G_non_numeric, verbose=TRUE)
     expect_equal(sum(abs(G_numeric - G_numeric_back) < 1e-4), prod(dim(G_numeric)))
     ### The converted non-numeric to numeric matrix can have less loci-alleles than the original numeric matrix as fixed loci will be omitted
     expect_equal(ncol(G_numeric_back) <= ncol(G_numeric), TRUE)

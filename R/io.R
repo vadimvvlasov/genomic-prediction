@@ -344,7 +344,8 @@ fn_G_numeric_to_non_numeric = function(G, ploidy=2, verbose=FALSE) {
 #' @param retain_minus_one_alleles_per_locus omit the alternative or trailing allele per locus? (Default=TRUE)
 #' @param verbose show non-numeric to numeric genotype data conversion messages? (Default=FALSE)
 #' @returns
-#'  - Ok: n samples x p loci-alleles matrix of genotype classes (numeric ranging from 0 to 1)
+#'  - Ok: n samples x p loci-alleles matrix of genotype classes (numeric ranging from 0 to 1). If the column names do not have
+#'      allele IDs then the alleles will be extracted from the non-numeric genotype encodings.
 #'  - Err: grError
 #' @examples
 #' ploidy = 42
@@ -356,7 +357,7 @@ fn_G_non_numeric_to_numeric = function(G_non_numeric, retain_minus_one_alleles_p
     ###################################################
     ### TEST
     # G = simquantgen::fn_simulate_genotypes(ploidy=42, n_alleles=52, verbose=TRUE)
-    # G_non_numeric = fn_G_numeric_to_non_numeric(G=G, ploidy=42, verbose=TRUE)
+    # G_non_numeric = gp::fn_G_numeric_to_non_numeric(G=G, ploidy=42, verbose=TRUE)
     # verbose = TRUE
     ###################################################
     ### Input sanity check
@@ -421,7 +422,12 @@ fn_G_non_numeric_to_numeric = function(G_non_numeric, retain_minus_one_alleles_p
         if (verbose) {utils::setTxtProgressBar(pb, j)}
     }
     if (verbose) {close(pb)}
-    colnames(G) = vec_colnames
+    ### Do not update the allele IDs in the column names if there are already allele names, i.e. there are 3 elements per column name after splitting by tabs
+    if (length(unlist(strsplit(vec_loci_names[1], "\t"))) == 3) {
+        colnames(G) = vec_loci_names
+    } else {
+        colnames(G) = vec_colnames
+    }
     ### Return numeric allele frequency genotype matrix with or without all the alleles
     if (retain_minus_one_alleles_per_locus) {
         list_G_G_alt = fn_G_split_off_alternative_allele(G=G, verbose=verbose)
@@ -1731,17 +1737,17 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
     return(G)
 }
 
-#' Merge two genotypes matrices where if there are conflict:
-#'  - data on the first matrix will be used,
+#' Merge two genotypes matrices where if there are conflicts:
+#'  - data on the first matrix will be used, or
 #'  - data on the second matrix will be used, or
 #'  - arithmetic mean between the two matrices will be used.
 #'
-#' @param G1 numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#' @param G1 numeric n1 samples x p1 loci-alleles matrix of allele frequencies with non-null row and column names.
 #'  Row names can be any string of characters which identify the sample or entry or pool names.
 #'  Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'  the second should be numeric which refers to the position in the chromosome/scaffold, and 
 #'  subsequent elements are optional which may refer to the allele identifier and other identifiers.
-#' @param G2 numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+#' @param G2 numeric n2 samples x p2 loci-alleles matrix of allele frequencies with non-null row and column names.
 #'  Row names can be any string of characters which identify the sample or entry or pool names.
 #'  Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name, 
 #'  the second should be numeric which refers to the position in the chromosome/scaffold, and 

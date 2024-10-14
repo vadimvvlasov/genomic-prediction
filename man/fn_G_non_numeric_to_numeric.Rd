@@ -25,7 +25,8 @@ and the second should be numeric which refers to the position in the chromosome/
 }
 \value{
 \itemize{
-\item Ok: n samples x p loci-alleles matrix of genotype classes (numeric ranging from 0 to 1)
+\item Ok: n samples x p loci-alleles matrix of genotype classes (numeric ranging from 0 to 1). If the column names do not have
+allele IDs then the alleles will be extracted from the non-numeric genotype encodings.
 \item Err: grError
 }
 }

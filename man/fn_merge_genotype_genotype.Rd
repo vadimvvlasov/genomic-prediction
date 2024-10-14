@@ -2,9 +2,9 @@
 % Please edit documentation in R/io.R
 \name{fn_merge_genotype_genotype}
 \alias{fn_merge_genotype_genotype}
-\title{Merge two genotypes matrices where if there are conflict:
+\title{Merge two genotypes matrices where if there are conflicts:
 \itemize{
-\item data on the first matrix will be used,
+\item data on the first matrix will be used, or
 \item data on the second matrix will be used, or
 \item arithmetic mean between the two matrices will be used.
 }}
@@ -17,13 +17,13 @@ fn_merge_genotype_genotype(
 )
 }
 \arguments{
-\item{G1}{numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+\item{G1}{numeric n1 samples x p1 loci-alleles matrix of allele frequencies with non-null row and column names.
 Row names can be any string of characters which identify the sample or entry or pool names.
 Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name,
 the second should be numeric which refers to the position in the chromosome/scaffold, and
 subsequent elements are optional which may refer to the allele identifier and other identifiers.}
 
-\item{G2}{numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
+\item{G2}{numeric n2 samples x p2 loci-alleles matrix of allele frequencies with non-null row and column names.
 Row names can be any string of characters which identify the sample or entry or pool names.
 Column names need to be tab-delimited, where first element refers to the chromosome or scaffold name,
 the second should be numeric which refers to the position in the chromosome/scaffold, and
@@ -46,9 +46,9 @@ subsequent elements are optional which may refer to the allele identifier and ot
 }
 }
 \description{
-Merge two genotypes matrices where if there are conflict:
+Merge two genotypes matrices where if there are conflicts:
 \itemize{
-\item data on the first matrix will be used,
+\item data on the first matrix will be used, or
 \item data on the second matrix will be used, or
 \item arithmetic mean between the two matrices will be used.
 }
