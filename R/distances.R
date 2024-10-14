@@ -14,7 +14,7 @@
 #' @returns
 #'  - Ok (returns several genetic relationship and distances matrices):
 #'      + $grm: simple X%*%t(X)/ncol(X)
-#'      + $grm_VanRaden: ploidy-aware
+#'      + $grm_VanRaden: ploidy-awaren (see VanRaden et al, 2008 and Bell et al, 2017)
 #'      + $dist_binary: Jaccard's distance, where non-zero values are converted to ones.
 #'      + $dist_euclidean: Euclidean's distance (L2 norm)
 #'      + $dist_taxicab: Taxicab or Manhattan distance (L1 norm)
