@@ -409,7 +409,7 @@ fn_G_non_numeric_to_numeric = function(G_non_numeric, retain_minus_one_alleles_p
     rownames(G) = rownames(G_non_numeric)
     ### Populate
     vec_colnames = c()
-    idx_locus_allle = 0
+    idx_locus_allele = 0
     if (verbose) {pb = utils::txtProgressBar(min=0, max=ncol(G_non_numeric), style=3)}
     for (j in 1:ncol(G_non_numeric)) {
         # j = 1
@@ -417,15 +417,23 @@ fn_G_non_numeric_to_numeric = function(G_non_numeric, retain_minus_one_alleles_p
         list_geno_classes = strsplit(G_non_numeric[, j], "")
         for (k in 1:length(vec_alleles)) {
             # k = 1
-            idx_locus_allle = idx_locus_allle + 1
-            if (bool_update_allele_ids) {
-                vec_colnames = c(vec_colnames, paste0(vec_loci_names[j], "\t", vec_alleles[k]))
+            idx_locus_allele = idx_locus_allele + 1
+            ### Add the allele ID if the column names lack them
+            ### But note that we are dividing the loci into its constituent alleles hence we are only properly labelling the first allele.
+            if (bool_update_allele_ids | (k > 1)) {
+                if (bool_update_allele_ids) {
+                    vec_colnames = c(vec_colnames, paste0(vec_loci_names[j], "\t", vec_alleles[k]))
+                } else {
+                    ### Make sure we are extracting the chromosom and position info only for the column names with allele IDs
+                    chrom_pos = paste(unlist(strsplit(vec_loci_names[j], "\t"))[1:2], collapse="\t")
+                    vec_colnames = c(vec_colnames, paste0(chrom_pos, "\t", vec_alleles[k]))
+                }
             } else {
                 vec_colnames = c(vec_colnames, vec_loci_names[j])
             }
             for (i in 1:n) {
                 # i = 1
-                G[i, idx_locus_allle] = sum(list_geno_classes[[i]] == vec_alleles[k]) / ploidy
+                G[i, idx_locus_allele] = sum(list_geno_classes[[i]] == vec_alleles[k]) / ploidy
             }
         }
         if (verbose) {utils::setTxtProgressBar(pb, j)}
