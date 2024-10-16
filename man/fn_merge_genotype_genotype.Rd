@@ -13,6 +13,7 @@ fn_merge_genotype_genotype(
   G1,
   G2,
   str_conflict_resolution = c("1-use-G1", "2-use-G2", "3-use_mean")[3],
+  keep_common_loci_only = FALSE,
   verbose = FALSE
 )
 }
@@ -32,6 +33,8 @@ subsequent elements are optional which may refer to the allele identifier and ot
 \item{str_conflict_resolution}{conflict resolution mode. Use "1" to always use the genotype data from the
 first matrix, "2" to to always use the data from the second matrix, and "3" to compute the arithmetic mean
 between the two matrices.}
+
+\item{keep_common_loci_only}{keep only the common loci across the 2 genotype matrices? (Default=FALSE)}
 
 \item{verbose}{show genotype merging messages? (Default=FALSE)}
 }

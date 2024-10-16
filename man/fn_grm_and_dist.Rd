@@ -32,7 +32,7 @@ subsequent elements are optional which may refer to the allele identifier and ot
 \item Ok (returns several genetic relationship and distances matrices):
 \itemize{
 \item $grm: simple X\%*\%t(X)/ncol(X)
-\item $grm_VanRaden: ploidy-aware
+\item $grm_VanRaden: ploidy-awaren (see VanRaden et al, 2008 and Bell et al, 2017)
 \item $dist_binary: Jaccard's distance, where non-zero values are converted to ones.
 \item $dist_euclidean: Euclidean's distance (L2 norm)
 \item $dist_taxicab: Taxicab or Manhattan distance (L1 norm)

@@ -1768,6 +1768,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
 #' @param str_conflict_resolution conflict resolution mode. Use "1" to always use the genotype data from the 
 #'  first matrix, "2" to to always use the data from the second matrix, and "3" to compute the arithmetic mean
 #'  between the two matrices.
+#' @param keep_common_loci_only keep only the common loci across the 2 genotype matrices? (Default=FALSE)
 #' @param verbose show genotype merging messages? (Default=FALSE)
 #' @returns
 #'  - Ok: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
@@ -1783,7 +1784,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
 #' G2 = G[(ceiling(0.5*nrow(G))+1):nrow(G), ]
 #' G_merged = fn_merge_genotype_genotype(G1=G1, G2=G2, verbose=TRUE)
 #' @export
-fn_merge_genotype_genotype = function(G1, G2, str_conflict_resolution=c("1-use-G1", "2-use-G2", "3-use_mean")[3], verbose=FALSE) {
+fn_merge_genotype_genotype = function(G1, G2, str_conflict_resolution=c("1-use-G1", "2-use-G2", "3-use_mean")[3], keep_common_loci_only=FALSE, verbose=FALSE) {
     ###################################################
     ### TEST
 	# list_sim = gp::fn_simulate_data(verbose=TRUE)
@@ -1791,6 +1792,7 @@ fn_merge_genotype_genotype = function(G1, G2, str_conflict_resolution=c("1-use-G
 	# G1 = G[sample.int(nrow(G), size=50), sample.int(ncol(G), size=500), drop=FALSE]
 	# G2 = G[sample.int(nrow(G), size=50), sample.int(ncol(G), size=500), drop=FALSE]
 	# str_conflict_resolution = c("1-use-G1", "2-use-G2", "3-use_mean")[3]
+    # keep_common_loci_only = TRUE
     # verbose = TRUE
     ###################################################
     if (verbose) {
@@ -1804,33 +1806,49 @@ fn_merge_genotype_genotype = function(G1, G2, str_conflict_resolution=c("1-use-G
             error = chain(G1, methods::new("gpError",
                 code=281,
                 message=paste0(
-                    "Error in io::fn_filter_genotype(...). ",
+                    "Error in io::fn_merge_genotype_genotype(...). ",
                     "Input G1 is an error type."
                 )))
         } else if (methods::is(G2, "gpError")) {
             error = chain(G2, methods::new("gpError",
                 code=282,
                 message=paste0(
-                    "Error in io::fn_filter_genotype(...). ",
+                    "Error in io::fn_merge_genotype_genotype(...). ",
                     "Input G2 is an error type."
                 )))
         } else {
             error = chain(G1, chain(G2, methods::new("gpError",
                 code=283,
                 message=paste0(
-                    "Error in io::fn_filter_genotype(...). ",
+                    "Error in io::fn_merge_genotype_genotype(...). ",
                     "Inputs G1 and G2 are error types."
                 ))))
         }
         return(error)
     }
-    ### Extract row and column names, i.e. ssample and loci names
+    ### Do we want to keep only the common loci
+    if (keep_common_loci_only) {
+        vec_common_loci_names = intersect(colnames(G1), colnames(G2))
+        if (length(vec_common_loci_names) == 0) {
+            error = methods::new("gpError",
+                code=281,
+                message=paste0(
+                    "Error in io::fn_merge_genotype_genotype(...). ",
+                    "No common loci across the two genotype matrices."
+                )
+            )
+            return(error)
+        }
+        G1 = G1[, (colnames(G1) %in% vec_common_loci_names), drop=FALSE]
+        G2 = G2[, (colnames(G2) %in% vec_common_loci_names), drop=FALSE]
+    }
+    ### Extract row and column names, i.e. sample and loci names
 	vec_G1_row_names = rownames(G1); vec_G1_column_names = colnames(G1)
 	vec_G2_row_names = rownames(G2); vec_G2_column_names = colnames(G2)
 	### Merge the 2 matrices where G1 takes precedence over G2, where we simply add the unique columns in G2.
     ### This means that in the merged matrix, data are missing at common loci in the G2 samples.
 	vec_G2_bool_unique_loci = !(vec_G2_column_names %in% vec_G1_column_names)
-	df_G_merged = merge(
+    df_G_merged = merge(
 		data.frame(ID=vec_G1_row_names, G1, check.names=FALSE),
 		data.frame(ID=vec_G2_row_names, G2[, vec_G2_bool_unique_loci, drop=FALSE], check.names=FALSE),
 		by="ID", all=TRUE)
