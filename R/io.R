@@ -552,22 +552,30 @@ fn_G_to_vcf = function(G, min_depth=100, max_depth=1000, verbose=FALSE) {
     }
     ### Extract the names of the alternative alleles
     if (is.null(G_alt)) {
-        vec_alt = rep("allele_alt", times=ncol(G))
+        vec_alleles_list = c("A", "T", "C", "G")
+        vec_alt = unlist(lapply(list_ids_chr_pos_all$vec_all, FUN=function(x){ sample(size=1, x=vec_alleles_list[grep(x, vec_alleles_list, ignore.case=TRUE, invert=TRUE)]) }))
+        # vec_alt = rep("allele_alt", times=ncol(G))
     } else {
         ### Convert the tabs in the loci-alleles names into dashes so as not to interfere with the VCF format
         vec_alt = colnames(gsub("\t", "_", list_G_G_alt$G_alt))
     }
     ### Populate required vcf fields with loci identities
-    META = c("##fileformat=VCFv", paste0("##", list_ids_chr_pos_all$vec_chr), "##Extracted from text file.")
+    META = c(
+        "##fileformat=VCFv", 
+        paste0("##", unique(list_ids_chr_pos_all$vec_chr)), 
+        '##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">',
+        '##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths">',
+        '##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Number of high-quality bases">',
+        '##Extracted from text file.')
     FIX = cbind(
         list_ids_chr_pos_all$vec_chr, 
         list_ids_chr_pos_all$vec_pos, 
         vec_loci_names, 
         list_ids_chr_pos_all$vec_all, 
         vec_alt, 
-        rep(NA, each=p),
+        rep(".", each=p),
         rep("PASS", each=p),
-        rep(NA, each=p))
+        rep(".", each=p))
     colnames(FIX) = c("CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO")
     ### Population the GT:AD:DP matrix with strings of genotype class and allele depths
     GT_AD_DP = matrix("", nrow=p, ncol=(n+1))
