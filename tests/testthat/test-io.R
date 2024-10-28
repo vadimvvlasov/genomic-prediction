@@ -151,8 +151,8 @@ test_that("fn_filter_genotype", {
     expect_equal(sum(dim(G) == dim(G_filtered_1)), 2)
     ### Simulate SNP list for filtering
     G = fn_load_genotype(list_sim$fname_geno_vcf, retain_minus_one_alleles_per_locus=FALSE)
-    colnames(G) = gsub("allele_1", "A", colnames(G)) ### Rename allele_1 and allele_alt to A and T, respectively to allow filtering using a SNP list
-    colnames(G) = gsub("allele_alt", "T", colnames(G)) ### Rename allele_1 and allele_alt to A and T, respectively to allow filtering using a SNP list
+    colnames(G) = gsub("allele_1", "A", colnames(G)) ### Rename allele_1 and N to A and T, respectively to allow filtering using a SNP list
+    colnames(G) = gsub("N", "T", colnames(G)) ### Rename allele_1 and N to A and T, respectively to allow filtering using a SNP list
     n_sim_missing = 100
     mat_loci = matrix(unlist(strsplit(colnames(G), "\t")), byrow=TRUE, ncol=3)
     vec_loci = unique(paste0(mat_loci[,1], "\t", mat_loci[,2]))
@@ -174,8 +174,8 @@ test_that("fn_filter_genotype", {
     expect_equal(sum(abs(G_filtered_3 - G_filtered_2_split_G) < 1e-12), prod(dim(G_filtered_3)))
     ### Using additional filtering by sparsity (only works if G has missing data)
     G = fn_load_genotype(list_sim$fname_geno_vcf, min_depth=10, max_depth=500)
-    colnames(G) = gsub("allele_1", "A", colnames(G)) ### Rename allele_1 and allele_alt to A and T, respectively to allow filtering using a SNP list
-    colnames(G) = gsub("allele_alt", "T", colnames(G)) ### Rename allele_1 and allele_alt to A and T, respectively to allow filtering using a SNP list
+    colnames(G) = gsub("allele_1", "A", colnames(G)) ### Rename allele_1 and N to A and T, respectively to allow filtering using a SNP list
+    colnames(G) = gsub("N", "T", colnames(G)) ### Rename allele_1 and N to A and T, respectively to allow filtering using a SNP list
     G_filtered_4 = fn_filter_genotype(G=G, maf=0.05, max_n_alleles=1, fname_snp_list=fname_snp_list,
         max_sparsity_per_locus=0.5,
         frac_topmost_sparse_loci_to_remove=0.01,

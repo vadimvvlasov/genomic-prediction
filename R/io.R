@@ -552,8 +552,10 @@ fn_G_to_vcf = function(G, min_depth=100, max_depth=1000, verbose=FALSE) {
     }
     ### Extract the names of the alternative alleles
     if (is.null(G_alt)) {
-        vec_alleles_list = c("A", "T", "C", "G")
-        vec_alt = unlist(lapply(list_ids_chr_pos_all$vec_all, FUN=function(x){ sample(size=1, x=vec_alleles_list[grep(x, vec_alleles_list, ignore.case=TRUE, invert=TRUE)]) }))
+        # print("WARNING! Alternative alleles are unknown. Making psuedo-alleles.")
+        # vec_alleles_list = c("A", "T", "C", "G")
+        # vec_alt = unlist(lapply(list_ids_chr_pos_all$vec_all, FUN=function(x){ sample(size=1, x=vec_alleles_list[grep(x, vec_alleles_list, ignore.case=TRUE, invert=TRUE)]) }))
+        vec_alt = rep("N", times=ncol(G))
         # vec_alt = rep("allele_alt", times=ncol(G))
     } else {
         ### Convert the tabs in the loci-alleles names into dashes so as not to interfere with the VCF format
@@ -1512,7 +1514,7 @@ fn_filter_genotype = function(G, maf=0.01, sdev_min=0.0001,
                 )))
             return(error)
         }
-        if (sum(unique(list_ids_chr_pos_all$vec_all) %in% "allele_1") > 0) {
+        if (length(unique(list_ids_chr_pos_all$vec_all)) < 1) {
             error = methods::new("gpError",
                 code=252,
                 message=paste0(
