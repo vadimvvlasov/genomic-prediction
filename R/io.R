@@ -1083,6 +1083,7 @@ fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, m
 #' @param retain_minus_one_alleles_per_locus omit the alternative or trailing allele per locus? (Default=TRUE)
 #' @param min_depth if input is a VCF file: minimum depth per locus beyond which will be set to missing data (Default=0)
 #' @param max_depth if input is a VCF file: maximum depth per locus beyond which will be set to missing data (Default=.Machine$integer.max)
+#' @param new_format use the new allele frequency table format? (i.e. includes all the alleles between `pos` and `allele`, e.g. header: `all_alleles` with rows: `A|T`, and `C|G|T`) (Default=FALSE)
 #' @param verbose show genotype loading messages? (Default=FALSE)
 #' @returns
 #'  - Ok: numeric n samples x p loci-alleles matrix of allele frequencies with non-null row and column names.
