@@ -1099,7 +1099,7 @@ fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, m
 #' G_rds = fn_load_genotype(fname_geno=list_sim$fname_geno_rds, verbose=TRUE)
 #' @export
 fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retain_minus_one_alleles_per_locus=TRUE, 
-    min_depth=0, max_depth=.Machine$integer.max, verbose=FALSE) 
+    min_depth=0, max_depth=.Machine$integer.max, new_format=FALSE, verbose=FALSE) 
 {
     ###################################################
     ### TEST
@@ -1170,23 +1170,44 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
             ### TSV: allele frequency table file ###
             ########################################
             df = utils::read.delim(fname_geno, sep="\t", header=TRUE, check.names=FALSE)
-            if (!((grepl("chr", colnames(df)[1], ignore.case=TRUE)) &
-                  (grepl("pos", colnames(df)[2], ignore.case=TRUE)) &
-                  (grepl("allele", colnames(df)[3], ignore.case=TRUE)))
-               ) {
-                error = methods::new("gpError", 
-                    code=236,
-                    message=paste0(
-                        "Error in io::fn_load_genotype(...). ",
-                        "The file: ", fname_geno, " is not in allele frequency table format as described in the README.md. ",
-                        "The first 3 columns do not correspond to 'chr', 'pos', and 'allele'."))
-                return(error)
+            if (!new_format) {
+                if (!((grepl("chr", colnames(df)[1], ignore.case=TRUE)) &
+                    (grepl("pos", colnames(df)[2], ignore.case=TRUE)) &
+                    (grepl("allele", colnames(df)[3], ignore.case=TRUE)))
+                ) {
+                    error = methods::new("gpError", 
+                        code=236,
+                        message=paste0(
+                            "Error in io::fn_load_genotype(...). ",
+                            "The file: ", fname_geno, " is not in allele frequency table format as described in the README.md. ",
+                            "The first 3 columns do not correspond to 'chr', 'pos', and 'allele'."))
+                    return(error)
+                }
+                vec_loci_names = paste(df[,1], df[,2], df[,3], sep="\t")
+                vec_entries = colnames(df)[c(-1:-3)]
+                G = as.matrix(t(df[, c(-1:-3)]))
+                rownames(G) = vec_entries
+                colnames(G) = vec_loci_names
+            } else {
+                if (!((grepl("chr", colnames(df)[1], ignore.case=TRUE)) &
+                    (grepl("pos", colnames(df)[2], ignore.case=TRUE)) &
+                    (grepl("all_alleles", colnames(df)[3], ignore.case=TRUE)) &
+                    (grepl("allele", colnames(df)[4], ignore.case=TRUE)))
+                ) {
+                    error = methods::new("gpError", 
+                        code=236,
+                        message=paste0(
+                            "Error in io::fn_load_genotype(...). ",
+                            "The file: ", fname_geno, " is not in allele frequency table format as described in the README.md. ",
+                            "The first 3 columns do not correspond to 'chr', 'pos', and 'allele'."))
+                    return(error)
+                }
+                vec_loci_names = paste(df[,1], df[,2], df[,3], df[,4], sep="\t")
+                vec_entries = colnames(df)[c(-1:-4)]
+                G = as.matrix(t(df[, c(-1:-4)]))
+                rownames(G) = vec_entries
+                colnames(G) = vec_loci_names
             }
-            vec_loci_names = paste(df[,1], df[,2], df[,3], sep="\t")
-            vec_entries = colnames(df)[c(-1:-3)]
-            G = as.matrix(t(df[, c(-1:-3)]))
-            rownames(G) = vec_entries
-            colnames(G) = vec_loci_names
             if (verbose) {print("Genotype loaded from a tab-delimited allele frequency table file. No depth information available.")}
             rm("df")
             gc()
