@@ -1203,7 +1203,7 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
                             "The first 3 columns do not correspond to 'chr', 'pos', and 'allele'."))
                     return(error)
                 }
-                vec_loci_names = paste(df[,1], df[,2], df[,3], df[,4], sep="\t")
+                vec_loci_names = paste(df[,1], df[,2], df[,4], sep="\t")
                 # TODO: enable below as the default so time in the future
                 # vec_loci_names = paste(df[,1], df[,2], df[,3], df[,4], sep="\t")
                 vec_entries = colnames(df)[c(-1:-4)]
