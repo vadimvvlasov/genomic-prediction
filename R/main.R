@@ -401,12 +401,29 @@ gp = function(args) {
     if (methods::is(list_pheno, "gpError")) {return(list_pheno)}
     gc()
     ### Merge filtered genotype, phenotype and covariate data
-    list_merged = fn_merge_genotype_and_phenotype(
+    list_merged_with_na = fn_merge_genotype_and_phenotype(
         G=G,
         list_pheno=list_pheno,
         COVAR=NULL,
         verbose=args$verbose
     )
+    ### Exclude entries with missing phenotypes.
+    vec_idx = which(!is.na(list_merged_with_na$list_pheno$y))
+    if (length(vec_idx) < 2) {
+        error = methods::new("gpError",
+            code=100.5,
+            message=paste0(
+                "Phenotype data is missing."
+            ))
+        return(error)
+    }
+    list_merged = list_merged_with_na
+    list_merged$G = list_merged$G[vec_idx, ]
+    list_merged$list_pheno$y = list_merged$list_pheno$y[vec_idx]
+    list_merged$list_pheno$pop = list_merged$list_pheno$pop[vec_idx]
+    if (!is.null(list_merged$COVAR)) {
+        list_merged$COVAR = list_merged$COVAR[vec_idx, vec_idx]
+    }
     if (methods::is(list_merged, "gpError")) {return(list_merged)}
     ### Missing values are not allowed in the genotype data
     if (sum(rowSums(is.na(list_merged$G))) > 0) {
@@ -578,8 +595,8 @@ gp = function(args) {
     ##################################
     if (args$bool_within) {
         ### Are there any genotypes with missing phenotype data?
-        vec_idx_validation = which(is.na(list_merged$list_pheno$y))
-        vec_idx_training = which(!is.na(list_merged$list_pheno$y))
+        vec_idx_validation = which(is.na(list_merged_with_na$list_pheno$y))
+        vec_idx_training = which(!is.na(list_merged_with_na$list_pheno$y))
         if (length(vec_idx_validation)==0) {
             GENOMIC_PREDICTIONS = NA
         } else {
@@ -597,7 +614,7 @@ gp = function(args) {
             } else {
                 other_params = list(n_folds=10)
             }
-            perf = eval(parse(text=paste0("fn_", model, "(list_merged=list_merged, vec_idx_training=vec_idx_training, vec_idx_validation=vec_idx_validation, other_params=other_params, verbose=args$verbose)")))
+            perf = eval(parse(text=paste0("fn_", model, "(list_merged=list_merged_with_na, vec_idx_training=vec_idx_training, vec_idx_validation=vec_idx_validation, other_params=other_params, verbose=args$verbose)")))
             GENOMIC_PREDICTIONS = data.frame(perf$df_y_validation, model=model)
         }
     } else {
@@ -608,7 +625,7 @@ gp = function(args) {
     ###############################################################################
     ### Extract the additive genetic effects from penalised and Bayesian regression models, and sample BLUPs from gBLUP
     if (args$bool_within) {
-        vec_idx_training = which(!is.na(list_merged$list_pheno$y))
+        vec_idx_training = which(!is.na(list_merged_with_na$list_pheno$y))
         ADDITIVE_GENETIC_EFFECTS = NULL
         for (model in args$vec_models_to_test) {
             # model = args$vec_models_to_test[1]
@@ -622,7 +639,7 @@ gp = function(args) {
                 vec_idx_validation = vec_idx_training
                 other_params = list(n_folds=10)
             }
-            perf = eval(parse(text=paste0("fn_", model, "(list_merged=list_merged, vec_idx_training=vec_idx_training, vec_idx_validation=vec_idx_validation, other_params=other_params, verbose=FALSE)")))
+            perf = eval(parse(text=paste0("fn_", model, "(list_merged=list_merged_with_na, vec_idx_training=vec_idx_training, vec_idx_validation=vec_idx_validation, other_params=other_params, verbose=FALSE)")))
             if (is.null(ADDITIVE_GENETIC_EFFECTS)) {
                 ADDITIVE_GENETIC_EFFECTS = eval(parse(text=paste0("list(`", model, "`=list(b=perf$vec_effects))")))
             } else {
@@ -634,6 +651,7 @@ gp = function(args) {
     }
     ### Clean-up
     rm("list_merged")
+    rm("list_merged_with_na")
     gc()
     ### Output
     if (is.null(args$dir_output)) {
