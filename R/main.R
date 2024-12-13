@@ -389,7 +389,7 @@ gp = function(args) {
                 "increasing --geno-max-depth (", args$geno_max_depth, ") and/or ",
                 "impute your input genotype data (", args$fname_geno, ")."
             )))
-        cat(error@message; return(error)
+        cat(error@message); return(error)
     }
     gc()
     list_pheno = fn_filter_phenotype(
@@ -415,7 +415,7 @@ gp = function(args) {
             message=paste0(
                 "Phenotype data is missing."
             ))
-        cat(error@message; return(error)
+        cat(error@message); return(error)
     }
     list_merged = list_merged_with_na
     list_merged$G = list_merged$G[vec_idx, ]
@@ -438,7 +438,7 @@ gp = function(args) {
                 "You may also set the following to zero: --geno-max-sparsity-per-locus (", args$geno_max_sparsity_per_locus, ") and ",
                 "--geno-max-sparsity-per-sample (", args$geno_max_sparsity_per_sample, ")."
             ))
-        cat(error@message; return(error)
+        cat(error@message); return(error)
     }
     ### Clean-up
     rm("G")
