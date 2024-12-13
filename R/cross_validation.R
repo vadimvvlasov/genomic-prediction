@@ -135,6 +135,7 @@ fn_cv_1 = function(i, list_merged, df_params, mat_idx_shuffle, vec_set_partition
                     "Error in cross_validation::fn_cv_1(...). ",
                     "Input data (list_merged) is an error type."
                 )))
+        cat(error$message)
         return(error)
     }
     if ((i < 1) | (i > nrow(df_params))) {
@@ -144,6 +145,7 @@ fn_cv_1 = function(i, list_merged, df_params, mat_idx_shuffle, vec_set_partition
                 "Error in cross_validation::fn_cv_1(...). ",
                 "The index (i) of df_params is beyond the number of rows in df_params (may also be less than 1)."
             ))
+        cat(error$message)
         return(error)
     }
     if (sum((colnames(df_params) == c("rep", "fold", "model"))) != 3) {
@@ -154,6 +156,7 @@ fn_cv_1 = function(i, list_merged, df_params, mat_idx_shuffle, vec_set_partition
                 "The data frame of parameters is incorrect. We are expecting the following columns in order: 'rep', 'fold', and 'model'.",
                 "The supplied data frame has the following columns or fields: ", paste(colnames(df_params), collapse=", ")
             ))
+        cat(error$message)
         return(error)
     }
     if (nrow(mat_idx_shuffle) != nrow(list_merged$G)) {
@@ -165,6 +168,7 @@ fn_cv_1 = function(i, list_merged, df_params, mat_idx_shuffle, vec_set_partition
                 "does not match the number of samples in the input genotype and phenotype (and covariate) data (",
                 nrow(list_merged$G) , " rows)."
             ))
+        cat(error$message)
         return(error)
     }
     if (ncol(mat_idx_shuffle) != max(df_params$rep)) {
@@ -175,6 +179,7 @@ fn_cv_1 = function(i, list_merged, df_params, mat_idx_shuffle, vec_set_partition
                 "The number of columns in the shuffling matrix (mat_idx_shuffle; ", ncol(mat_idx_shuffle), " columns) ",
                 "does not match the replications requested (", max(df_params$rep) , " replications)."
             ))
+        cat(error$message)
         return(error)
     }
     if (length(vec_set_partition_groupings) != nrow(list_merged$G)) {
@@ -186,6 +191,7 @@ fn_cv_1 = function(i, list_merged, df_params, mat_idx_shuffle, vec_set_partition
                 length(vec_set_partition_groupings), " elements) does not match the number of samples in ",
                 "the input genotype and phenotype (and covariate) data (", nrow(list_merged$G) , " rows)."
             ))
+        cat(error$message)
         return(error)
     }
     if (sum(range(vec_set_partition_groupings) == range(df_params$fold)) != 2) {
@@ -198,6 +204,7 @@ fn_cv_1 = function(i, list_merged, df_params, mat_idx_shuffle, vec_set_partition
                 "does not match the number of folds requested (fold ", min(df_params$fold), " to fold ",
                 max(df_params$fold), ")."
             ))
+        cat(error$message)
         return(error)
     }
     ### Define prefix of intermediate output files
@@ -233,6 +240,7 @@ fn_cv_1 = function(i, list_merged, df_params, mat_idx_shuffle, vec_set_partition
                 "Error in cross_validation::fn_cv_1(...). ",
                 "Unable to fit the model, ", model, " and/or assess genomic prediction accuracy."
             )))
+        cat(error$message)
         return(error)
     }
     ### One-liner data frame of the prediction performance metrics
