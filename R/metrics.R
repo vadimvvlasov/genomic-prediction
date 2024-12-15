@@ -87,7 +87,9 @@ fn_prediction_performance_metrics = function(y_true, y_pred, verbose=FALSE) {
         vec_idx = which(!is.na(y_true) & !is.na(y_pred))
         if (length(vec_idx) > 0) {
             print("Scatter plot of the observed and predicted phenotypes")
-            txtplot::txtplot(x=y_true, y=y_pred)
+            tryCatch(
+                txtplot::txtplot(x=y_true, y=y_pred),
+                error=function(e){print(e)})
         } else {
             print("All pairs of phenotype values have missing data.")
         }
