@@ -842,7 +842,7 @@ fn_across_lopo_table_metrics_server = function(input, list_list_output) {
 fn_across_lopo_scatter_server = function(input, list_list_output) {
 	list_output = list_list_output[[input$across_lopo_scat_trait]]
 	# if (!is.na(list_output$YPRED_ACROSS_POP_LOPO[1])[1]) {
-	if (!is.null(list_output$YPRED_ACROSS_POP_LOPO)) {
+	if (is.null(list_output$YPRED_ACROSS_POP_LOPO) | is.na(head(list_output$YPRED_ACROSS_POP_LOPO, n=1)[1])) {
 		df = data.frame(ID="No across populations data available", x=0, y=0)
 		p = plotly::plot_ly(data=df, x=~x, y=~y, type="scatter", mode='markers', text=~ID)
 		return(p)

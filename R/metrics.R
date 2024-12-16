@@ -89,7 +89,7 @@ fn_prediction_performance_metrics = function(y_true, y_pred, verbose=FALSE) {
             print("Scatter plot of the observed and predicted phenotypes")
             tryCatch(
                 txtplot::txtplot(x=y_true, y=y_pred),
-                error=function(e){print(e)})
+                error=function(e){print("Empty plot")})
         } else {
             print("All pairs of phenotype values have missing data.")
         }

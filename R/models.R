@@ -167,7 +167,7 @@ fn_ols = function(list_merged, vec_idx_training, vec_idx_validation, other_param
     n_non_zero = sum(abs(b_hat) > .Machine$double.eps)
     if (verbose) {
         print("Allele effects distribution:")
-        tryCatch(txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print(e)})
+        tryCatch(txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
         print(paste0("Number of non-zero effects: ", n_non_zero, " (", round(100*p/n_non_zero), "%)"))
     }
     ### Predict and assess prediction accuracy
@@ -310,9 +310,9 @@ fn_ridge = function(list_merged, vec_idx_training, vec_idx_validation, other_par
     if (verbose) {
         p = ncol(X_training)
         print("Allele effects distribution:")
-        tryCatch(txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print(e)})
-        print("Relative posisitions of allele effects across the genome:")
-        tryCatch(txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print(e)})
+        tryCatch(txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
+        print("Relative positions of allele effects across the genome:")
+        tryCatch(txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
         print(paste0("Number of non-zero effects: ", n_non_zero, " (", round(100*n_non_zero/p), "%)"))
     }
     ### Evaluate prediction performance
@@ -454,9 +454,9 @@ fn_lasso = function(list_merged, vec_idx_training, vec_idx_validation, other_par
     if (verbose) {
         p = ncol(X_training)
         print("Allele effects distribution:")
-        tryCatch(txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print(e)})
-        print("Relative posisitions of allele effects across the genome:")
-        tryCatch(txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print(e)})
+        tryCatch(txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
+        print("Relative positions of allele effects across the genome:")
+        tryCatch(txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
         print(paste0("Number of non-zero effects: ", n_non_zero, " (", round(100*n_non_zero/p), "%)"))
     }
     ### Evaluate prediction performance
@@ -598,9 +598,9 @@ fn_elastic_net = function(list_merged, vec_idx_training, vec_idx_validation, oth
     if (verbose) {
         p = ncol(X_training)
         print("Allele effects distribution:")
-        tryCatch(txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print(e)})
-        print("Relative posisitions of allele effects across the genome:")
-        tryCatch(txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print(e)})
+        tryCatch(txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
+        print("Relative positions of allele effects across the genome:")
+        tryCatch(txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
         print(paste0("Number of non-zero effects: ", n_non_zero, " (", round(100*n_non_zero/p), "%)"))
     }
     ### Evaluate prediction performance
@@ -739,9 +739,9 @@ fn_Bayes_A = function(list_merged, vec_idx_training, vec_idx_validation,
     if (verbose) {
         p = ncol(list_merged$G)
         print("Allele effects distribution:")
-        tryCatch(txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print(e)})
-        print("Relative posisitions of allele effects across the genome:")
-        tryCatch(txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print(e)})
+        tryCatch(txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
+        print("Relative positions of allele effects across the genome:")
+        tryCatch(txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
         print(paste0("Number of non-zero effects: ", n_non_zero, " (", round(100*n_non_zero/p), "%)"))
     }
     ### Evaluate prediction performance
@@ -886,9 +886,9 @@ fn_Bayes_B = function(list_merged, vec_idx_training, vec_idx_validation,
     if (verbose) {
         p = ncol(list_merged$G)
         print("Allele effects distribution:")
-        tryCatch(txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print(e)})
-        print("Relative posisitions of allele effects across the genome:")
-        tryCatch(txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print(e)})
+        tryCatch(txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
+        print("Relative positions of allele effects across the genome:")
+        tryCatch(txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
         print(paste0("Number of non-zero effects: ", n_non_zero, " (", round(100*n_non_zero/p), "%)"))
     }
     ### Evaluate prediction performance
@@ -1033,9 +1033,9 @@ fn_Bayes_C = function(list_merged, vec_idx_training, vec_idx_validation,
     if (verbose) {
         p = ncol(list_merged$G)
         print("Allele effects distribution:")
-        tryCatch(txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print(e)})
-        print("Relative posisitions of allele effects across the genome:")
-        tryCatch(txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print(e)})
+        tryCatch(txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
+        print("Relative positions of allele effects across the genome:")
+        tryCatch(txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
         print(paste0("Number of non-zero effects: ", n_non_zero, " (", round(100*n_non_zero/p), "%)"))
     }
     ### Evaluate prediction performance
@@ -1182,12 +1182,12 @@ fn_gBLUP = function(list_merged, vec_idx_training, vec_idx_validation, other_par
         p = length(vec_effects)
         if (length(b_hat) > 1) {
             print("Fixed effects distribution:")
-            tryCatch(txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print(e)})
+            tryCatch(txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
         } else {
             print(paste0("Intercept = ", b_hat))
         }
         print("Random effects distribution, i.e. BLUPs of each sample:")
-        tryCatch(txtplot::txtdensity(u_hat[!is.na(u_hat) & !is.infinite(u_hat)]), error=function(e){print(e)})
+        tryCatch(txtplot::txtdensity(u_hat[!is.na(u_hat) & !is.infinite(u_hat)]), error=function(e){print("Empty plot")})
         print(paste0("Number of non-zero effects: ", n_non_zero, " (", round(100*n_non_zero/p), "%)"))
     }
     ### Evaluate prediction performance
