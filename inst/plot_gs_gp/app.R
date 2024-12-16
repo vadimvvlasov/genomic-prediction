@@ -58,11 +58,28 @@ fn_io_server = function(dir=NULL) {
 			# shiny::need(!is.null(list_output$METRICS_ACROSS_POP_LOPO), paste0("Missing filed: METRICS_ACROSS_POP_LOPO")),
 			# shiny::need(!is.null(list_output$YPRED_ACROSS_POP_LOPO), paste0("Missing filed: YPRED_ACROSS_POP_LOPO")),
 			# shiny::need(!is.null(list_output$GENOMIC_PREDICTIONS), paste0("Missing filed: GENOMIC_PREDICTIONS")),
-			shiny::need(!is.null(list_output$ADDITIVE_GENETIC_EFFECTS), paste0("Missing filed: ADDITIVE_GENETIC_EFFECTS"))
+			shiny::need(!is.null(list_output$ADDITIVE_GENETIC_EFFECTS), paste0("Missing field: ADDITIVE_GENETIC_EFFECTS"))
 		)
 		trait = list_output$TRAIT_NAME
 		pop = list_output$POPULATION
-		eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "` = list_output")))
+		if (!is.null(eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`"))))) {
+			if (!is.na(head(list_output$METRICS_ACROSS_POP_BULK, n=1)[1])) {
+				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$METRICS_ACROSS_POP_BULK = list_out$METRICS_ACROSS_POP_BULK")))
+				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$YPRED_ACROSS_POP_BULK = list_out$YPRED_ACROSS_POP_BULK")))
+				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$METRICS_ACROSS_POP_PAIRWISE = list_out$METRICS_ACROSS_POP_PAIRWISE")))
+				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$YPRED_ACROSS_POP_PAIRWISE = list_out$YPRED_ACROSS_POP_PAIRWISE")))
+				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$METRICS_ACROSS_POP_LOPO = list_out$METRICS_ACROSS_POP_LOPO")))
+				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$YPRED_ACROSS_POP_LOPO = list_out$YPRED_ACROSS_POP_LOPO")))
+			}
+			if (!is.na(head(list_output$METRICS_WITHIN_POP, n=1)[1])) {
+				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$METRICS_WITHIN_POP = list_output$METRICS_WITHIN_POP")))
+				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$YPRED_WITHIN_POP = list_output$YPRED_WITHIN_POP")))
+				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$GENOMIC_PREDICTIONS = list_output$GENOMIC_PREDICTIONS")))
+				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$ADDITIVE_GENETIC_EFFECTS = list_output$ADDITIVE_GENETIC_EFFECTS")))
+			}
+		} else {
+			eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "` = list_output")))
+		}
 	}
 	return(list_list_output)
 }
@@ -1236,6 +1253,9 @@ server = function(input, output, session) {
 		vec_pop_names = c()
 		for (x in list_list_output) {
 			# x = list_list_output[[1]]
+			if (is.na(head(x$METRICS_WITHIN_POP, n=1)[1])) {
+				next
+			}
 			vec_traits = c(vec_traits, as.character(x$TRAIT_NAME))
 			vec_populations = c(vec_populations, unique(c(as.character(x$POPULATION), unique(x$METRICS_WITHIN_POP$pop_training))))
 			vec_models = c(vec_models, unique(as.character(x$METRICS_WITHIN_POP$model)))
