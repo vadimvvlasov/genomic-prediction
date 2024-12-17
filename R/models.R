@@ -290,7 +290,7 @@ fn_ridge = function(list_merged, vec_idx_training, vec_idx_validation, other_par
     sol = tryCatch(
         glmnet::cv.glmnet(x=X_training, y=y_training, alpha=0, nfolds=other_params$n_folds, parallel=FALSE),
         error = function(e) {NA})
-    if (is.na(sol)) {
+    if (is.na(sol[1])) {
         return(list(
             list_perf=NA,
             df_y_validation=NA,
@@ -443,7 +443,7 @@ fn_lasso = function(list_merged, vec_idx_training, vec_idx_validation, other_par
     sol = tryCatch(
         glmnet::cv.glmnet(x=X_training, y=y_training, alpha=1, nfolds=other_params$n_folds, parallel=FALSE),
         error = function(e) {NA})
-    if (is.na(sol)) {
+    if (is.na(sol[1])) {
         return(list(
             list_perf=NA,
             df_y_validation=NA,
@@ -596,7 +596,7 @@ fn_elastic_net = function(list_merged, vec_idx_training, vec_idx_validation, oth
     sol = tryCatch(
         glmnet::cv.glmnet(x=X_training, y=y_training),
         error = function(e) {NA})
-    if (is.na(sol)) {
+    if (is.na(sol[1])) {
         return(list(
             list_perf=NA,
             df_y_validation=NA,
