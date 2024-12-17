@@ -287,7 +287,16 @@ fn_ridge = function(list_merged, vec_idx_training, vec_idx_validation, other_par
         X_validation = cbind(list_merged$COVAR[vec_idx_validation, , drop=FALSE], X_validation)
     }
     ### Solve via ridge regularisation
-    sol = glmnet::cv.glmnet(x=X_training, y=y_training, alpha=0, nfolds=other_params$n_folds, parallel=FALSE) ### Ridge -> alpha = 0.0
+    sol = tryCatch(
+        glmnet::cv.glmnet(x=X_training, y=y_training, alpha=0, nfolds=other_params$n_folds, parallel=FALSE),
+        error = function(e) {NA})
+    if (is.na(sol)) {
+        return(list(
+            list_perf=NA,
+            df_y_validation=NA,
+            vec_effects=NA,
+            n_non_zero=NA))
+    }
     ### Find the first lambda with the lowest squared error (deviance) while having non-zero SNP effects
     vec_idx_decreasing_deviance = order(sol$glmnet.fit$dev.ratio, decreasing=FALSE)
     idx_start = which(sol$lambda == sol$lambda.min)[1]
@@ -431,7 +440,16 @@ fn_lasso = function(list_merged, vec_idx_training, vec_idx_validation, other_par
         X_validation = cbind(list_merged$COVAR[vec_idx_validation, , drop=FALSE], X_validation)
     }
     ### Solve via Least absolute shrinkage selection operator (Lasso) regularisation
-    sol = glmnet::cv.glmnet(x=X_training, y=y_training, alpha=1, nfolds=other_params$n_folds, parallel=FALSE) ### Lasso -> alpha = 1.0
+    sol = tryCatch(
+        glmnet::cv.glmnet(x=X_training, y=y_training, alpha=1, nfolds=other_params$n_folds, parallel=FALSE),
+        error = function(e) {NA})
+    if (is.na(sol)) {
+        return(list(
+            list_perf=NA,
+            df_y_validation=NA,
+            vec_effects=NA,
+            n_non_zero=NA))
+    }
     ### Find the first lambda with the lowest squared error (deviance) while having non-zero SNP effects
     vec_idx_decreasing_deviance = order(sol$glmnet.fit$dev.ratio, decreasing=FALSE)
     idx_start = which(sol$lambda == sol$lambda.min)[1]
@@ -575,7 +593,16 @@ fn_elastic_net = function(list_merged, vec_idx_training, vec_idx_validation, oth
         X_validation = cbind(list_merged$COVAR[vec_idx_validation, , drop=FALSE], X_validation)
     }
     ### Solve via Elastic-net regularisation
-    sol = glmnet::cv.glmnet(x=X_training, y=y_training) ### Elastic-net -> alpha is optimised
+    sol = tryCatch(
+        glmnet::cv.glmnet(x=X_training, y=y_training),
+        error = function(e) {NA})
+    if (is.na(sol)) {
+        return(list(
+            list_perf=NA,
+            df_y_validation=NA,
+            vec_effects=NA,
+            n_non_zero=NA))
+    }
     ### Find the first lambda with the lowest squared error (deviance) while having non-zero SNP effects
     vec_idx_decreasing_deviance = order(sol$glmnet.fit$dev.ratio, decreasing=FALSE)
     idx_start = which(sol$lambda == sol$lambda.min)[1]
