@@ -786,8 +786,10 @@ fn_cross_validation_within_population = function(list_merged, n_folds=10, n_reps
                 df_metrics = list_perf$df_metrics
                 df_y_validation = list_perf$df_y_validation
             } else {
-                df_metrics = rbind(df_metrics, list_perf$df_metrics)
-                df_y_validation = rbind(df_y_validation, list_perf$df_y_validation)
+                if (!is.na(utils::head(list_perf$df_metrics, n=1)[1]) & !is.na(utils::head(list_perf$df_y_validation, n=1)[1])) {
+                    df_metrics = rbind(df_metrics, list_perf$df_metrics)
+                    df_y_validation = rbind(df_y_validation, list_perf$df_y_validation)
+                }
             }
             ### Clean-up to reduce memory footprint
             list_perf$df_metrics = NULL
@@ -1380,8 +1382,10 @@ fn_cross_validation_across_populations_pairwise = function(list_merged,
                     df_metrics = list_perf$df_metrics
                     df_y_validation = list_perf$df_y_validation
                 } else {
-                    df_metrics = rbind(df_metrics, list_perf$df_metrics)
-                    df_y_validation = rbind(df_y_validation, list_perf$df_y_validation)
+                    if (!is.na(utils::head(list_perf$df_metrics, n=1)[1]) & !is.na(utils::head(list_perf$df_y_validation, n=1)[1])) {
+                        df_metrics = rbind(df_metrics, list_perf$df_metrics)
+                        df_y_validation = rbind(df_y_validation, list_perf$df_y_validation)
+                    }
                 }
             }
             ### Save temporary Rds output per population
@@ -1661,8 +1665,10 @@ fn_cross_validation_across_populations_lopo = function(list_merged,
             df_metrics = list_perf$df_metrics
             df_y_validation = list_perf$df_y_validation
         } else {
-            df_metrics = rbind(df_metrics, list_perf$df_metrics)
-            df_y_validation = rbind(df_y_validation, list_perf$df_y_validation)
+            if (!is.na(utils::head(list_perf$df_metrics, n=1)[1]) & !is.na(utils::head(list_perf$df_y_validation, n=1)[1])) {
+                df_metrics = rbind(df_metrics, list_perf$df_metrics)
+                df_y_validation = rbind(df_y_validation, list_perf$df_y_validation)
+            }
         }
     }
     ### Save temporary Rds output per population
