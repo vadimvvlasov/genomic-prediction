@@ -735,15 +735,8 @@ fn_cross_validation_within_population = function(list_merged, n_folds=10, n_reps
                 mc.cores=min(c(n_threads, list_cv_params$n_threads)))
             for (idx in 1:length(list_list_perf)) {
                 if (methods::is(list_list_perf[[idx]], "gpError")) {
-                    error = chain(list_list_perf[[idx]], methods::new("gpError",
-                        code=318,
-                        message=paste0(
-                            "Error in cross_validation::fn_cross_validation_within_population(...). ",
-                            "Something went wrong in the execution of multi-threaded within population k-fold cross-validation. ",
-                            "Please check re-run cross_validation::fn_cross_validation_within_population(...) with ",
-                            "bool_parallel=FALSE to identify the error."
-                        )))
-                    cat(error@message); return(error)
+                    cat(list_list_perf[[idx]]@message)
+                    list_list_perf[[idx]] = NULL
                 }
             }
         } else {
@@ -761,16 +754,8 @@ fn_cross_validation_within_population = function(list_merged, n_folds=10, n_reps
                     verbose=verbose
                 )
                 if (methods::is(list_perf, "gpError")) {
-                    error = chain(list_perf, methods::new("gpError",
-                        code=319,
-                        message=paste0(
-                            "Error in cross_validation::fn_cross_validation_within_population(...). ",
-                            "Error running cross-validation for population: ", population, " at ",
-                            "rep: ", list_cv_params$df_params$rep[i], ", ",
-                            "fold: ", list_cv_params$df_params$fold[i], ", and ",
-                            "model: ", list_cv_params$df_params$model[i], "."
-                        )))
-                    cat(error@message); return(error)
+                    cat(list_perf@message)
+                    list_perf = NULL
                 }
                 eval(parse(text=paste0("list_list_perf$`", i, "` = list_perf")))
             }
@@ -780,17 +765,8 @@ fn_cross_validation_within_population = function(list_merged, n_folds=10, n_reps
         df_y_validation = NULL
         for (list_perf in list_list_perf) {
             # list_perf = list_list_perf[[1]]
-            if (methods::is(list_perf, "gpError")) {
-                error = chain(list_perf, methods::new("gpError",
-                    code=320,
-                    message=paste0(
-                        "Error in cross_validation::fn_cross_validation_within_population(...). ",
-                        "Error running cross-validation for population: ", population, " at ",
-                        "rep: ", list_cv_params$df_params$rep[i], ", ",
-                        "fold: ", list_cv_params$df_params$fold[i], ", and ",
-                        "model: ", list_cv_params$df_params$model[i], "."
-                    )))
-                cat(error@message); return(error)
+            if (is.null(list_perf)) {
+                next
             }
             if (is.na(utils::head(list_perf$df_metrics, n=1)[1]) | is.na(utils::head(list_perf$df_y_validation, n=1)[1])) {
                 next
@@ -1058,16 +1034,8 @@ fn_cross_validation_across_populations_bulk = function(list_merged, n_folds=10, 
             mc.cores=min(c(n_threads, list_cv_params$n_threads)))
         for (idx in 1:length(list_list_perf)) {
             if (methods::is(list_list_perf[[idx]], "gpError")) {
-                error = chain(list_list_perf[[idx]], methods::new("gpError",
-                    code=325,
-                    message=paste0(
-                        "Error in cross_validation::fn_cross_validation_across_populations_bulk(...). ",
-                        "Something went wrong in the execution of multi-threaded across population cross-validation, ",
-                        "without regard for population groupings. ",
-                        "Please check re-run cross_validation::fn_cross_validation_across_populations_bulk(...) with ",
-                        "bool_parallel=FALSE to identify the error."
-                    )))
-                cat(error@message); return(error)
+                cat(list_list_perf[[idx]]@message)
+                list_list_perf[[idx]] = NULL
             }
         }
     } else {
@@ -1086,16 +1054,8 @@ fn_cross_validation_across_populations_bulk = function(list_merged, n_folds=10, 
                 verbose=verbose
             )
             if (methods::is(list_perf, "gpError")) {
-                error = chain(list_perf, methods::new("gpError",
-                    code=326,
-                    message=paste0(
-                        "Error in cross_validation::fn_cross_validation_across_populations_bulk(...). ",
-                        "Error running bulked across population cross-validation at ",
-                        "rep: ", list_cv_params$df_params$rep[i], ", ",
-                        "fold: ", list_cv_params$df_params$fold[i], ", and ",
-                        "model: ", list_cv_params$df_params$model[i], "."
-                    )))
-                cat(error@message); return(error)
+                cat(list_perf@message)
+                list_perf = NULL
             }
             eval(parse(text=paste0("list_list_perf$`", i, "` = list_perf")))
         }
@@ -1105,6 +1065,9 @@ fn_cross_validation_across_populations_bulk = function(list_merged, n_folds=10, 
     YPRED_ACROSS_POP_BULK = NULL
     for (list_perf in list_list_perf) {
         # list_perf = list_list_perf[[1]]
+        if (is.null(list_perf)) {
+            next
+        }
         if (is.na(utils::head(list_perf$df_metrics, n=1)[1]) | is.na(utils::head(list_perf$df_y_validation, n=1)[1])) {
             next
         }
@@ -1350,15 +1313,8 @@ fn_cross_validation_across_populations_pairwise = function(list_merged,
                     mc.cores=min(c(n_threads, list_cv_params$n_threads)))
                 for (idx in 1:length(list_list_perf)) {
                     if (methods::is(list_list_perf[[idx]], "gpError")) {
-                        error = chain(list_list_perf[[idx]], methods::new("gpError",
-                            code=332,
-                            message=paste0(
-                                "Error in cross_validation::fn_cross_validation_across_populations_pairwise(...). ",
-                                "Something went wrong in the execution of multi-threaded pairwise-population cross-validation. ",
-                                "Please check re-run cross_validation::fn_cross_validation_across_populations_pairwise(...) with ",
-                                "bool_parallel=FALSE to identify the error."
-                            )))
-                        cat(error@message); return(error)
+                        cat(list_list_perf[[idx]]@message)
+                        list_list_perf[[idx]] = NULL
                     }
                 }
             } else {
@@ -1376,17 +1332,8 @@ fn_cross_validation_across_populations_pairwise = function(list_merged,
                         verbose=verbose
                     )
                     if (methods::is(list_perf, "gpError")) {
-                        error = chain(list_perf, methods::new("gpError",
-                            code=333,
-                            message=paste0(
-                                "Error in cross_validation::fn_cross_validation_across_populations_pairwise(...). ",
-                                "Error running pairwise cross-validation for populations: ", 
-                                population1, " and ", population2, " at ",
-                                "rep: ", list_cv_params$df_params$rep[i], ", ",
-                                "fold: ", list_cv_params$df_params$fold[i], ", and ",
-                                "model: ", list_cv_params$df_params$model[i], "."
-                            )))
-                        cat(error@message); return(error)
+                        cat(list_perf@message)
+                        list_perf = NULL
                     }
                     eval(parse(text=paste0("list_list_perf$`", i, "` = list_perf")))
                 }
@@ -1396,6 +1343,9 @@ fn_cross_validation_across_populations_pairwise = function(list_merged,
             df_y_validation = NULL
             for (list_perf in list_list_perf) {
                 # list_perf = list_list_perf[[1]]
+                if (is.null(list_perf)) {
+                    next
+                }
                 if (is.na(utils::head(list_perf$df_metrics, n=1)[1]) | is.na(utils::head(list_perf$df_y_validation, n=1)[1])) {
                     next
                 }
