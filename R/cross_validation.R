@@ -390,13 +390,14 @@ fn_cross_validation_preparation = function(list_merged, cv_type=1, n_folds=10, n
         ### Adjust the number of folds so that we have at least 2 samples/entries/pools in the validation set
         set_size = floor(n / n_folds)
         while ((set_size < 2) & (n_folds > 1)) {
-            if (verbose) {print(paste0("Reducing the number of folds from ", n_folds, " to ", n_folds-1, "."))}
+            if (verbose) {print(paste0("Reducing the number of folds from ", n_folds, " to ", n_folds-1, " (set size: ", set_size, ")."))}
             n_folds = n_folds - 1
+            set_size = floor(n / n_folds)
         }
         if (set_size < 2) {
             error = methods::new("gpError",
                 code=309,
-                messages=paste0(
+                message=paste0(
                     "Error in cross_validation::fn_cross_validation_preparation(...). ",
                     "The size of the data set is too small, n= ", n, "."
                 ))
@@ -405,7 +406,7 @@ fn_cross_validation_preparation = function(list_merged, cv_type=1, n_folds=10, n
         if (n_folds < 2) {
             error = methods::new("gpError",
                 code=309,
-                messages=paste0(
+                message=paste0(
                     "Error in cross_validation::fn_cross_validation_preparation(...). ",
                     "The size of the data set is too small for at least 2-fold cross-validation, n= ", n, "."
                 ))
@@ -497,7 +498,7 @@ fn_cross_validation_preparation = function(list_merged, cv_type=1, n_folds=10, n
     } else {
         error = methods::new("gpError",
             code=312,
-            messages=paste0(
+            message=paste0(
                 "Error in cross_validation::fn_cross_validation_preparation(...). ",
                 "The cross-validation type, cv_type=", cv_type, " is invalid. ",
                 "Please choose: ",
