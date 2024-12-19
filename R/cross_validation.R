@@ -402,6 +402,15 @@ fn_cross_validation_preparation = function(list_merged, cv_type=1, n_folds=10, n
                 ))
             cat(error@message); return(error)
         }
+        if (n_folds < 2) {
+            error = methods::new("gpError",
+                code=309,
+                messages=paste0(
+                    "Error in cross_validation::fn_cross_validation_preparation(...). ",
+                    "The size of the data set is too small for at least 2-fold cross-validation, n= ", n, "."
+                ))
+            cat(error@message); return(error)
+        }
         vec_set_partition_groupings = rep(1:n_folds, each=set_size)
         if (length(vec_set_partition_groupings) < n) {
             vec_set_partition_groupings = c(vec_set_partition_groupings, rep(n_folds, times=(n-length(vec_set_partition_groupings))))
@@ -782,14 +791,15 @@ fn_cross_validation_within_population = function(list_merged, n_folds=10, n_reps
                     )))
                 cat(error@message); return(error)
             }
-            if (!is.na(utils::head(list_perf$df_metrics, n=1)[1]) & !is.na(utils::head(list_perf$df_y_validation, n=1)[1])) {
-                if (is.null(df_metrics) & is.null(df_y_validation)) {
-                    df_metrics = list_perf$df_metrics
-                    df_y_validation = list_perf$df_y_validation
-                } else {
-                    df_metrics = rbind(df_metrics, list_perf$df_metrics)
-                    df_y_validation = rbind(df_y_validation, list_perf$df_y_validation)
-                }
+            if (is.na(utils::head(list_perf$df_metrics, n=1)[1]) | is.na(utils::head(list_perf$df_y_validation, n=1)[1])) {
+                next
+            }
+            if (is.null(df_metrics) & is.null(df_y_validation)) {
+                df_metrics = list_perf$df_metrics
+                df_y_validation = list_perf$df_y_validation
+            } else {
+                df_metrics = rbind(df_metrics, list_perf$df_metrics)
+                df_y_validation = rbind(df_y_validation, list_perf$df_y_validation)
             }
             ### Clean-up to reduce memory footprint
             list_perf$df_metrics = NULL
@@ -822,14 +832,15 @@ fn_cross_validation_within_population = function(list_merged, n_folds=10, n_reps
     for (fname_within_Rds in vec_fname_within_Rds) {
         # fname_within_Rds = vec_fname_within_Rds[1]
         list_tmp = readRDS(fname_within_Rds)
-        if (!is.na(utils::head(list_tmp$df_metrics, n=1)[1]) & !is.na(utils::head(list_tmp$df_y_validation, n=1)[1])) {
-            if (is.null(METRICS_WITHIN_POP) & is.null(YPRED_WITHIN_POP)) {
-                METRICS_WITHIN_POP = list_tmp$df_metrics
-                YPRED_WITHIN_POP = list_tmp$df_y_validation
-            } else {
-                METRICS_WITHIN_POP = rbind(METRICS_WITHIN_POP, list_tmp$df_metrics)
-                YPRED_WITHIN_POP = rbind(YPRED_WITHIN_POP, list_tmp$df_y_validation)
-            }
+        if (is.na(utils::head(list_tmp$df_metrics, n=1)[1]) | is.na(utils::head(list_tmp$df_y_validation, n=1)[1])) {
+            next
+        }
+        if (is.null(METRICS_WITHIN_POP) & is.null(YPRED_WITHIN_POP)) {
+            METRICS_WITHIN_POP = list_tmp$df_metrics
+            YPRED_WITHIN_POP = list_tmp$df_y_validation
+        } else {
+            METRICS_WITHIN_POP = rbind(METRICS_WITHIN_POP, list_tmp$df_metrics)
+            YPRED_WITHIN_POP = rbind(YPRED_WITHIN_POP, list_tmp$df_y_validation)
         }
     }
     ### Save the concatenated output data frames across populations and clean-up
@@ -1093,15 +1104,16 @@ fn_cross_validation_across_populations_bulk = function(list_merged, n_folds=10, 
     YPRED_ACROSS_POP_BULK = NULL
     for (list_perf in list_list_perf) {
         # list_perf = list_list_perf[[1]]
-        if (!is.na(utils::head(list_perf$df_metrics, n=1)[1]) & !is.na(utils::head(list_perf$df_y_validation, n=1)[1])) {
-            if (is.null(METRICS_ACROSS_POP_BULK) & is.null(YPRED_ACROSS_POP_BULK)) {
-                METRICS_ACROSS_POP_BULK = list_perf$df_metrics
-                YPRED_ACROSS_POP_BULK = list_perf$df_y_validation
-            } else {
-            
-                METRICS_ACROSS_POP_BULK = rbind(METRICS_ACROSS_POP_BULK, list_perf$df_metrics)
-                YPRED_ACROSS_POP_BULK = rbind(YPRED_ACROSS_POP_BULK, list_perf$df_y_validation)
-            }
+        if (is.na(utils::head(list_perf$df_metrics, n=1)[1]) | is.na(utils::head(list_perf$df_y_validation, n=1)[1])) {
+            next
+        }
+        if (is.null(METRICS_ACROSS_POP_BULK) & is.null(YPRED_ACROSS_POP_BULK)) {
+            METRICS_ACROSS_POP_BULK = list_perf$df_metrics
+            YPRED_ACROSS_POP_BULK = list_perf$df_y_validation
+        } else {
+        
+            METRICS_ACROSS_POP_BULK = rbind(METRICS_ACROSS_POP_BULK, list_perf$df_metrics)
+            YPRED_ACROSS_POP_BULK = rbind(YPRED_ACROSS_POP_BULK, list_perf$df_y_validation)
         }
     }
     ### Save the concatenated output data frames across populations and clean-up
@@ -1383,14 +1395,15 @@ fn_cross_validation_across_populations_pairwise = function(list_merged,
             df_y_validation = NULL
             for (list_perf in list_list_perf) {
                 # list_perf = list_list_perf[[1]]
-                if (!is.na(utils::head(list_perf$df_metrics, n=1)[1]) & !is.na(utils::head(list_perf$df_y_validation, n=1)[1])) {
-                    if (is.null(df_metrics) & is.null(df_y_validation)) {
-                        df_metrics = list_perf$df_metrics
-                        df_y_validation = list_perf$df_y_validation
-                    } else {
-                        df_metrics = rbind(df_metrics, list_perf$df_metrics)
-                        df_y_validation = rbind(df_y_validation, list_perf$df_y_validation)
-                    }
+                if (is.na(utils::head(list_perf$df_metrics, n=1)[1]) | is.na(utils::head(list_perf$df_y_validation, n=1)[1])) {
+                    next
+                }
+                if (is.null(df_metrics) & is.null(df_y_validation)) {
+                    df_metrics = list_perf$df_metrics
+                    df_y_validation = list_perf$df_y_validation
+                } else {
+                    df_metrics = rbind(df_metrics, list_perf$df_metrics)
+                    df_y_validation = rbind(df_y_validation, list_perf$df_y_validation)
                 }
             }
             ### Save temporary Rds output per population
@@ -1420,14 +1433,15 @@ fn_cross_validation_across_populations_pairwise = function(list_merged,
     for (fname_across_pairwise_Rds in vec_fname_across_pairwise_Rds) {
         # fname_across_pairwise_Rds = vec_fname_across_pairwise_Rds[1]
         list_tmp = readRDS(fname_across_pairwise_Rds)
-        if (!is.na(utils::head(list_tmp$df_metrics, n=1)[1]) & !is.na(utils::head(list_tmp$df_y_validation, n=1)[1])) {
-            if (is.null(METRICS_ACROSS_POP_PAIRWISE) & is.null(YPRED_ACROSS_POP_PAIRWISE)) {
-                METRICS_ACROSS_POP_PAIRWISE = list_tmp$df_metrics
-                YPRED_ACROSS_POP_PAIRWISE = list_tmp$df_y_validation
-            } else {
-                METRICS_ACROSS_POP_PAIRWISE = rbind(METRICS_ACROSS_POP_PAIRWISE, list_tmp$df_metrics)
-                YPRED_ACROSS_POP_PAIRWISE = rbind(YPRED_ACROSS_POP_PAIRWISE, list_tmp$df_y_validation)
-            }
+        if (is.na(utils::head(list_tmp$df_metrics, n=1)[1]) | is.na(utils::head(list_tmp$df_y_validation, n=1)[1])) {
+            next
+        }
+        if (is.null(METRICS_ACROSS_POP_PAIRWISE) & is.null(YPRED_ACROSS_POP_PAIRWISE)) {
+            METRICS_ACROSS_POP_PAIRWISE = list_tmp$df_metrics
+            YPRED_ACROSS_POP_PAIRWISE = list_tmp$df_y_validation
+        } else {
+            METRICS_ACROSS_POP_PAIRWISE = rbind(METRICS_ACROSS_POP_PAIRWISE, list_tmp$df_metrics)
+            YPRED_ACROSS_POP_PAIRWISE = rbind(YPRED_ACROSS_POP_PAIRWISE, list_tmp$df_y_validation)
         }
     }
     ### Save the concatenated output data frames across populations and clean-up
@@ -1668,14 +1682,15 @@ fn_cross_validation_across_populations_lopo = function(list_merged,
     df_y_validation = NULL
     for (list_perf in list_list_perf) {
         # list_perf = list_list_perf[[1]]
-        if (!is.na(utils::head(list_perf$df_metrics, n=1)[1]) & !is.na(utils::head(list_perf$df_y_validation, n=1)[1])) {
-            if (is.null(df_metrics) & is.null(df_y_validation)) {
-                df_metrics = list_perf$df_metrics
-                df_y_validation = list_perf$df_y_validation
-            } else {
-                df_metrics = rbind(df_metrics, list_perf$df_metrics)
-                df_y_validation = rbind(df_y_validation, list_perf$df_y_validation)
-            }
+        if (is.na(utils::head(list_perf$df_metrics, n=1)[1]) | is.na(utils::head(list_perf$df_y_validation, n=1)[1])) {
+            next
+        }
+        if (is.null(df_metrics) & is.null(df_y_validation)) {
+            df_metrics = list_perf$df_metrics
+            df_y_validation = list_perf$df_y_validation
+        } else {
+            df_metrics = rbind(df_metrics, list_perf$df_metrics)
+            df_y_validation = rbind(df_y_validation, list_perf$df_y_validation)
         }
     }
     ### Save temporary Rds output per population
