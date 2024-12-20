@@ -755,9 +755,9 @@ fn_cross_validation_within_population = function(list_merged, n_folds=10, n_reps
                 )
                 if (methods::is(list_perf, "gpError")) {
                     cat(list_perf@message)
-                    list_perf = NULL
+                } else {
+                    eval(parse(text=paste0("list_list_perf$`", i, "` = list_perf")))
                 }
-                eval(parse(text=paste0("list_list_perf$`", i, "` = list_perf")))
             }
         }
         ### Concatenate performances
@@ -765,7 +765,7 @@ fn_cross_validation_within_population = function(list_merged, n_folds=10, n_reps
         df_y_validation = NULL
         for (list_perf in list_list_perf) {
             # list_perf = list_list_perf[[1]]
-            if (is.na(list_perf)) {
+            if (is.na(utils::head(list_perf[[1]], n=1)[1])) {
                 next
             }
             if (is.na(utils::head(list_perf$df_metrics, n=1)[1]) | is.na(utils::head(list_perf$df_y_validation, n=1)[1])) {
@@ -1055,9 +1055,9 @@ fn_cross_validation_across_populations_bulk = function(list_merged, n_folds=10, 
             )
             if (methods::is(list_perf, "gpError")) {
                 cat(list_perf@message)
-                list_perf = NULL
+            } else {
+                eval(parse(text=paste0("list_list_perf$`", i, "` = list_perf")))
             }
-            eval(parse(text=paste0("list_list_perf$`", i, "` = list_perf")))
         }
     }
     ### Concatenate performances
@@ -1065,7 +1065,7 @@ fn_cross_validation_across_populations_bulk = function(list_merged, n_folds=10, 
     YPRED_ACROSS_POP_BULK = NULL
     for (list_perf in list_list_perf) {
         # list_perf = list_list_perf[[1]]
-        if (is.na(list_perf)) {
+        if (is.na(utils::head(list_perf[[1]], n=1)[1])) {
             next
         }
         if (is.na(utils::head(list_perf$df_metrics, n=1)[1]) | is.na(utils::head(list_perf$df_y_validation, n=1)[1])) {
@@ -1333,9 +1333,9 @@ fn_cross_validation_across_populations_pairwise = function(list_merged,
                     )
                     if (methods::is(list_perf, "gpError")) {
                         cat(list_perf@message)
-                        list_perf = NULL
+                    } else {
+                        eval(parse(text=paste0("list_list_perf$`", i, "` = list_perf")))
                     }
-                    eval(parse(text=paste0("list_list_perf$`", i, "` = list_perf")))
                 }
             }
             ### Concatenate performances
@@ -1343,7 +1343,7 @@ fn_cross_validation_across_populations_pairwise = function(list_merged,
             df_y_validation = NULL
             for (list_perf in list_list_perf) {
                 # list_perf = list_list_perf[[1]]
-                if (is.na(list_perf)) {
+                if (is.na(utils::head(list_perf[[1]], n=1)[1])) {
                     next
                 }
                 if (is.na(utils::head(list_perf$df_metrics, n=1)[1]) | is.na(utils::head(list_perf$df_y_validation, n=1)[1])) {
@@ -1607,18 +1607,10 @@ fn_cross_validation_across_populations_lopo = function(list_merged,
                 verbose=verbose
             )
             if (methods::is(list_perf, "gpError")) {
-                error = chain(list_perf, methods::new("gpError",
-                    code=338,
-                    message=paste0(
-                        "Error in cross_validation::fn_cross_validation_across_populations_lopo(...). ",
-                        "Error running leave-one-population-out cross-validation at ",
-                        "rep: ", list_cv_params$df_params$rep[i], ", ",
-                        "fold: ", list_cv_params$df_params$fold[i], ", and ",
-                        "model: ", list_cv_params$df_params$model[i], "."
-                    )))
-                cat(error@message); return(error)
+                cat(list_perf@message)
+            } else {
+                eval(parse(text=paste0("list_list_perf$`", i, "` = list_perf")))
             }
-            eval(parse(text=paste0("list_list_perf$`", i, "` = list_perf")))
         }
     }
     ### Concatenate performances
@@ -1626,6 +1618,9 @@ fn_cross_validation_across_populations_lopo = function(list_merged,
     df_y_validation = NULL
     for (list_perf in list_list_perf) {
         # list_perf = list_list_perf[[1]]
+        if (is.na(utils::head(list_perf[[1]], n=1)[1])) {
+            next
+        }
         if (is.na(utils::head(list_perf$df_metrics, n=1)[1]) | is.na(utils::head(list_perf$df_y_validation, n=1)[1])) {
             next
         }
