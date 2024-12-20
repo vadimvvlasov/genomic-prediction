@@ -1313,8 +1313,15 @@ fn_cross_validation_across_populations_pairwise = function(list_merged,
                     mc.cores=min(c(n_threads, list_cv_params$n_threads)))
                 for (idx in 1:length(list_list_perf)) {
                     if (methods::is(list_list_perf[[idx]], "gpError")) {
-                        cat(list_list_perf[[idx]]@message)
-                        list_list_perf[[idx]] = NULL
+                        error = chain(list_list_perf[[idx]], methods::new("gpError",
+                            code=337,
+                            message=paste0(
+                                "Error in cross_validation::fn_cross_validation_across_populations_pairwise(...). ",
+                                "Something went wrong in the execution of multi-threaded pairwise-population cross-validation. ",
+                                "Please check re-run cross_validation::fn_cross_validation_across_populations_pairwise(...) with ",
+                                "bool_parallel=FALSE to identify the error."
+                            )))
+                        cat(error@message); return(error)
                     }
                 }
             } else {
