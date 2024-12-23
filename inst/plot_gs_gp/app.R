@@ -32,6 +32,7 @@ fn_io_server = function(dir=NULL) {
 	list_list_output = list()
 	for (i in 1:length(vec_Rds)) {
 		# i = 1
+		# print(i)
 		if (i == 1) {
 			nth = "1st"
 		} else if (i == 2) {
@@ -64,12 +65,12 @@ fn_io_server = function(dir=NULL) {
 		pop = list_output$POPULATION
 		if (!is.null(eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`"))))) {
 			if (!is.na(head(list_output$METRICS_ACROSS_POP_BULK, n=1)[1])) {
-				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$METRICS_ACROSS_POP_BULK = list_out$METRICS_ACROSS_POP_BULK")))
-				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$YPRED_ACROSS_POP_BULK = list_out$YPRED_ACROSS_POP_BULK")))
-				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$METRICS_ACROSS_POP_PAIRWISE = list_out$METRICS_ACROSS_POP_PAIRWISE")))
-				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$YPRED_ACROSS_POP_PAIRWISE = list_out$YPRED_ACROSS_POP_PAIRWISE")))
-				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$METRICS_ACROSS_POP_LOPO = list_out$METRICS_ACROSS_POP_LOPO")))
-				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$YPRED_ACROSS_POP_LOPO = list_out$YPRED_ACROSS_POP_LOPO")))
+				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$METRICS_ACROSS_POP_BULK = list_output$METRICS_ACROSS_POP_BULK")))
+				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$YPRED_ACROSS_POP_BULK = list_output$YPRED_ACROSS_POP_BULK")))
+				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$METRICS_ACROSS_POP_PAIRWISE = list_output$METRICS_ACROSS_POP_PAIRWISE")))
+				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$YPRED_ACROSS_POP_PAIRWISE = list_output$YPRED_ACROSS_POP_PAIRWISE")))
+				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$METRICS_ACROSS_POP_LOPO = list_output$METRICS_ACROSS_POP_LOPO")))
+				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$YPRED_ACROSS_POP_LOPO = list_output$YPRED_ACROSS_POP_LOPO")))
 			}
 			if (!is.na(head(list_output$METRICS_WITHIN_POP, n=1)[1])) {
 				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$METRICS_WITHIN_POP = list_output$METRICS_WITHIN_POP")))
@@ -1238,6 +1239,7 @@ server = function(input, output, session) {
 		# dirname_root = "/group/pasture/Jeff/gp/inst/exec_Rscript/output"
 		# dirname_root = "/group/pasture/Jeff/lucerne/workdir/gs/output_ground_truth_biomass_traits/output"
 		# dirname_root = "/group/pasture/Jeff/lucerne/workdir/gs/output_remote_sensing_biomass_traits/output"
+		# dirname_root = "/group/pc3/Jeff/gs/per_trial_gp/output/"
 		dirname_root = "/"
 		shinyFiles::shinyDirChoose(input, id='dir', roots=c(root=dirname_root), filetypes=c('rds', 'Rds', 'RDS'), session=session)
 		dir = as.character(parseDirPath(c(root=dirname_root), input$dir))
