@@ -651,7 +651,7 @@ fn_G_to_vcf = function(G, min_depth=100, max_depth=1000, verbose=FALSE) {
 #' list_G_D = fn_vcf_to_G(vcf=vcf, verbose=TRUE)
 #' G_back = list_G_D$G
 #' @export
-fn_vcf_to_G = function(vcf, min_depth=0, max_depth=.Machine$integer.max, force_biallelic=TRUE, retain_minus_one_alleles_per_locus=TRUE, verbose=FALSE) {
+fn_vcf_to_G = function(vcf, min_depth=0, max_depth=.Machine$integer.max, force_biallelic=TRUE, retain_minus_one_alleles_per_locus=TRUE, new_GB_compatible_format=FALSE, verbose=FALSE) {
     ###################################################
     ### TEST
     # G = simquantgen::fn_simulate_genotypes(verbose=TRUE)
@@ -660,6 +660,7 @@ fn_vcf_to_G = function(vcf, min_depth=0, max_depth=.Machine$integer.max, force_b
     # max_depth = 500
     # force_biallelic = TRUE
     # retain_minus_one_alleles_per_locus = TRUE
+    # new_GB_compatible_format = FALSE
     # verbose = TRUE
     ###################################################
     ### Check input type
@@ -700,7 +701,11 @@ fn_vcf_to_G = function(vcf, min_depth=0, max_depth=.Machine$integer.max, force_b
         }
     }
     ### Extract loci and pool/sample names
-    vec_loci_ref_names = paste(vec_chr, vec_pos, vcfR::getREF(vcf), sep="\t")
+    if (new_GB_compatible_format == FALSE) {
+    	vec_loci_ref_names = paste(vec_chr, vec_pos, vcfR::getREF(vcf), sep="\t")
+    } else {
+	vec_loci_ref_names = paste(vec_chr, vec_pos, paste(vcfR::getREF(vcf), vcfR::getALT(vcf), sep="|"), vcfR::getREF(vcf), sep="\t")
+    }
     if (!retain_minus_one_alleles_per_locus) {
         vec_loci_alt_names = paste(vec_chr, vec_pos, vcfR::getALT(vcf), sep="\t")
     }
