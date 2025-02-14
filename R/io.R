@@ -1105,7 +1105,7 @@ fn_simulate_data = function(n=100, l=1000, ploidy=2, n_alleles=2, min_depth=5, m
 #' G_rds = fn_load_genotype(fname_geno=list_sim$fname_geno_rds, verbose=TRUE)
 #' @export
 fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retain_minus_one_alleles_per_locus=TRUE, 
-    min_depth=0, max_depth=.Machine$integer.max, new_format=FALSE, verbose=FALSE) 
+    min_depth=0, max_depth=.Machine$integer.max, new_format=FALSE, new_GB_compatible_format=FALSE, verbose=FALSE) 
 {
     ###################################################
     ### TEST
@@ -1119,6 +1119,7 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
     # retain_minus_one_alleles_per_locus = TRUE
     # min_depth = 10
     # max_depth = 100
+    # new_GB_compatible_format = FALSE
     # verbose = TRUE
     ###################################################
     if (verbose) {
@@ -1154,7 +1155,7 @@ fn_load_genotype = function(fname_geno, ploidy=NULL, force_biallelic=TRUE, retai
             ### VCF file ###
             ################
             vcf = vcfR::read.vcfR(fname_geno, verbose=TRUE)
-            list_G_D = fn_vcf_to_G(vcf, force_biallelic=force_biallelic, retain_minus_one_alleles_per_locus=retain_minus_one_alleles_per_locus, min_depth=min_depth, max_depth=max_depth, verbose=verbose)
+            list_G_D = fn_vcf_to_G(vcf, force_biallelic=force_biallelic, retain_minus_one_alleles_per_locus=retain_minus_one_alleles_per_locus, min_depth=min_depth, max_depth=max_depth, new_GB_compatible_format=new_GB_compatible_format, verbose=verbose)
             G = list_G_D$G
             if (methods::is(G, "gpError")) {
                 error = chain(G, methods::new("gpError",
