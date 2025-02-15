@@ -167,7 +167,7 @@ fn_ols = function(list_merged, vec_idx_training, vec_idx_validation, other_param
     n_non_zero = sum(abs(b_hat) > .Machine$double.eps)
     if (verbose) {
         print("Allele effects distribution:")
-        txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)])
+        tryCatch(txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
         print(paste0("Number of non-zero effects: ", n_non_zero, " (", round(100*p/n_non_zero), "%)"))
     }
     ### Predict and assess prediction accuracy
@@ -287,7 +287,22 @@ fn_ridge = function(list_merged, vec_idx_training, vec_idx_validation, other_par
         X_validation = cbind(list_merged$COVAR[vec_idx_validation, , drop=FALSE], X_validation)
     }
     ### Solve via ridge regularisation
-    sol = glmnet::cv.glmnet(x=X_training, y=y_training, alpha=0, nfolds=other_params$n_folds, parallel=FALSE) ### Ridge -> alpha = 0.0
+    sol = tryCatch(
+        glmnet::cv.glmnet(x=X_training, y=y_training, alpha=0, nfolds=other_params$n_folds, parallel=FALSE),
+        error = function(e) {NA})
+    if (is.na(sol[1])) {
+        # return(list(
+        #     list_perf=NA,
+        #     df_y_validation=NA,
+        #     vec_effects=NA,
+        #     n_non_zero=NA))
+        error = methods::new("gpError",
+            code=407,
+            message=paste0(
+                "Error in models::fn_ridge(...). ",
+                "Failed to fit the model."))
+        return(error)
+    }
     ### Find the first lambda with the lowest squared error (deviance) while having non-zero SNP effects
     vec_idx_decreasing_deviance = order(sol$glmnet.fit$dev.ratio, decreasing=FALSE)
     idx_start = which(sol$lambda == sol$lambda.min)[1]
@@ -310,9 +325,9 @@ fn_ridge = function(list_merged, vec_idx_training, vec_idx_validation, other_par
     if (verbose) {
         p = ncol(X_training)
         print("Allele effects distribution:")
-        txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)])
-        print("Relative posisitions of allele effects across the genome:")
-        txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)])
+        tryCatch(txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
+        print("Relative positions of allele effects across the genome:")
+        tryCatch(txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
         print(paste0("Number of non-zero effects: ", n_non_zero, " (", round(100*n_non_zero/p), "%)"))
     }
     ### Evaluate prediction performance
@@ -431,7 +446,22 @@ fn_lasso = function(list_merged, vec_idx_training, vec_idx_validation, other_par
         X_validation = cbind(list_merged$COVAR[vec_idx_validation, , drop=FALSE], X_validation)
     }
     ### Solve via Least absolute shrinkage selection operator (Lasso) regularisation
-    sol = glmnet::cv.glmnet(x=X_training, y=y_training, alpha=1, nfolds=other_params$n_folds, parallel=FALSE) ### Lasso -> alpha = 1.0
+    sol = tryCatch(
+        glmnet::cv.glmnet(x=X_training, y=y_training, alpha=1, nfolds=other_params$n_folds, parallel=FALSE),
+        error = function(e) {NA})
+    if (is.na(sol[1])) {
+        # return(list(
+        #     list_perf=NA,
+        #     df_y_validation=NA,
+        #     vec_effects=NA,
+        #     n_non_zero=NA))
+        error = methods::new("gpError",
+            code=407,
+            message=paste0(
+                "Error in models::fn_lasso(...). ",
+                "Failed to fit the model."))
+        return(error)
+    }
     ### Find the first lambda with the lowest squared error (deviance) while having non-zero SNP effects
     vec_idx_decreasing_deviance = order(sol$glmnet.fit$dev.ratio, decreasing=FALSE)
     idx_start = which(sol$lambda == sol$lambda.min)[1]
@@ -454,9 +484,9 @@ fn_lasso = function(list_merged, vec_idx_training, vec_idx_validation, other_par
     if (verbose) {
         p = ncol(X_training)
         print("Allele effects distribution:")
-        txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)])
-        print("Relative posisitions of allele effects across the genome:")
-        txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)])
+        tryCatch(txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
+        print("Relative positions of allele effects across the genome:")
+        tryCatch(txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
         print(paste0("Number of non-zero effects: ", n_non_zero, " (", round(100*n_non_zero/p), "%)"))
     }
     ### Evaluate prediction performance
@@ -575,7 +605,22 @@ fn_elastic_net = function(list_merged, vec_idx_training, vec_idx_validation, oth
         X_validation = cbind(list_merged$COVAR[vec_idx_validation, , drop=FALSE], X_validation)
     }
     ### Solve via Elastic-net regularisation
-    sol = glmnet::cv.glmnet(x=X_training, y=y_training) ### Elastic-net -> alpha is optimised
+    sol = tryCatch(
+        glmnet::cv.glmnet(x=X_training, y=y_training),
+        error = function(e) {NA})
+    if (is.na(sol[1])) {
+        # return(list(
+        #     list_perf=NA,
+        #     df_y_validation=NA,
+        #     vec_effects=NA,
+        #     n_non_zero=NA))
+        error = methods::new("gpError",
+            code=407,
+            message=paste0(
+                "Error in models::fn_elastic_net(...). ",
+                "Failed to fit the model."))
+        return(error)
+    }
     ### Find the first lambda with the lowest squared error (deviance) while having non-zero SNP effects
     vec_idx_decreasing_deviance = order(sol$glmnet.fit$dev.ratio, decreasing=FALSE)
     idx_start = which(sol$lambda == sol$lambda.min)[1]
@@ -598,9 +643,9 @@ fn_elastic_net = function(list_merged, vec_idx_training, vec_idx_validation, oth
     if (verbose) {
         p = ncol(X_training)
         print("Allele effects distribution:")
-        txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)])
-        print("Relative posisitions of allele effects across the genome:")
-        txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)])
+        tryCatch(txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
+        print("Relative positions of allele effects across the genome:")
+        tryCatch(txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
         print(paste0("Number of non-zero effects: ", n_non_zero, " (", round(100*n_non_zero/p), "%)"))
     }
     ### Evaluate prediction performance
@@ -727,7 +772,17 @@ fn_Bayes_A = function(list_merged, vec_idx_training, vec_idx_validation,
     ### Attempt at preventing overwrites to the running Gibbs samplers in parallel
     other_params$out_prefix = gsub(":", ".", gsub(" ", "-", paste(other_params$out_prefix, Sys.time(), stats::runif(1), sep="-")))
     ### Solve via Bayes A (a priori assume heritability at 50%, i.e. R2=0.5 below)
-    sol = BGLR::BGLR(y=yNA, ETA=ETA, R2=0.5, nIter=other_params$nIter, burnIn=other_params$burnIn, saveAt=other_params$out_prefix, verbose=FALSE)
+    sol = tryCatch(
+        BGLR::BGLR(y=yNA, ETA=ETA, R2=0.5, nIter=other_params$nIter, burnIn=other_params$burnIn, saveAt=other_params$out_prefix, verbose=FALSE),
+        error = function(e) {NA})
+    if (is.na(sol[1])) {
+        error = methods::new("gpError",
+            code=407,
+            message=paste0(
+                "Error in models::fn_Bayes_A(...). ",
+                "Failed to fit the model."))
+        return(error)
+    }
     ### Extract effects including the intercept and fixed effects
     if (!is.null(list_merged$COVAR)) {
         b_hat = c(sol$mu, sol$ETA[[2]]$b, sol$ETA$MRK$b)
@@ -739,9 +794,9 @@ fn_Bayes_A = function(list_merged, vec_idx_training, vec_idx_validation,
     if (verbose) {
         p = ncol(list_merged$G)
         print("Allele effects distribution:")
-        txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)])
-        print("Relative posisitions of allele effects across the genome:")
-        txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)])
+        tryCatch(txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
+        print("Relative positions of allele effects across the genome:")
+        tryCatch(txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
         print(paste0("Number of non-zero effects: ", n_non_zero, " (", round(100*n_non_zero/p), "%)"))
     }
     ### Evaluate prediction performance
@@ -874,7 +929,17 @@ fn_Bayes_B = function(list_merged, vec_idx_training, vec_idx_validation,
     ### Attempt at preventing overwrites to the running Gibbs samplers in parallel
     other_params$out_prefix = gsub(":", ".", gsub(" ", "-", paste(other_params$out_prefix, Sys.time(), stats::runif(1), sep="-")))
     ### Solve via Bayes B (a priori assume heritability at 50%, i.e. R2=0.5 below)
-    sol = BGLR::BGLR(y=yNA, ETA=ETA, R2=0.5, nIter=other_params$nIter, burnIn=other_params$burnIn, saveAt=other_params$out_prefix, verbose=FALSE)
+    sol = tryCatch(
+        BGLR::BGLR(y=yNA, ETA=ETA, R2=0.5, nIter=other_params$nIter, burnIn=other_params$burnIn, saveAt=other_params$out_prefix, verbose=FALSE),
+        error = function(e) {NA})
+    if (is.na(sol[1])) {
+        error = methods::new("gpError",
+            code=407,
+            message=paste0(
+                "Error in models::fn_Bayes_B(...). ",
+                "Failed to fit the model."))
+        return(error)
+    }
     ### Extract effects including the intercept and fixed effects
     if (!is.null(list_merged$COVAR)) {
         b_hat = c(sol$mu, sol$ETA[[2]]$b, sol$ETA$MRK$b)
@@ -886,9 +951,9 @@ fn_Bayes_B = function(list_merged, vec_idx_training, vec_idx_validation,
     if (verbose) {
         p = ncol(list_merged$G)
         print("Allele effects distribution:")
-        txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)])
-        print("Relative posisitions of allele effects across the genome:")
-        txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)])
+        tryCatch(txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
+        print("Relative positions of allele effects across the genome:")
+        tryCatch(txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
         print(paste0("Number of non-zero effects: ", n_non_zero, " (", round(100*n_non_zero/p), "%)"))
     }
     ### Evaluate prediction performance
@@ -1021,7 +1086,17 @@ fn_Bayes_C = function(list_merged, vec_idx_training, vec_idx_validation,
     ### Attempt at preventing overwrites to the running Gibbs samplers in parallel
     other_params$out_prefix = gsub(":", ".", gsub(" ", "-", paste(other_params$out_prefix, Sys.time(), stats::runif(1), sep="-")))
     ### Solve via Bayes C (a priori assume heritability at 50%, i.e. R2=0.5 below)
-    sol = BGLR::BGLR(y=yNA, ETA=ETA, R2=0.5, nIter=other_params$nIter, burnIn=other_params$burnIn, saveAt=other_params$out_prefix, verbose=FALSE)
+    sol = tryCatch(
+        BGLR::BGLR(y=yNA, ETA=ETA, R2=0.5, nIter=other_params$nIter, burnIn=other_params$burnIn, saveAt=other_params$out_prefix, verbose=FALSE),
+        error = function(e) {NA})
+    if (is.na(sol[1])) {
+        error = methods::new("gpError",
+            code=407,
+            message=paste0(
+                "Error in models::fn_Bayes_C(...). ",
+                "Failed to fit the model."))
+        return(error)
+    }
     ### Extract effects including the intercept and fixed effects
     if (!is.null(list_merged$COVAR)) {
         b_hat = c(sol$mu, sol$ETA[[2]]$b, sol$ETA$MRK$b)
@@ -1033,9 +1108,9 @@ fn_Bayes_C = function(list_merged, vec_idx_training, vec_idx_validation,
     if (verbose) {
         p = ncol(list_merged$G)
         print("Allele effects distribution:")
-        txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)])
-        print("Relative posisitions of allele effects across the genome:")
-        txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)])
+        tryCatch(txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
+        print("Relative positions of allele effects across the genome:")
+        tryCatch(txtplot::txtplot(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
         print(paste0("Number of non-zero effects: ", n_non_zero, " (", round(100*n_non_zero/p), "%)"))
     }
     ### Evaluate prediction performance
@@ -1169,9 +1244,22 @@ fn_gBLUP = function(list_merged, vec_idx_training, vec_idx_validation, other_par
             eval(parse(text=paste0("df_training$covariate_", j, " = X[, j]")))
         }
         covariates_string = paste(paste0("covariate_", 1:ncol(X)), collapse="+")
-        eval(parse(text=paste0("mod = sommer::mmer(y ~ 1 + ", covariates_string, ", random= ~vsr(id, Gu=A ), rcov= ~vsr(units), data=df_training, dateWarning=FALSE, verbose=FALSE)")))
+        mod = tryCatch(
+            eval(parse(text=paste0("sommer::mmer(y ~ 1 + ", covariates_string, ", random= ~vsr(id, Gu=A ), rcov= ~vsr(units), data=df_training, dateWarning=FALSE, verbose=FALSE)"))),
+            error=function(e){NA})
     } else {
-        mod = sommer::mmer(y ~ 1, random= ~vsr(id, Gu=A), rcov= ~vsr(units), data=df_training, dateWarning=FALSE, verbose=FALSE)
+        mod = tryCatch(
+            sommer::mmer(y ~ 1, random= ~vsr(id, Gu=A), rcov= ~vsr(units), data=df_training, dateWarning=FALSE, verbose=FALSE),
+            error=function(e){NA})
+    }
+    ### Error catching
+    if (is.na(mod[1])) {
+        error = methods::new("gpError",
+            code=407,
+            message=paste0(
+                "Error in models::fn_gBLUP(...). ",
+                "Failed to fit the model."))
+        return(error)
     }
     ### Extract effects
     b_hat = mod$Beta$Estimate; names(b_hat) = mod$Beta$Effect
@@ -1182,12 +1270,12 @@ fn_gBLUP = function(list_merged, vec_idx_training, vec_idx_validation, other_par
         p = length(vec_effects)
         if (length(b_hat) > 1) {
             print("Fixed effects distribution:")
-            txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)])
+            tryCatch(txtplot::txtdensity(b_hat[!is.na(b_hat) & !is.infinite(b_hat)]), error=function(e){print("Empty plot")})
         } else {
             print(paste0("Intercept = ", b_hat))
         }
         print("Random effects distribution, i.e. BLUPs of each sample:")
-        txtplot::txtdensity(u_hat[!is.na(u_hat) & !is.infinite(u_hat)])
+        tryCatch(txtplot::txtdensity(u_hat[!is.na(u_hat) & !is.infinite(u_hat)]), error=function(e){print("Empty plot")})
         print(paste0("Number of non-zero effects: ", n_non_zero, " (", round(100*n_non_zero/p), "%)"))
     }
     ### Evaluate prediction performance

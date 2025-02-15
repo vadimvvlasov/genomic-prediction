@@ -12,6 +12,7 @@ fn_load_genotype(
   retain_minus_one_alleles_per_locus = TRUE,
   min_depth = 0,
   max_depth = .Machine$integer.max,
+  new_format = FALSE,
   verbose = FALSE
 )
 }
@@ -43,6 +44,8 @@ followed by \code{bcftools -m - ...} to  split mult-iallelic sites into bialleli
 \item{min_depth}{if input is a VCF file: minimum depth per locus beyond which will be set to missing data (Default=0)}
 
 \item{max_depth}{if input is a VCF file: maximum depth per locus beyond which will be set to missing data (Default=.Machine$integer.max)}
+
+\item{new_format}{use the new allele frequency table format? (i.e. includes all the alleles between \code{pos} and \code{allele}, e.g. header: \code{all_alleles} with rows: \code{A|T}, and \code{C|G|T}) (Default=FALSE)}
 
 \item{verbose}{show genotype loading messages? (Default=FALSE)}
 }

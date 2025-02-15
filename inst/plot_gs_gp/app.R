@@ -32,6 +32,7 @@ fn_io_server = function(dir=NULL) {
 	list_list_output = list()
 	for (i in 1:length(vec_Rds)) {
 		# i = 1
+		# print(i)
 		if (i == 1) {
 			nth = "1st"
 		} else if (i == 2) {
@@ -58,11 +59,28 @@ fn_io_server = function(dir=NULL) {
 			# shiny::need(!is.null(list_output$METRICS_ACROSS_POP_LOPO), paste0("Missing filed: METRICS_ACROSS_POP_LOPO")),
 			# shiny::need(!is.null(list_output$YPRED_ACROSS_POP_LOPO), paste0("Missing filed: YPRED_ACROSS_POP_LOPO")),
 			# shiny::need(!is.null(list_output$GENOMIC_PREDICTIONS), paste0("Missing filed: GENOMIC_PREDICTIONS")),
-			shiny::need(!is.null(list_output$ADDITIVE_GENETIC_EFFECTS), paste0("Missing filed: ADDITIVE_GENETIC_EFFECTS"))
+			shiny::need(!is.null(list_output$ADDITIVE_GENETIC_EFFECTS), paste0("Missing field: ADDITIVE_GENETIC_EFFECTS"))
 		)
 		trait = list_output$TRAIT_NAME
 		pop = list_output$POPULATION
-		eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "` = list_output")))
+		if (!is.null(eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`"))))) {
+			if (!is.na(head(list_output$METRICS_ACROSS_POP_BULK, n=1)[1])) {
+				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$METRICS_ACROSS_POP_BULK = list_output$METRICS_ACROSS_POP_BULK")))
+				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$YPRED_ACROSS_POP_BULK = list_output$YPRED_ACROSS_POP_BULK")))
+				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$METRICS_ACROSS_POP_PAIRWISE = list_output$METRICS_ACROSS_POP_PAIRWISE")))
+				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$YPRED_ACROSS_POP_PAIRWISE = list_output$YPRED_ACROSS_POP_PAIRWISE")))
+				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$METRICS_ACROSS_POP_LOPO = list_output$METRICS_ACROSS_POP_LOPO")))
+				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$YPRED_ACROSS_POP_LOPO = list_output$YPRED_ACROSS_POP_LOPO")))
+			}
+			if (!is.na(head(list_output$METRICS_WITHIN_POP, n=1)[1])) {
+				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$METRICS_WITHIN_POP = list_output$METRICS_WITHIN_POP")))
+				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$YPRED_WITHIN_POP = list_output$YPRED_WITHIN_POP")))
+				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$GENOMIC_PREDICTIONS = list_output$GENOMIC_PREDICTIONS")))
+				eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "`$ADDITIVE_GENETIC_EFFECTS = list_output$ADDITIVE_GENETIC_EFFECTS")))
+			}
+		} else {
+			eval(parse(text=paste0("list_list_output$`", trait, "_", pop, "` = list_output")))
+		}
 	}
 	return(list_list_output)
 }
@@ -825,7 +843,7 @@ fn_across_lopo_table_metrics_server = function(input, list_list_output) {
 fn_across_lopo_scatter_server = function(input, list_list_output) {
 	list_output = list_list_output[[input$across_lopo_scat_trait]]
 	# if (!is.na(list_output$YPRED_ACROSS_POP_LOPO[1])[1]) {
-	if (!is.null(list_output$YPRED_ACROSS_POP_LOPO)) {
+	if (is.null(list_output$YPRED_ACROSS_POP_LOPO) | is.na(head(list_output$YPRED_ACROSS_POP_LOPO, n=1)[1])) {
 		df = data.frame(ID="No across populations data available", x=0, y=0)
 		p = plotly::plot_ly(data=df, x=~x, y=~y, type="scatter", mode='markers', text=~ID)
 		return(p)
@@ -1221,6 +1239,7 @@ server = function(input, output, session) {
 		# dirname_root = "/group/pasture/Jeff/gp/inst/exec_Rscript/output"
 		# dirname_root = "/group/pasture/Jeff/lucerne/workdir/gs/output_ground_truth_biomass_traits/output"
 		# dirname_root = "/group/pasture/Jeff/lucerne/workdir/gs/output_remote_sensing_biomass_traits/output"
+		# dirname_root = "/group/pc3/Jeff/gs/per_trial_gp/output/"
 		dirname_root = "/"
 		shinyFiles::shinyDirChoose(input, id='dir', roots=c(root=dirname_root), filetypes=c('rds', 'Rds', 'RDS'), session=session)
 		dir = as.character(parseDirPath(c(root=dirname_root), input$dir))
@@ -1236,6 +1255,9 @@ server = function(input, output, session) {
 		vec_pop_names = c()
 		for (x in list_list_output) {
 			# x = list_list_output[[1]]
+			if (is.na(head(x$METRICS_WITHIN_POP, n=1)[1])) {
+				next
+			}
 			vec_traits = c(vec_traits, as.character(x$TRAIT_NAME))
 			vec_populations = c(vec_populations, unique(c(as.character(x$POPULATION), unique(x$METRICS_WITHIN_POP$pop_training))))
 			vec_models = c(vec_models, unique(as.character(x$METRICS_WITHIN_POP$model)))
