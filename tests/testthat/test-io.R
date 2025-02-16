@@ -5,7 +5,7 @@ test_that("fn_G_extract_names", {
     set.seed(123)
     n = 100
     n_alleles = 3
-    mat_genotypes = simquantgen::fn_simulate_genotypes(n=n, n_alleles=n_alleles, verbose=TRUE)
+    mat_genotypes = fn_simulate_genotypes(n=n, n_alleles=n_alleles, verbose=TRUE)
     list_ids_chr_pos_all = fn_G_extract_names(mat_genotypes=mat_genotypes, verbose=TRUE)
     ### Assertions
     n_digits = length(unlist(strsplit(as.character(n), "")))
@@ -19,7 +19,7 @@ test_that("fn_G_extract_names", {
 
 test_that("fn_G_split_off_alternative_allele", {
     set.seed(123)
-    G_ref = simquantgen::fn_simulate_genotypes(verbose=TRUE)
+    G_ref = fn_simulate_genotypes(verbose=TRUE)
     G_alt = 1 - G_ref; colnames(G_alt) = gsub("allele_1$", "allele_2", colnames(G_alt))
     G_refalt = cbind(G_ref, G_alt)
     list_G_G_alt = fn_G_split_off_alternative_allele(G=G_refalt, verbose=TRUE)
@@ -30,7 +30,7 @@ test_that("fn_G_split_off_alternative_allele", {
 test_that("fn_G_numeric_to_non_numeric", {
     set.seed(123)
     ploidy = 42
-    G_numeric = simquantgen::fn_simulate_genotypes(ploidy=ploidy, n_alleles=52, verbose=TRUE)
+    G_numeric = fn_simulate_genotypes(ploidy=ploidy, n_alleles=52, verbose=TRUE)
     G_non_numeric = fn_G_numeric_to_non_numeric(G=G_numeric, ploidy=ploidy, verbose=TRUE)
     vec_counts = table(unlist(strsplit(G_non_numeric[1,1], ""))); names(vec_counts) = NULL
     expect_equal(G_numeric[1,1], vec_counts[1] / sum(vec_counts))
