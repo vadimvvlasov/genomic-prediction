@@ -41,7 +41,7 @@ test_that("fn_G_non_numeric_to_numeric", {
     set.seed(123)
     ploidy = 42
     n_alleles = 2
-    G_numeric = simquantgen::fn_simulate_genotypes(ploidy=ploidy, n_alleles=n_alleles, verbose=TRUE)
+    G_numeric = fn_simulate_genotypes(ploidy=ploidy, n_alleles=n_alleles, verbose=TRUE)
     G_non_numeric = fn_G_numeric_to_non_numeric(G=G_numeric, ploidy=ploidy, verbose=TRUE)
     G_numeric_back = fn_G_non_numeric_to_numeric(G_non_numeric=G_non_numeric, verbose=TRUE)
     expect_equal(sum(abs(G_numeric - G_numeric_back) < 1e-4), prod(dim(G_numeric)))
@@ -54,18 +54,18 @@ test_that("fn_G_to_vcf", {
     n = 123
     l = 456
     n_alleles = 2
-    G = simquantgen::fn_simulate_genotypes(n=n, l=l, n_alleles=n_alleles, verbose=TRUE)
+    G = fn_simulate_genotypes(n=n, l=l, n_alleles=n_alleles, verbose=TRUE)
     vcf = fn_G_to_vcf(G, verbose=TRUE)
     expect_equal(dim(vcf@gt), c(l, n+1))
     ### Error catching
-    G_triallelic = simquantgen::fn_simulate_genotypes(n=n, l=l, n_alleles=3, verbose=TRUE)
+    G_triallelic = fn_simulate_genotypes(n=n, l=l, n_alleles=3, verbose=TRUE)
     vcf_error = fn_G_to_vcf(G_triallelic, verbose=TRUE)
     expect_equal(class(vcf_error)[1], "gpError")
 })
 
 test_that("fn_vcf_to_G", {
     set.seed(123)
-    G = simquantgen::fn_simulate_genotypes(verbose=TRUE)
+    G = fn_simulate_genotypes(verbose=TRUE)
     vcf = fn_G_to_vcf(G=G, min_depth=1000, max_depth=1000, verbose=TRUE)
     list_G_D = fn_vcf_to_G(vcf=vcf, verbose=TRUE)
     G_back = list_G_D$G
@@ -77,7 +77,7 @@ test_that("fn_vcf_to_G", {
 test_that("fn_classify_allele_frequencies", {
     set.seed(123)
     ploidy = 4
-    G = simquantgen::fn_simulate_genotypes(ploidy=ploidy, verbose=TRUE)
+    G = fn_simulate_genotypes(ploidy=ploidy, verbose=TRUE)
     G_classes = fn_classify_allele_frequencies(G=G, ploidy=ploidy, verbose=TRUE)
     G_classes_diploid = fn_classify_allele_frequencies(G=G, ploidy=2, verbose=TRUE)
     expect_equal(sum(G == G_classes), prod(dim(G)))
