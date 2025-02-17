@@ -1,4 +1,3 @@
-suppressWarnings(suppressPackageStartupMessages(library(simquantgen)))
 suppressWarnings(suppressPackageStartupMessages(library(vcfR)))
 suppressWarnings(suppressPackageStartupMessages(library(txtplot)))
 
