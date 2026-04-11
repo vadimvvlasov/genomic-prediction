@@ -11,6 +11,7 @@ from gp_py.models import (
     fn_Bayes_B,
     fn_Bayes_C,
     fn_elastic_net,
+    fn_gBLUP,
     fn_lasso,
     fn_ridge,
 )
@@ -24,6 +25,7 @@ MODEL_REGISTRY = {
     "Bayes_A": fn_Bayes_A,
     "Bayes_B": fn_Bayes_B,
     "Bayes_C": fn_Bayes_C,
+    "gBLUP": fn_gBLUP,
 }
 
 
@@ -72,6 +74,37 @@ def fn_cross_validation_preparation(
     return runs
 
 
+def _run_single_cv(
+    run: CVRun,
+    list_merged: MergedData,
+    bayes_backend: str,
+    verbose: bool,
+) -> tuple[dict, pd.DataFrame]:
+    """Worker function for a single CV fold/rep/model combination."""
+    fn_model = MODEL_REGISTRY.get(run.model)
+    if fn_model is None:
+        return {}, pd.DataFrame()
+    out = fn_model(
+        list_merged,
+        run.train_idx,
+        run.valid_idx,
+        other_params={"n_folds": 10, "bayes_backend": bayes_backend},
+        verbose=verbose,
+    )
+    perf = out["list_perf"]
+    metrics_row = {
+        "rep": run.rep,
+        "fold": run.fold,
+        "model": run.model,
+        **perf,
+    }
+    dfv = out["df_y_validation"].copy()
+    dfv["rep"] = run.rep
+    dfv["fold"] = run.fold
+    dfv["model"] = run.model
+    return metrics_row, dfv
+
+
 def fn_cross_validation_within_population(
     list_merged: MergedData,
     *,
@@ -95,33 +128,30 @@ def fn_cross_validation_within_population(
         verbose=verbose,
     )
 
+    if bool_parallel and n_threads > 1:
+        from joblib import Parallel, delayed
+
+        results = Parallel(n_jobs=n_threads, verbose=max(0, verbose * 10))(
+            delayed(_run_single_cv)(run, list_merged, bayes_backend, verbose)
+            for run in runs
+        )
+    else:
+        try:
+            from tqdm import tqdm
+        except ImportError:
+            tqdm = iter  # fallback: no progress bar
+
+        results = [
+            _run_single_cv(run, list_merged, bayes_backend, verbose)
+            for run in tqdm(runs, desc="CV folds", disable=not verbose)
+        ]
+
     metrics_rows = []
     ypred_rows = []
-    for run in runs:
-        fn_model = MODEL_REGISTRY.get(run.model)
-        if fn_model is None:
-            continue
-        out = fn_model(
-            list_merged,
-            run.train_idx,
-            run.valid_idx,
-            other_params={"n_folds": 10, "bayes_backend": bayes_backend},
-            verbose=verbose,
-        )
-        perf = out["list_perf"]
-        metrics_rows.append(
-            {
-                "rep": run.rep,
-                "fold": run.fold,
-                "model": run.model,
-                **perf,
-            }
-        )
-        dfv = out["df_y_validation"].copy()
-        dfv["rep"] = run.rep
-        dfv["fold"] = run.fold
-        dfv["model"] = run.model
-        ypred_rows.append(dfv)
+    for metrics_row, dfv in results:
+        if metrics_row:
+            metrics_rows.append(metrics_row)
+            ypred_rows.append(dfv)
 
     metrics = pd.DataFrame(metrics_rows)
     ypred = pd.concat(ypred_rows, ignore_index=True) if ypred_rows else pd.DataFrame()

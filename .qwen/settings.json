@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(www.biorxiv.org)"
+      "WebFetch(www.biorxiv.org)",
+      "Bash(uv *)",
+      "WebSearch",
+      "WebFetch(pmc.ncbi.nlm.nih.gov)",
+      "WebFetch(en.wikipedia.org)",
+      "WebFetch(academic.oup.com)"
     ]
-  }
+  },
+  "$version": 3
 }

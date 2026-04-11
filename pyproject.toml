@@ -28,6 +28,7 @@ notebook = [
   "matplotlib>=3.8",
   "seaborn>=0.13",
   "plotly>=5.22",
+  "tqdm>=4.67.3",
 ]
 dev = [
   "pytest>=8.2",

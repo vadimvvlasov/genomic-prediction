@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import numpy as np
@@ -108,6 +109,24 @@ def gp(args: GPArgs) -> str:
 
     out_dir = Path(args.dir_output or ".")
     out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / f"GENOMIC_PREDICTIONS_OUTPUT-{merged.trait_name}-{args.population}.parquet"
-    pd.DataFrame({"key": list(output.keys())}).to_parquet(out_path)
-    return str(out_path)
+    base_name = f"GENOMIC_PREDICTIONS_OUTPUT-{merged.trait_name}-{args.population}"
+
+    # Write each DataFrame to a separate parquet file for downstream consumption
+    for key, value in output.items():
+        if isinstance(value, pd.DataFrame):
+            out_path = out_dir / f"{base_name}-{key}.parquet"
+            value.to_parquet(out_path, index=False)
+        elif isinstance(value, str):
+            # Write scalar values as JSON for easy loading
+            meta_path = out_dir / f"{base_name}-metadata.json"
+            meta = {}
+            if meta_path.exists():
+                meta = json.loads(meta_path.read_text())
+            meta[key] = value
+            meta_path.write_text(json.dumps(meta, indent=2))
+        elif isinstance(value, dict):
+            # Empty or nested dicts → JSON
+            out_path = out_dir / f"{base_name}-{key}.json"
+            out_path.write_text(json.dumps(value, indent=2, default=str))
+
+    return str(out_dir / f"{base_name}-METRICS_WITHIN_POP.parquet")
