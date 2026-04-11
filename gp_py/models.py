@@ -482,3 +482,184 @@ def fn_gBLUP(
         "n_non_zero": n_non_zero,
         "model": "gBLUP",
     }
+
+
+# ── Machine Learning Models ──────────────────────────────────────────
+
+
+def fn_SVR(
+    list_merged: MergedData,
+    vec_idx_training,
+    vec_idx_validation,
+    other_params=None,
+    *,
+    verbose: bool = False,
+) -> dict:
+    """Support Vector Regression with RBF kernel.
+
+    Mirrors Qiu et al. 2022 (J. Anim. Sci. Biotechnol. 13:60):
+    SVR achieved +19.0% accuracy over GBLUP for pig reproduction traits.
+    """
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.svm import SVR as SklearnSVR
+
+    X_train, y_train, X_valid, y_valid = _split_xy(
+        list_merged, vec_idx_training, vec_idx_validation
+    )
+
+    # Standardize for SVR (kernel methods need scaled features)
+    scaler = StandardScaler()
+    X_train_sc = scaler.fit_transform(X_train)
+    X_valid_sc = scaler.transform(X_valid)
+
+    model = SklearnSVR(kernel="rbf", C=1.0, epsilon=0.1)
+    model.fit(X_train_sc, y_train)
+    y_pred = model.predict(X_valid_sc)
+
+    # SVR doesn't provide per-feature coefficients directly for RBF kernel
+    # Use dual_coef_ (support vector weights) as proxy for effect sizes
+    coefs = np.zeros(X_train.shape[1])
+    if hasattr(model, "dual_coef_") and model.dual_coef_ is not None:
+        # Approximate feature importance via SV weights
+        sv = model.support_vectors_
+        coefs = (model.dual_coef_.T * sv).sum(axis=0).flatten()
+
+    return _wrap_output(
+        list_merged, vec_idx_validation, y_valid, y_pred, coefs, model.intercept_[0], "SVR"
+    )
+
+
+def fn_RandomForest(
+    list_merged: MergedData,
+    vec_idx_training,
+    vec_idx_validation,
+    other_params=None,
+    *,
+    verbose: bool = False,
+) -> dict:
+    """Random Forest regressor.
+
+    Mirrors Qiu et al. 2022 (J. Anim. Sci. Biotechnol. 13:60):
+    RF achieved +8.9% accuracy over GBLUP for pig reproduction traits.
+    """
+    from sklearn.ensemble import RandomForestRegressor
+
+    X_train, y_train, X_valid, y_valid = _split_xy(
+        list_merged, vec_idx_training, vec_idx_validation
+    )
+
+    model = RandomForestRegressor(
+        n_estimators=100,
+        max_features="sqrt",
+        min_samples_leaf=5,
+        random_state=123,
+        n_jobs=-1,
+    )
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_valid)
+
+    # Feature importances (Gini-based)
+    coefs = model.feature_importances_
+
+    return _wrap_output(
+        list_merged, vec_idx_validation, y_valid, y_pred, coefs, 0.0, "RandomForest"
+    )
+
+
+def fn_XGBoost(
+    list_merged: MergedData,
+    vec_idx_training,
+    vec_idx_validation,
+    other_params=None,
+    *,
+    verbose: bool = False,
+) -> dict:
+    """XGBoost regressor.
+
+    Mirrors EasyGeSe benchmark (2025):
+    XGBoost achieved +2.5% accuracy over Bayesian baselines.
+    """
+    try:
+        import xgboost as xgb
+    except ImportError as exc:
+        raise ImportError(
+            "Install optional dependency group 'ml': uv add xgboost"
+        ) from exc
+
+    X_train, y_train, X_valid, y_valid = _split_xy(
+        list_merged, vec_idx_training, vec_idx_validation
+    )
+
+    model = xgb.XGBRegressor(
+        n_estimators=200,
+        max_depth=6,
+        learning_rate=0.05,
+        subsample=0.8,
+        colsample_bytree=0.8,
+        reg_alpha=0.1,
+        reg_lambda=1.0,
+        random_state=123,
+        verbosity=0,
+        n_jobs=-1,
+    )
+    model.fit(X_train, y_train, eval_set=[(X_valid, y_valid)], verbose=False)
+    y_pred = model.predict(X_valid)
+
+    # Feature importance (gain-based)
+    coefs = model.feature_importances_
+
+    return _wrap_output(
+        list_merged, vec_idx_validation, y_valid, y_pred, coefs, 0.0, "XGBoost"
+    )
+
+
+def fn_LightGBM(
+    list_merged: MergedData,
+    vec_idx_training,
+    vec_idx_validation,
+    other_params=None,
+    *,
+    verbose: bool = False,
+) -> dict:
+    """LightGBM regressor.
+
+    Mirrors EasyGeSe benchmark (2025):
+    LightGBM achieved +2.1% accuracy over Bayesian baselines,
+    with ~30% lower RAM usage and faster training.
+    """
+    try:
+        import lightgbm as lgb
+    except ImportError as exc:
+        raise ImportError(
+            "Install optional dependency group 'ml': uv add lightgbm"
+        ) from exc
+
+    X_train, y_train, X_valid, y_valid = _split_xy(
+        list_merged, vec_idx_training, vec_idx_validation
+    )
+
+    model = lgb.LGBMRegressor(
+        n_estimators=200,
+        max_depth=6,
+        learning_rate=0.05,
+        subsample=0.8,
+        colsample_bytree=0.8,
+        reg_alpha=0.1,
+        reg_lambda=1.0,
+        random_state=123,
+        n_jobs=-1,
+        verbose=-1,
+    )
+    model.fit(
+        X_train, y_train,
+        eval_set=[(X_valid, y_valid)],
+        callbacks=[lgb.log_evaluation(period=0)],
+    )
+    y_pred = model.predict(X_valid)
+
+    # Feature importance (gain-based)
+    coefs = model.feature_importances_
+
+    return _wrap_output(
+        list_merged, vec_idx_validation, y_valid, y_pred, coefs, 0.0, "LightGBM"
+    )

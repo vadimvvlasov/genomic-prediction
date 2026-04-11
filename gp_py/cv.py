@@ -13,7 +13,11 @@ from gp_py.models import (
     fn_elastic_net,
     fn_gBLUP,
     fn_lasso,
+    fn_LightGBM,
     fn_ridge,
+    fn_RandomForest,
+    fn_SVR,
+    fn_XGBoost,
 )
 from gp_py.schema import MergedData
 
@@ -26,6 +30,11 @@ MODEL_REGISTRY = {
     "Bayes_B": fn_Bayes_B,
     "Bayes_C": fn_Bayes_C,
     "gBLUP": fn_gBLUP,
+    # Machine learning models
+    "SVR": fn_SVR,
+    "RandomForest": fn_RandomForest,
+    "XGBoost": fn_XGBoost,
+    "LightGBM": fn_LightGBM,
 }
 
 

@@ -41,6 +41,10 @@ bayes = [
   "pymc>=5.16",
   "arviz>=0.18",
 ]
+ml = [
+  "xgboost>=2.0",
+  "lightgbm>=4.0",
+]
 rbridge = [
   "rpy2>=3.5",
 ]
