@@ -7,6 +7,40 @@ import pandas as pd
 from gp_py.schema import MergedData
 
 
+def _encode_genotype_column(col: pd.Series) -> pd.Series:
+    if pd.api.types.is_numeric_dtype(col):
+        return col.astype(float)
+
+    s = col.astype("string").str.strip()
+    s = s.mask(s.isin(["", "NA", "na", "NaN", "nan", "missing", "MISSING"]))
+
+    non_na = s.dropna()
+    if non_na.empty:
+        return pd.Series([float("nan")] * len(s), index=s.index, dtype=float)
+
+    normalized = non_na.str.upper().str.replace(r"[^A-Z0-9]", "", regex=True)
+    ploidy = int(normalized.str.len().mode().iloc[0])
+    if ploidy <= 0:
+        raise ValueError("Invalid genotype ploidy inferred from non-numeric genotype column")
+
+    alleles = sorted({ch for g in normalized for ch in g})
+    if len(alleles) != 2:
+        raise ValueError(
+            f"Only biallelic non-numeric genotypes are supported in scaffold, got alleles={alleles}"
+        )
+    alt = alleles[1]
+
+    def _encode_one(v: str | None) -> float:
+        if v is None or pd.isna(v):
+            return float("nan")
+        g = "".join(ch for ch in str(v).upper() if ch.isalnum())
+        if len(g) != ploidy:
+            return float("nan")
+        return float(sum(ch == alt for ch in g) / ploidy)
+
+    return s.apply(_encode_one).astype(float)
+
+
 def fn_load_genotype(fname_geno: str, *, verbose: bool = False) -> pd.DataFrame:
     path = Path(fname_geno)
     if not path.exists():
@@ -66,7 +100,11 @@ def fn_load_phenotype(
 def fn_filter_genotype(
     G: pd.DataFrame, *, maf: float = 0.01, sdev_min: float = 1e-4, verbose: bool = False
 ) -> pd.DataFrame:
-    numeric = G.select_dtypes(include=["number"])
+    numeric = G.copy()
+    for c in numeric.columns:
+        numeric[c] = _encode_genotype_column(numeric[c])
+
+    numeric = numeric.select_dtypes(include=["number"])
     if numeric.shape[1] == 0:
         raise ValueError("Genotype matrix has no numeric marker columns")
 
