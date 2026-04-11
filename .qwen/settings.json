@@ -6,7 +6,12 @@
       "WebSearch",
       "WebFetch(pmc.ncbi.nlm.nih.gov)",
       "WebFetch(en.wikipedia.org)",
-      "WebFetch(academic.oup.com)"
+      "WebFetch(academic.oup.com)",
+      "WebFetch(jasbsci.biomedcentral.com)",
+      "WebFetch(www.researchgate.net)",
+      "WebFetch(d-nb.info)",
+      "WebFetch(pdfs.semanticscholar.org)",
+      "WebFetch(link.springer.com)"
     ]
   },
   "$version": 3
