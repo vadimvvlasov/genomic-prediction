@@ -24,6 +24,7 @@ def run(
     pheno_idx_col_y: int = typer.Option(3, help="1-based trait column index in phenotype file"),
     n_folds: int = typer.Option(2, help="K-fold count"),
     n_reps: int = typer.Option(2, help="Replication count"),
+    bayes_backend: str = typer.Option("auto", help="Bayes backend: auto|native|rbridge"),
     verbose: bool = typer.Option(True, help="Verbose logs"),
 ) -> None:
     args = GPArgs(
@@ -34,6 +35,7 @@ def run(
         pheno_idx_col_y=pheno_idx_col_y,
         n_folds=n_folds,
         n_reps=n_reps,
+        bayes_backend=bayes_backend,
         verbose=verbose,
     )
     out = gp(args)

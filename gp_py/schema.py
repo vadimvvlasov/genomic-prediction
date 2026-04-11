@@ -32,6 +32,7 @@ class GPArgs:
         "gBLUP",
     )
     bool_parallel: bool = True
+    bayes_backend: str = "auto"
     max_mem_gb: float = 15.0
     n_threads: int = 2
     verbose: bool = True

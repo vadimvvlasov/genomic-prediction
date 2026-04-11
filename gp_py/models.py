@@ -145,18 +145,33 @@ def _run_bayes_native(X_train, y_train, X_valid):
 
 
 def _fn_bayes_bridge(
-    list_merged: MergedData, vec_idx_training, vec_idx_validation, *, model_name: str
+    list_merged: MergedData,
+    vec_idx_training,
+    vec_idx_validation,
+    *,
+    model_name: str,
+    backend: str = "auto",
 ):
     X_train, y_train, X_valid, y_valid = _split_xy(
         list_merged, vec_idx_training, vec_idx_validation
     )
     bglr_map = {"Bayes_A": "BayesA", "Bayes_B": "BayesB", "Bayes_C": "BayesC"}
-    try:
+    if backend not in {"auto", "native", "rbridge"}:
+        raise ValueError("bayes_backend must be one of: auto, native, rbridge")
+
+    if backend == "native":
+        y_pred, coefs, intercept = _run_bayes_native(X_train, y_train, X_valid)
+    elif backend == "rbridge":
         y_pred, coefs, intercept = _run_bglr_via_rpy2(
             bglr_map[model_name], X_train, y_train, X_valid
         )
-    except Exception:
-        y_pred, coefs, intercept = _run_bayes_native(X_train, y_train, X_valid)
+    else:
+        try:
+            y_pred, coefs, intercept = _run_bglr_via_rpy2(
+                bglr_map[model_name], X_train, y_train, X_valid
+            )
+        except Exception:
+            y_pred, coefs, intercept = _run_bayes_native(X_train, y_train, X_valid)
     return _wrap_output(
         list_merged, vec_idx_validation, y_valid, y_pred, coefs, intercept, model_name
     )
@@ -170,7 +185,14 @@ def fn_Bayes_A(
     *,
     verbose: bool = False,
 ) -> dict:
-    return _fn_bayes_bridge(list_merged, vec_idx_training, vec_idx_validation, model_name="Bayes_A")
+    backend = "auto" if other_params is None else str(other_params.get("bayes_backend", "auto"))
+    return _fn_bayes_bridge(
+        list_merged,
+        vec_idx_training,
+        vec_idx_validation,
+        model_name="Bayes_A",
+        backend=backend,
+    )
 
 
 def fn_Bayes_B(
@@ -181,7 +203,14 @@ def fn_Bayes_B(
     *,
     verbose: bool = False,
 ) -> dict:
-    return _fn_bayes_bridge(list_merged, vec_idx_training, vec_idx_validation, model_name="Bayes_B")
+    backend = "auto" if other_params is None else str(other_params.get("bayes_backend", "auto"))
+    return _fn_bayes_bridge(
+        list_merged,
+        vec_idx_training,
+        vec_idx_validation,
+        model_name="Bayes_B",
+        backend=backend,
+    )
 
 
 def fn_Bayes_C(
@@ -192,7 +221,14 @@ def fn_Bayes_C(
     *,
     verbose: bool = False,
 ) -> dict:
-    return _fn_bayes_bridge(list_merged, vec_idx_training, vec_idx_validation, model_name="Bayes_C")
+    backend = "auto" if other_params is None else str(other_params.get("bayes_backend", "auto"))
+    return _fn_bayes_bridge(
+        list_merged,
+        vec_idx_training,
+        vec_idx_validation,
+        model_name="Bayes_C",
+        backend=backend,
+    )
 
 
 def fn_gBLUP(

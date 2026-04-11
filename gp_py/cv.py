@@ -79,6 +79,7 @@ def fn_cross_validation_within_population(
     n_reps: int = 10,
     vec_models_to_test: tuple[str, ...] = ("ridge", "lasso", "elastic_net"),
     bool_parallel: bool = True,
+    bayes_backend: str = "auto",
     max_mem_gb: float = 15.0,
     n_threads: int = 2,
     dir_output: str | None = None,
@@ -101,7 +102,11 @@ def fn_cross_validation_within_population(
         if fn_model is None:
             continue
         out = fn_model(
-            list_merged, run.train_idx, run.valid_idx, other_params={"n_folds": 10}, verbose=verbose
+            list_merged,
+            run.train_idx,
+            run.valid_idx,
+            other_params={"n_folds": 10, "bayes_backend": bayes_backend},
+            verbose=verbose,
         )
         perf = out["list_perf"]
         metrics_rows.append(

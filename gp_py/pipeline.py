@@ -56,6 +56,7 @@ def gp(args: GPArgs) -> str:
         n_reps=args.n_reps,
         vec_models_to_test=args.vec_models_to_test,
         bool_parallel=args.bool_parallel,
+        bayes_backend=args.bayes_backend,
         max_mem_gb=args.max_mem_gb,
         n_threads=args.n_threads,
         dir_output=args.dir_output,
@@ -84,7 +85,7 @@ def gp(args: GPArgs) -> str:
                     merged,
                     known_idx,
                     missing_idx,
-                    other_params={"n_folds": 10},
+                    other_params={"n_folds": 10, "bayes_backend": args.bayes_backend},
                     verbose=args.verbose,
                 )
                 genomic_predictions = pred_out["df_y_validation"].copy()
