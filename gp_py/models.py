@@ -29,7 +29,23 @@ def _wrap_output(
             "y_pred": y_pred,
         }
     )
-    perf = fn_prediction_performance_metrics(df_y_validation["y_true"], df_y_validation["y_pred"])
+
+    yt = df_y_validation["y_true"]
+    has_valid_true = np.any(np.isfinite(yt))
+
+    if has_valid_true:
+        perf = fn_prediction_performance_metrics(
+            df_y_validation["y_true"], df_y_validation["y_pred"]
+        )
+    else:
+        perf = {
+            "mbe": float("nan"),
+            "mae": float("nan"),
+            "rmse": float("nan"),
+            "r2": float("nan"),
+            "corr": float("nan"),
+        }
+
     coef_names = ["intercept", *list_merged.G.columns.astype(str).to_list()]
     vec_effects = pd.Series([intercept, *coefs], index=coef_names, dtype=float)
     n_non_zero = int(np.sum(np.abs(vec_effects.to_numpy()) >= np.finfo(float).eps))
