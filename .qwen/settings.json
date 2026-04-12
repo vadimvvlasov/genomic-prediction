@@ -11,7 +11,8 @@
       "WebFetch(www.researchgate.net)",
       "WebFetch(d-nb.info)",
       "WebFetch(pdfs.semanticscholar.org)",
-      "WebFetch(link.springer.com)"
+      "WebFetch(link.springer.com)",
+      "Bash(python3 *)"
     ]
   },
   "$version": 3
