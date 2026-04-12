@@ -148,7 +148,7 @@ def fn_cross_validation_within_population(
         try:
             from tqdm import tqdm
         except ImportError:
-            tqdm = iter  # fallback: no progress bar
+            tqdm = lambda x, **kwargs: x  # fallback: no progress bar
 
         results = [
             _run_single_cv(run, list_merged, bayes_backend, verbose)
