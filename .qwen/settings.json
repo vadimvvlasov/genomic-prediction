@@ -12,7 +12,12 @@
       "WebFetch(d-nb.info)",
       "WebFetch(pdfs.semanticscholar.org)",
       "WebFetch(link.springer.com)",
-      "Bash(python3 *)"
+      "Bash(python3 *)",
+      "Bash(gh *)",
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "Bash(git config *)",
+      "Bash(grep *)"
     ]
   },
   "$version": 3
