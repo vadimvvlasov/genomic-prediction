@@ -4,7 +4,7 @@ Genomic prediction cross-validation using penalised, Bayesian and mixed linear m
 
 |**Build Status**|**License**|
 |:--------------:|:---------:|
-| <a href="https://github.com/jeffersonfparil/gp/actions"><img src="https://github.com/jeffersonfparil/gp/actions/workflows/r.yml/badge.svg"></a> | [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) |
+| <a href="https://github.com/vadimvvlasov/genomic-prediction/actions"><img src="https://github.com/vadimvvlasov/genomic-prediction/actions/workflows/r.yml/badge.svg"></a> | [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) |
 
 A streamlined interface to calculate the breeding values of entries in breeding trials.
 
@@ -29,8 +29,8 @@ A streamlined interface to calculate the breeding values of entries in breeding 
 
 ```bash
 # Clone the repository
-git clone https://github.com/jeffersonfparil/gp.git
-cd gp
+git clone https://github.com/vadimvvlasov/genomic-prediction.git
+cd genomic-prediction
 
 # Install dependencies with uv
 uv sync
@@ -190,3 +190,10 @@ Output list keys are consumed by the Shiny app in `inst/plot_gs_gp/app.R` (`TRAI
 ```R
 ?gp::gp
 ```
+
+---
+
+## Acknowledgements
+
+This project is based on the original [gp](https://github.com/jeffersonfparil/gp) R package by [Jefferson F. Paril](https://github.com/jeffersonfparil).
+The Python port (`gp_py/`) provides the same genomic prediction functionality with modern tooling.
